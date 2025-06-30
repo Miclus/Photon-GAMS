@@ -830,12 +830,16 @@ option.POM_SHADOW_SAMPLES              = 视差自阴影采样值
 option.POM_SHADOW_SAMPLES.comment      = 以性能为代价调节视差自阴影的质量.
 option.POM_SLOPE_NORMALS               = 视差斜坡法线
 option.POM_DISTANCE                    = 视差距离
+option.POM_SHADOW_STYLE                = 视差自阴影风格
+option.POM_SHADOW_STYLE.comment        = 原版会在视差采样层之间产生阴影形成严重的视觉伪影，改进版通过从视差顶面投射阴影阻止了伪影的产生，但会在视差采样值低的情况下产生锯齿状阴影
 
 suffix.POM_DEPTH                       = m
 suffix.POM_DISTANCE                    = m
 
 value.TEXTURE_FORMAT.TEXTURE_FORMAT_LAB = labPBR
 value.TEXTURE_FORMAT.TEXTURE_FORMAT_OLD = Old PBR
+value.POM_SHADOW_STYLE.1 = 原版
+value.POM_SHADOW_STYLE.2 = 改进版
 
 option.ENVIRONMENT_REFLECTIONS         = 环境反射
 option.ENVIRONMENT_REFLECTIONS.comment = 屏幕空间反射. 使水和光滑的方块表面反射他们对应的环境. 较大性能影响.

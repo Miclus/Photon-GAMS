@@ -943,6 +943,10 @@ option.POM_SHADOW_SAMPLES.comment      = Adjusts the quality of Parallax Shadows
 option.POM_SLOPE_NORMALS               = POM Slope Normals
 option.POM_DISTANCE                    = POM Distance
 suffix.POM_DISTANCE                    = m
+
+option.POM_SHADOW_STYLE                = POM Self-Shadow Style
+option.POM_SHADOW_STYLE.comment        = Vanilla casts shadows between POM layers, creating severe visual artifacts. Modified stops the artifacts by casting shadows from only the top surface, but creates jagged shadows at low Parallax Samples values
+
 option.REFRACTION                      = Refraction
 value.REFRACTION.REFRACTION_OFF        = Off
 value.REFRACTION.REFRACTION_ALL        = Everything
@@ -952,6 +956,8 @@ option.REFRACTION_INTENSITY.comment    = Adjusts the intensity of refractions on
 
 value.TEXTURE_FORMAT.TEXTURE_FORMAT_LAB = labPBR
 value.TEXTURE_FORMAT.TEXTURE_FORMAT_OLD = Old PBR
+value.POM_SHADOW_STYLE.1 = Vanilla
+value.POM_SHADOW_STYLE.2 = Modified
 
 option.ENVIRONMENT_REFLECTIONS         = Environment Reflections
 option.ENVIRONMENT_REFLECTIONS.comment = Screen-space reflections. Makes water and shiny blocks reflect their environment. Big performance impact
