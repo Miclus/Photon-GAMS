@@ -15,6 +15,10 @@ layout (location = 0) out vec3 fragment_color;
 
 in vec2 uv;
 
+#ifdef LENS_FLARE
+flat in vec3 upVec, sunVec;
+#endif
+
 // ------------
 //   Uniforms
 // ------------

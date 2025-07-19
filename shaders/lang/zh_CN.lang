@@ -945,6 +945,14 @@ option.LF_EDGE_STRIP                   = 屏幕边缘蓝色变形镜头光晕
 option.LF_EDGE_STRIP.comment           = 位于屏幕边缘的2个蓝色长条形光晕
 option.LF_GLOWDOTS                     = 荧光点
 option.LF_GLOWDOTS.comment             = 尖锐的模糊荧光点
+option.LF_OCCLUSION_DEBUG              = 显示遮挡检测采样点
+option.LF_OCCLUSION_DEBUG.comment      = 在屏幕上显示遮挡检测的采样点，绿色=未被遮挡，红色=被地形/云层遮挡
+option.LF_CLOUD_THRESHOLD              = 云层遮挡阈值
+option.LF_CLOUD_THRESHOLD.comment      = 调节采样点是否被云遮挡的阈值，越小的值越容易被遮挡
+option.LF_OCCLUSION_SAMPLES            = 遮挡检测采样数量
+option.LF_OCCLUSION_SAMPLES.comment    = 调节遮挡检测采样的数量，值越大效果越平滑
+option.LF_SUN_RADIUS_SCALE             = 遮挡检测半径
+option.LF_SUN_RADIUS_SCALE.comment     = 调节遮挡检测的半径，更大的值需要更多的采样数量以获得平滑的效果
 
 option.RAIN_LENS                       = 镜头雨滴
 option.RAIN_LENS.comment               = 模拟雨天雨水滴在镜头上的效果

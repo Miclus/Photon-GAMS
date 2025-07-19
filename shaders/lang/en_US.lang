@@ -1057,6 +1057,14 @@ option.LF_EDGE_STRIP                   = Edge Blue Anamorphic Lens Flare
 option.LF_EDGE_STRIP.comment           = 2 Blue strip-shaped lens flares at the edge of the screen
 option.LF_GLOWDOTS                     = Glow Dots
 option.LF_GLOWDOTS.comment             = Pointy Fuzzy Glow Dots
+option.LF_OCCLUSION_DEBUG              = Show Occlusion Sample Points
+option.LF_OCCLUSION_DEBUG.comment      = Show occlusion check sample points on screen. Green is visible, red is occluded
+option.LF_CLOUD_THRESHOLD              = Cloud Occlusion Threshold
+option.LF_CLOUD_THRESHOLD.comment      = Adjusts the sensitivity of cloud occlusion. The smaller the value, the easier to be occluded
+option.LF_OCCLUSION_SAMPLES            = Occlusion Check Samples
+option.LF_OCCLUSION_SAMPLES.comment    = Adjusts the number of occlusion check samples, the higher the value, the smoother the effect
+option.LF_SUN_RADIUS_SCALE             = Occlusion Check Radius
+option.LF_SUN_RADIUS_SCALE.comment     = Adjusts the radius of occlusion check, larger values require more samples for a smooth effect
 
 option.RAIN_LENS                       = Rain Lens
 option.RAIN_LENS.comment               = Simulates the effect of raindrops on lens when raining
