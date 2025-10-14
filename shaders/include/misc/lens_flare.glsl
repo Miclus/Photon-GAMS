@@ -4,8 +4,6 @@ https://www.sonicether.com/forum/viewtopic.php?f=4&t=175 (Original site, no long
 https://www.neocodex.us/forum/topic/126112-guide-add-lens-flare-to-seus-shader-pack/
 */
 
-flat in vec3 upVec, sunVec;
-
 float SdotU = dot(sunVec, upVec);
 
 //Higher precision bayer pattern
@@ -326,51 +324,68 @@ void LensFlare(inout vec3 scene_color) {
 	vec2 lightPos = pos1*0.5+0.5;
 
 vec3 tempColor2 = vec3(0.0);
-vec2 checkcoord = lightPos;
 
-vec2 lensFlareCheckOffsets[4] = vec2[4](
-    vec2( 1.0,0.0),
-    vec2(-1.0,1.0),
-    vec2( 0.0,1.0),
-    vec2( 1.0,1.0)
-);
+//Occlusion check
+float visibility = 0.0;
+const float goldenAngle = 2.39996322979; //Golden angle in radians
+float aspectRatio = viewWidth / viewHeight;
 
-//Higher precision dither to prevent noise
-float dither = bayer64(gl_FragCoord.xy);
-float depthVisibility = 1.0;
-float cloudVisibility = 1.0;
-vec2 resolution = vec2(viewWidth, viewHeight);
-vec2 cScale = 20.0 / resolution * SUN_ANGULAR_RADIUS;
-    for (int i = 0; i < 4; i++) {
-        vec2 cOffset = (lensFlareCheckOffsets[i] - dither) * cScale;
-        vec2 checkCoord1 = lightPos.xy + cOffset;
-        vec2 checkCoord2 = lightPos.xy - cOffset;
+#ifdef LF_OCCLUSION_DEBUG
+int visibleSamples = 0;
+int occludedSamples = 0;
+#endif
 
-        float zSample1 = texture2D(depthtex0, checkCoord1).r;
-        float zSample2 = texture2D(depthtex0, checkCoord2).r;
-        #ifdef CLOUDS_CUMULUS || CLOUDS_CUMULUS_CONGESTUS || CLOUDS_CUMULONIMBUS || CLOUDS_ALTOCUMULUS || CLOUDS_CIRRUS || CLOUDS_NOCTILUCENT
-            float cloudLinearDepth1 = texture2D(colortex11, checkCoord1).r;
-            float cloudLinearDepth2 = texture2D(colortex11, checkCoord2).r;
-            zSample1 = max(zSample1, cloudLinearDepth1);
-            zSample2 = max(zSample2, cloudLinearDepth2);
-        if (zSample1 > 1.0)
-            cloudVisibility -= 0.125;
-        if (zSample2 > 1.0)
-            cloudVisibility -= 0.125;
+for (int i = 0; i < LF_OCCLUSION_SAMPLES; i++) {
+    //Generate Fibonacci spiral sample pattern at center of the sun/moon
+    float r = sqrt(float(i) + 0.5) / sqrt(float(LF_OCCLUSION_SAMPLES));
+    float angle = float(i) * goldenAngle;
+    float sampleRadius = SUN_ANGULAR_RADIUS * LF_SUN_RADIUS_SCALE;
+
+    vec2 offset = vec2(cos(angle), sin(angle)) * r * sampleRadius;
+    offset.x /= aspectRatio;
+
+    vec2 checkcoord = lightPos.xy + offset;
+
+    if (checkcoord.x > 0.0 && checkcoord.x < 1.0 && checkcoord.y > 0.0 && checkcoord.y < 1.0) {
+        float depth_sample = texture(depthtex0, checkcoord).r;
+        float is_visible_from_terrain = step(0.999, depth_sample);
+        float point_contribution = 1.0;
+        bool occluded = false;
+
+        #if defined CLOUDS_CUMULUS || defined CLOUDS_CUMULUS_CONGESTUS || defined CLOUDS_CUMULONIMBUS || defined CLOUDS_ALTOCUMULUS || defined CLOUDS_CIRRUS || defined CLOUDS_NOCTILUCENT
+            if (is_visible_from_terrain > 0.5) {
+                float cloud_sample = texture(colortex11, checkcoord).r;
+                float is_occluded_by_cloud = step(LF_CLOUD_THRESHOLD, cloud_sample);
+                point_contribution = mix(1.0, LF_CLOUD_VISIBILITY, is_occluded_by_cloud);
+                occluded = is_occluded_by_cloud > 0.5;
+            }
         #endif
 
-        if (zSample1 < 1.0)
-            depthVisibility -= 0.125;
-        if (zSample2 < 1.0)
-            depthVisibility -= 0.125;
+        visibility += is_visible_from_terrain * point_contribution;
+
+        #ifdef LF_OCCLUSION_DEBUG
+        if (distance(uv, checkcoord) < 0.001) {
+            if (is_visible_from_terrain > 0.5 && !occluded) {
+                scene_color = vec3(0.0, 1.0, 0.0); //Green for visible
+                visibleSamples++;
+            } else {
+                scene_color = vec3(1.0, 0.0, 0.0); //Red for occluded
+                occludedSamples++;
+            }
+            break;
+        }
+        #endif
     }
+}
+
+visibility /= LF_OCCLUSION_SAMPLES;
 
 //Detect if sun is on edge of screen
 float edgeMaskx = 1.0 - clamp(distance(lightPos.x, 0.5f)*9.0f - 4.5f, 0.0f, 1.0f);
 float edgeMasky = 1.0 - clamp(distance(lightPos.y, 0.5f)*9.0f - 4.5f, 0.0f, 1.0f);
 float edgeMask = edgeMaskx * edgeMasky;
 
-float sunmask = depthVisibility * clamp(cloudVisibility, LF_CLOUD_VISIBILITY, 1.0) * edgeMask * float(isEyeInWater <= 0.1 && blindness == 0.0) * (1.0 - rainStrength);
+float sunmask = visibility * edgeMask * float(isEyeInWater <= 0.1 && blindness == 0.0) * (1.0 - rainStrength);
 
 if (sunmask > 0.02)
 {
@@ -384,9 +399,9 @@ float centermask = 1.0 - clamp(distance(lightPos.xy, vec2(0.5, 0.5))*2.0, 0.0, 1
 
 float perceivedLuminance = GetLuminance(scene_color);
 float inverseResponse = 1.0 - smoothstep(0.1, 0.9, perceivedLuminance);
-      inverseResponse = pow(inverseResponse, 0.5) * 2.0;
+      inverseResponse = pow(inverseResponse, 0.5) * 2.2;
 
-vec3 lenslc = vec3(1);
+vec3 lenslc = vec3(1.0);
 
 //Prevent sun/moon flare visible below the horizon at night/day
 float moonVisibility = pow(clamp(SdotU+0.15,0.0,0.15)/0.15,4.0);

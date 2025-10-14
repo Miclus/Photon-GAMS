@@ -61,9 +61,16 @@ bool get_parallax_shadow(vec3 pos, mat2 uv_gradient, float view_distance, float 
 
 	pos.xy += ray_step.xy * dither;
 
+	float max_height = get_depth_value(pos.xy, uv_gradient);
 	for (int i = 0; i < POM_SHADOW_SAMPLES; ++i) {
 		pos += ray_step;
-		if (get_depth_value(pos.xy, uv_gradient) < pos.z) return true;
+		#if POM_SHADOW_STYLE == 1
+		    if (get_depth_value(pos.xy, uv_gradient) < pos.z) return true;
+		#else
+		    float offset_height = get_depth_value(pos.xy, uv_gradient);
+		    float diff = pos.z - offset_height;
+		    if (diff > 0.0 && max_height - offset_height > 1e-4) return true;
+		#endif
 	}
 
 	return false;

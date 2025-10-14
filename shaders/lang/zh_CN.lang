@@ -830,12 +830,16 @@ option.POM_SHADOW_SAMPLES              = 视差自阴影采样值
 option.POM_SHADOW_SAMPLES.comment      = 以性能为代价调节视差自阴影的质量.
 option.POM_SLOPE_NORMALS               = 视差斜坡法线
 option.POM_DISTANCE                    = 视差距离
+option.POM_SHADOW_STYLE                = 视差自阴影风格
+option.POM_SHADOW_STYLE.comment        = 原版会在视差采样层之间产生阴影形成严重的视觉伪影，改进版通过从视差顶面投射阴影阻止了伪影的产生，但会在视差采样值低的情况下产生锯齿状阴影
 
 suffix.POM_DEPTH                       = m
 suffix.POM_DISTANCE                    = m
 
 value.TEXTURE_FORMAT.TEXTURE_FORMAT_LAB = labPBR
 value.TEXTURE_FORMAT.TEXTURE_FORMAT_OLD = Old PBR
+value.POM_SHADOW_STYLE.1 = 原版
+value.POM_SHADOW_STYLE.2 = 改进版
 
 option.ENVIRONMENT_REFLECTIONS         = 环境反射
 option.ENVIRONMENT_REFLECTIONS.comment = 屏幕空间反射. 使水和光滑的方块表面反射他们对应的环境. 较大性能影响.
@@ -941,6 +945,14 @@ option.LF_EDGE_STRIP                   = 屏幕边缘蓝色变形镜头光晕
 option.LF_EDGE_STRIP.comment           = 位于屏幕边缘的2个蓝色长条形光晕
 option.LF_GLOWDOTS                     = 荧光点
 option.LF_GLOWDOTS.comment             = 尖锐的模糊荧光点
+option.LF_OCCLUSION_DEBUG              = 显示遮挡检测采样点
+option.LF_OCCLUSION_DEBUG.comment      = 在屏幕上显示遮挡检测的采样点，绿色=未被遮挡，红色=被地形/云层遮挡
+option.LF_CLOUD_THRESHOLD              = 云层遮挡阈值
+option.LF_CLOUD_THRESHOLD.comment      = 调节采样点是否被云遮挡的阈值，越小的值越容易被遮挡
+option.LF_OCCLUSION_SAMPLES            = 遮挡检测采样数量
+option.LF_OCCLUSION_SAMPLES.comment    = 调节遮挡检测采样的数量，值越大效果越平滑
+option.LF_SUN_RADIUS_SCALE             = 遮挡检测半径
+option.LF_SUN_RADIUS_SCALE.comment     = 调节遮挡检测的半径，更大的值需要更多的采样数量以获得平滑的效果
 
 option.RAIN_LENS                       = 镜头雨滴
 option.RAIN_LENS.comment               = 模拟雨天雨水滴在镜头上的效果
@@ -964,6 +976,9 @@ option.DOF_FOCUS                       = 景深对焦模式
 option.DOF_FOCUS.comment               = 景深对焦距离
 option.DOF_SIZE_X                      = 水平尺寸
 option.DOF_SIZE_Y                      = 垂直尺寸
+option.DOF_ANAMORPHIC                  = 变形镜头失焦模糊
+option.DOF_ANAMORPHIC.comment          = 将失焦模糊（Bokeh）的形状从圆形变为垂直的椭圆形，创造出一种独特的视觉风格。
+option.DOF_ANAMORPHIC_RATIO            = 变形镜头失焦模糊比例
 option.DOF_CA                          = 色差
 option.DOF_CA_INTENSITY                = 色差强度
 option.DOF_CA_INTENSITY.comment        = 色差强度

@@ -99,13 +99,16 @@ void main() {
 	vec2 m = vec2(1.0 - 2.0 * view_pixel_size * rcp(taau_render_scale));
 	for (int i = 0; i < DOF_SAMPLES; ++i) {
 		vec2 offset = vogel_disk_sample(i, DOF_SAMPLES, theta) * CoC * ((1.0 - step(1.0 - eps, depth)) * 0.6 + 0.4);
-		offset = vec2(uv + offset);
+	    #ifdef DOF_ANAMORPHIC
+            offset.y *= DOF_ANAMORPHIC_RATIO;
+	    #endif
+		vec2 sample_coord = vec2(uv + offset);
 #ifdef DOF_CA
-		scene_color.r += textureLod(colortex0, clamp(offset + caDist * ca[0], vec2(0.0), m) * taau_render_scale, 0).r;
-		scene_color.g += textureLod(colortex0, clamp(offset + caDist * ca[1], vec2(0.0), m) * taau_render_scale, 0).g;
-		scene_color.b += textureLod(colortex0, clamp(offset + caDist * ca[2], vec2(0.0), m) * taau_render_scale, 0).b;
+		scene_color.r += textureLod(colortex0, clamp(sample_coord + caDist * ca[0], vec2(0.0), m) * taau_render_scale, 0).r;
+		scene_color.g += textureLod(colortex0, clamp(sample_coord + caDist * ca[1], vec2(0.0), m) * taau_render_scale, 0).g;
+		scene_color.b += textureLod(colortex0, clamp(sample_coord + caDist * ca[2], vec2(0.0), m) * taau_render_scale, 0).b;
 #else
-		scene_color += textureLod(colortex0, clamp(offset, vec2(0.0), m) * taau_render_scale, 0).rgb;
+		scene_color += textureLod(colortex0, clamp(sample_coord, vec2(0.0), m) * taau_render_scale, 0).rgb;
 #endif
 	}
 	//scene_color = vec3(caDist);

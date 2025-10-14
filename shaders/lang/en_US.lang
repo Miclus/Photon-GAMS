@@ -943,6 +943,10 @@ option.POM_SHADOW_SAMPLES.comment      = Adjusts the quality of Parallax Shadows
 option.POM_SLOPE_NORMALS               = POM Slope Normals
 option.POM_DISTANCE                    = POM Distance
 suffix.POM_DISTANCE                    = m
+
+option.POM_SHADOW_STYLE                = POM Self-Shadow Style
+option.POM_SHADOW_STYLE.comment        = Vanilla casts shadows between POM layers, creating severe visual artifacts. Modified stops the artifacts by casting shadows from only the top surface, but creates jagged shadows at low Parallax Samples values
+
 option.REFRACTION                      = Refraction
 value.REFRACTION.REFRACTION_OFF        = Off
 value.REFRACTION.REFRACTION_ALL        = Everything
@@ -952,6 +956,8 @@ option.REFRACTION_INTENSITY.comment    = Adjusts the intensity of refractions on
 
 value.TEXTURE_FORMAT.TEXTURE_FORMAT_LAB = labPBR
 value.TEXTURE_FORMAT.TEXTURE_FORMAT_OLD = Old PBR
+value.POM_SHADOW_STYLE.1 = Vanilla
+value.POM_SHADOW_STYLE.2 = Modified
 
 option.ENVIRONMENT_REFLECTIONS         = Environment Reflections
 option.ENVIRONMENT_REFLECTIONS.comment = Screen-space reflections. Makes water and shiny blocks reflect their environment. Big performance impact
@@ -1051,6 +1057,14 @@ option.LF_EDGE_STRIP                   = Edge Blue Anamorphic Lens Flare
 option.LF_EDGE_STRIP.comment           = 2 Blue strip-shaped lens flares at the edge of the screen
 option.LF_GLOWDOTS                     = Glow Dots
 option.LF_GLOWDOTS.comment             = Pointy Fuzzy Glow Dots
+option.LF_OCCLUSION_DEBUG              = Show Occlusion Sample Points
+option.LF_OCCLUSION_DEBUG.comment      = Show occlusion check sample points on screen. Green is visible, red is occluded
+option.LF_CLOUD_THRESHOLD              = Cloud Occlusion Threshold
+option.LF_CLOUD_THRESHOLD.comment      = Adjusts the sensitivity of cloud occlusion. The smaller the value, the easier to be occluded
+option.LF_OCCLUSION_SAMPLES            = Occlusion Check Samples
+option.LF_OCCLUSION_SAMPLES.comment    = Adjusts the number of occlusion check samples, the higher the value, the smoother the effect
+option.LF_SUN_RADIUS_SCALE             = Occlusion Check Radius
+option.LF_SUN_RADIUS_SCALE.comment     = Adjusts the radius of occlusion check, larger values require more samples for a smooth effect
 
 option.RAIN_LENS                       = Rain Lens
 option.RAIN_LENS.comment               = Simulates the effect of raindrops on lens when raining
@@ -1074,6 +1088,9 @@ option.DOF_FOCUS                       = DoF Focus
 option.DOF_FOCUS.comment               = Focal distance for Depth of Field
 option.DOF_SIZE_X                      = Horizontal Size
 option.DOF_SIZE_Y                      = Vertical Size
+option.DOF_ANAMORPHIC                  = Anamorphic Bokeh
+option.DOF_ANAMORPHIC.comment          = Changes the shape of the out-of-focus blur (Bokeh) from a circle to a vertical oval, creating a distinct visual style
+option.DOF_ANAMORPHIC_RATIO            = Anamorphic Bokeh Ratio
 option.DOF_CA                          = Chromatic Aberration
 option.DOF_CA_INTENSITY                = CA Intensity
 option.DOF_CA_INTENSITY.comment        = Chromatic Aberration Intensity
