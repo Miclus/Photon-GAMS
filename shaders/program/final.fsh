@@ -49,6 +49,11 @@ uniform sampler2D depthtex0;
 uniform int isEyeInWater;
 uniform float blindness;
 uniform sampler2D colortex11;
+uniform sampler2D noisetex;
+#endif
+
+#if defined LENS_FLARE && defined LF_MOONPHASE
+uniform float lens_flare_moon_phase_brightness;
 #endif
 
 #ifdef RAIN_LENS

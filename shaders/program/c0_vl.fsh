@@ -109,6 +109,15 @@ uniform sampler3D light_sampler_a;
 uniform sampler3D light_sampler_b;
 #endif
 
+#ifdef SCREENSPACE_VL
+uniform float aspectRatio;
+uniform sampler2D colortex11;
+#endif
+
+#if defined SCREENSPACE_VL && defined SSVL_MOONPHASE
+uniform float lens_flare_moon_phase_brightness;
+#endif
+
 // ------------
 //   Includes
 // ------------
@@ -126,6 +135,11 @@ uniform sampler3D light_sampler_b;
 #include "/include/utility/encoding.glsl"
 #include "/include/utility/random.glsl"
 #include "/include/utility/space_conversion.glsl"
+
+#ifdef SCREENSPACE_VL
+#include "/include/utility/dithering.glsl"
+#include "/include/fog/screenspace_vl.glsl"
+#endif
 
 void main() {
 	ivec2 fog_texel  = ivec2(gl_FragCoord.xy);
@@ -211,5 +225,26 @@ void main() {
 		case -1:
 			break;
 	}
+
+#ifdef SCREENSPACE_VL
+    if (isEyeInWater == 0 && rainStrength < 1.0 && blindness == 0.0) {
+        vec4 tpos = gbufferProjection * gbufferModelView * vec4(light_dir, 0.0);
+        if (tpos.w > 0.0) {
+            vec2 pos1 = tpos.xy / tpos.w;
+            vec2 lightPos = pos1 * 0.5 + 0.5;
+
+                #ifdef TAA
+	                float dither = interleaved_gradient_noise(gl_FragCoord.xy, frameCounter);
+                #else
+	                float dither = bayer32(gl_FragCoord.xy);
+                #endif
+    
+	                vec3 ssvl_scattering = CalculateScreenSpaceVL(depthtex0, colortex11, lightPos, uv, light_color, dither);
+
+                    fog_scattering += ssvl_scattering;
+        }
+    }
+#endif
+
 #endif
 }

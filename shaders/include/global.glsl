@@ -113,6 +113,9 @@ vec3  sdiv(vec3 a, vec3 b)   { return vec3(sdiv(a.x, b.x), sdiv(a.y, b.y), sdiv(
 float linear_step(float edge0, float edge1, float x) {
 	return clamp01((x - edge0) / (edge1 - edge0));
 }
+float linear_step_unclamped(float edge0, float edge1, float x) {
+	return (x - edge0) / (edge1 - edge0);
+}
 
 vec2 linear_step(vec2 edge0, vec2 edge1, vec2 x) {
 	return clamp01((x - edge0) / (edge1 - edge0));

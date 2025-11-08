@@ -104,6 +104,58 @@ vec3 ycocg_to_rgb(vec3 ycocg) {
 	return vec3(tmp + ycocg.y, ycocg.x + ycocg.z, tmp - ycocg.y);
 }
 
+// XYZ <-> LAB
+
+float cie_lab_f(float t) {
+	const float delta = 6.0 / 29.0;
+
+	if (t > cube(delta)) {
+		return pow(t, rcp(3.0));
+	} else {
+		return rcp(3.0 * delta * delta) * t + (4.0 / 29.0);
+	}
+}
+float cie_lab_f_inv(float t) {
+	const float delta = 6.0 / 29.0;
+
+	if (t > delta) {
+		return cube(t);
+	} else {
+		return (3.0 * delta * delta) * (t - (4.0 / 29.0));
+	}
+}
+
+vec3 xyz_to_lab(vec3 xyz) {
+	const vec3 xyz_n = vec3(95.0489, 100.0, 108.8840);
+
+	xyz /= xyz_n;
+
+	vec3 f = vec3(
+		cie_lab_f(xyz.x),
+		cie_lab_f(xyz.y),
+		cie_lab_f(xyz.z)
+	);
+
+	return vec3(
+		116.0 * f.y - 16.0,
+		500.0 * (f.x - f.y),
+		200.0 * (f.y - f.z)
+	);
+}
+vec3 lab_to_xyz(vec3 lab) {
+	const vec3 xyz_n = vec3(95.0489, 100.0, 108.8840);
+
+	float y = lab.x * rcp(116.0) + (16.0 / 116.0);
+
+	vec3 f_inv = vec3(
+		cie_lab_f_inv(y + lab.y * rcp(500.0)),
+		cie_lab_f_inv(y),
+		cie_lab_f_inv(y - lab.z * rcp(200.0))
+	);
+
+	return xyz_n * f_inv;
+}
+
 // Original source: https://github.com/Jessie-LC/open-source-utility-code/blob/main/advanced/blackbody.glsl
 vec3 blackbody(float temperature) {
 	const vec3 lambda  = primary_wavelengths_ap1;
