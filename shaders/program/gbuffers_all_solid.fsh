@@ -92,7 +92,7 @@ uniform vec4 entityColor;
 #endif
 
 #if defined PROGRAM_GBUFFERS_TERRAIN && defined POM
-#include "/include/misc/parallax.glsl"
+#include "/include/surface/parallax.glsl"
 #endif
 
 #ifdef DIRECTIONAL_LIGHTMAPS

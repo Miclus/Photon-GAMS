@@ -2,7 +2,7 @@
 #define INCLUDE_LIGHTING_LPV_BLOCKLIGHT
 
 #include "voxelization.glsl"
-#include "/include/misc/material.glsl"
+#include "/include/surface/material.glsl"
 
 #ifdef DIRECTIONAL_LIGHTMAPS
 //#include "/include/lighting/specular_lighting.glsl"

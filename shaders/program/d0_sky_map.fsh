@@ -54,6 +54,8 @@ uniform sampler2D colortex13;
 uniform sampler3D depthtex0; // atmospheric scattering LUT
 uniform sampler2D depthtex1;
 
+uniform sampler2D colortex8; // cloud shadow map
+
 uniform sampler2D noisetex;
 
 uniform mat4 gbufferModelView;

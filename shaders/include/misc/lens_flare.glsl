@@ -327,7 +327,7 @@ float edgeMaskx = 1.0 - clamp(distance(lightPos.x, 0.5f)*9.0f - 4.5f, 0.0f, 1.0f
 float edgeMasky = 1.0 - clamp(distance(lightPos.y, 0.5f)*9.0f - 4.5f, 0.0f, 1.0f);
 float edgeMask = edgeMaskx * edgeMasky;
 
-const float LF_OCCLUSION_SAMPLES = 32.0;
+const float LF_OCCLUSION_SAMPLES = 16.0;
 float total_occlusion = 0.0;
     for (int i = 0; i < LF_OCCLUSION_SAMPLES; i++) {
         //Generate Fibonacci spiral sample pattern at center of the sun/moon

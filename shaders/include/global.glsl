@@ -241,3 +241,18 @@ vec3 project_ortho(mat4 m, vec3 pos) {
 #define cartesian_to_log_polar(a) vec2(log(length(a)), atan(a.y, a.x))
 
 #define log_polar_to_cartesian(logp) (exp(logp.x) * vec2(cos(logp.y), sin(logp.y)))
+
+// Hand 
+
+void fix_hand_depth(inout float depth, out bool is_hand) {
+	is_hand = depth < hand_depth; // NB: Not the same as mc_hand_depth
+	if (is_hand) {
+		depth  = depth * 2.0 - 1.0;
+		depth *= rcp(MC_HAND_DEPTH);
+		depth  = depth * 0.5 + 0.5;
+	}
+}
+void fix_hand_depth(inout float depth) {
+	bool unused;
+	fix_hand_depth(depth, unused);
+}

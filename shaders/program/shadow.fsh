@@ -53,7 +53,7 @@ uniform float rainStrength;
 uniform vec2 taa_offset;
 uniform vec3 light_dir;
 
-#include "/include/misc/water_normal.glsl"
+#include "/include/surface/water_normal.glsl"
 #include "/include/utility/color.glsl"
 
 #if defined (PHYSICS_MOD_OCEAN) && defined (PHYSICS_OCEAN)
