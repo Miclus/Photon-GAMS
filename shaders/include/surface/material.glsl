@@ -139,13 +139,13 @@ Material material_from(vec3 albedo_srgb, uint material_mask, vec3 world_pos, vec
 						}
 					} else { // 2-4
 						if (material_mask == 2u) { // 2
-							#if defined HARDCODED_SSS && !defined LOD_MOD_ACTIVE 
+							#ifdef HARDCODED_SSS
 							// Small plants
 							material.sss_amount = 0.5;
 							material.sheen_amount = 0.5;
 							#endif
 						} else { // 3
-							#if defined HARDCODED_SSS && !defined LOD_MOD_ACTIVE 
+							#ifdef HARDCODED_SSS
 							// Tall plants (lower half)
 							material.sss_amount = 0.5;
 							material.sheen_amount = 0.5;
@@ -155,7 +155,7 @@ Material material_from(vec3 albedo_srgb, uint material_mask, vec3 world_pos, vec
 				} else { // 4-8
 					if (material_mask < 6u) { // 4-6
 						if (material_mask == 4u) { // 4
-							#if defined HARDCODED_SSS && !defined LOD_MOD_ACTIVE 
+							#ifdef HARDCODED_SSS
 							// Tall plants (upper half)
 							material.sss_amount = 0.5;
 							material.sheen_amount = 0.5;
@@ -169,7 +169,7 @@ Material material_from(vec3 albedo_srgb, uint material_mask, vec3 world_pos, vec
 							material.sheen_amount = 0.5;
 							#endif
 
-							#if defined HARDCODED_SSS && !defined LOD_MOD_ACTIVE 
+							#ifdef HARDCODED_SSS
 							material.sss_amount = 1.0;
 							#endif
 						}
@@ -211,7 +211,7 @@ Material material_from(vec3 albedo_srgb, uint material_mask, vec3 world_pos, vec
 							material.ssr_multiplier = 1.0;
 							#endif
 
-							#if defined HARDCODED_SSS && !defined LOD_MOD_ACTIVE 
+							#ifdef HARDCODED_SSS
 							// Strong SSS
 							material.sss_amount = 0.75;
 							#endif
@@ -276,7 +276,7 @@ Material material_from(vec3 albedo_srgb, uint material_mask, vec3 world_pos, vec
 						}
 					} else { // 14-16
 						if (material_mask == 14u) { // 14
-							#if defined HARDCODED_SSS && !defined LOD_MOD_ACTIVE 
+							#ifdef HARDCODED_SSS
 							// Strong SSS
 							material.sss_amount = 0.6;
 							#endif
@@ -289,7 +289,7 @@ Material material_from(vec3 albedo_srgb, uint material_mask, vec3 world_pos, vec
 							material.porosity = 1.5;
 							#endif
 						} else { // 15
-							#if defined HARDCODED_SSS && !defined LOD_MOD_ACTIVE 
+							#ifdef HARDCODED_SSS
 							// Weak SSS
 							material.sss_amount = 0.22;
 							#endif
@@ -532,7 +532,7 @@ Material material_from(vec3 albedo_srgb, uint material_mask, vec3 world_pos, vec
 						}
 					} else { // 30-32
 						if (material_mask == 30u) { // 30
-						#if defined HARDCODED_SSS && !defined LOD_MOD_ACTIVE 
+						#ifdef HARDCODED_SSS
 							// SSS (not transparent blocks)
 							material.sss_amount = 0.22;
 							#endif
@@ -701,7 +701,7 @@ Material material_from(vec3 albedo_srgb, uint material_mask, vec3 world_pos, vec
 							material.emission = 0.80 * albedo_sqrt * step(0.73, 0.8 * hsl.z);
 							light_levels.x *= 0.85;
 							#endif
-							#if defined HARDCODED_SSS && !defined LOD_MOD_ACTIVE 
+							#ifdef HARDCODED_SSS
 							material.sss_amount = 0.2;
 							#endif
 							#ifdef HARDCODED_SPECULAR
@@ -783,7 +783,7 @@ Material material_from(vec3 albedo_srgb, uint material_mask, vec3 world_pos, vec
 							// Nether mushrooms
 							material.emission = 0.80 * albedo_sqrt * step(0.73, 0.1 * hsl.y + 0.7 * hsl.z);
 							#endif
-							#if defined HARDCODED_SSS && !defined LOD_MOD_ACTIVE 
+							#ifdef HARDCODED_SSS
 							material.sss_amount = 0.25;
 							#endif
 							#ifdef HARDCODED_SPECULAR
@@ -801,7 +801,7 @@ Material material_from(vec3 albedo_srgb, uint material_mask, vec3 world_pos, vec
 							float redness = ap1.r * rcp(ap1.g + ap1.b);
 							material.emission = (0.2 * material.albedo * step(0.28, redness * l) + 0.3 * (0.38 + 0.02 * isolate_hue(hsl, 15.0, 15.0)) * step(0.771, hsl.y) * step(0.0, hsl.z));
 							#endif
-							#if defined HARDCODED_SSS && !defined LOD_MOD_ACTIVE 
+							#ifdef HARDCODED_SSS
 							material.sss_amount = 0.15;
 							#endif
 							#ifdef HARDCODED_SPECULAR
@@ -868,7 +868,7 @@ Material material_from(vec3 albedo_srgb, uint material_mask, vec3 world_pos, vec
 							material.f0 = vec3(0.02);
 							material.ssr_multiplier = 1.0;
 							#endif
-							#if defined HARDCODED_SSS && !defined LOD_MOD_ACTIVE 
+							#ifdef HARDCODED_SSS
 							material.sss_amount = 0.3;
 							#endif
 						}
@@ -908,7 +908,7 @@ Material material_from(vec3 albedo_srgb, uint material_mask, vec3 world_pos, vec
 							float redness = ap1.r * rcp(ap1.g + ap1.b);
 							material.emission = (0.3 * material.albedo * step(0.3, redness * l) + 0.3 * (0.38 + 0.02 * isolate_hue(hsl, 15.0, 15.0)) * step(0.771, hsl.y) * step(0.0, hsl.z));
 							#endif
-							#if defined HARDCODED_SSS && !defined LOD_MOD_ACTIVE 
+							#ifdef HARDCODED_SSS
 							material.sss_amount = 0.15;
 							#endif
 							#ifdef HARDCODED_SPECULAR
@@ -1092,7 +1092,7 @@ Material material_from(vec3 albedo_srgb, uint material_mask, vec3 world_pos, vec
 		material.ssr_multiplier = 1.0;
 		#endif
 
-		#if defined HARDCODED_SSS && !defined LOD_MOD_ACTIVE 
+		#ifdef HARDCODED_SSS
 		material.sss_amount = 0.5;
 		#endif
 	}
