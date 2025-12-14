@@ -9,6 +9,9 @@
 --------------------------------------------------------------------------------
 */
 
+#if !defined SETTINGS_INCLUDED
+#define SETTINGS_INCLUDED
+
 const int noiseTextureResolution = 512;
 
 const bool shadowHardwareFiltering1 = true;
@@ -1125,7 +1128,7 @@ const float wetnessHalflife         = 70.0;
   #define TONEMAP_PLOT_COLOR 2
 
   #define DEBUG_VIEW DEBUG_VIEW_NONE // [DEBUG_VIEW_NONE DEBUG_VIEW_SAMPLER DEBUG_VIEW_HISTOGRAM DEBUG_VIEW_WEATHER]
-  #define DEBUG_SAMPLER colortex1 // [colortex1 colortex2 colortex3 colortex4 colortex5 colortex6 colortex7 colortex8 colortex9 colortex10 colortex11 colortex12 colortex13 colortex14 colortex15 depthtex0 depthtex1 depthtex2 shadowtex0 shadowtex1 shadowcolor0 shadowcolor1]
+  #define DEBUG_SAMPLER colortex1 // [colortex1 colortex2 colortex3 colortex4 colortex5 colortex6 colortex7 colortex8 colortex9 colortex10 colortex11 colortex12 colortex13 colortex14 colortex15 colortex16 depthtex0 depthtex1 depthtex2 shadowtex0 shadowtex1 shadowcolor0 shadowcolor1]
 //#define WHITE_WORLD
 //#define TONEMAP_COMPARISON
   #define TONEMAP_PLOT TONEMAP_PLOT_NONE // [TONEMAP_PLOT_NONE TONEMAP_PLOT_WHITE TONEMAP_PLOT_COLOR]
@@ -1281,7 +1284,18 @@ const float wetnessHalflife         = 70.0;
   #ifdef RAIN_LENS
   #endif
 
+  #ifdef VL  
+  #endif
+
+  #ifdef LPV_VL 
+  #endif
+
+  #ifdef CREPUSCULAR_RAYS 
+  #endif
+
   // Not available on OF
   #ifndef IS_IRIS
     #undef USE_SEPARATE_ENTITY_DRAWS
   #endif
+
+#endif // SETTINGS_INCLUDED

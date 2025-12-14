@@ -207,7 +207,7 @@ void main() {
 
 	// Crepuscular rays
 
-#ifdef CREPUSCULAR_RAYS
+#if defined CREPUSCULAR_RAYS && !defined BLOCKY_CLOUDS
 	vec4 crepuscular_rays = draw_crepuscular_rays(
 		colortex8,
 		ray_dir,

@@ -19,13 +19,13 @@ float compute_maximum_horizon_angle(
 	vec3 view_pos,
 	float radius,
 	float dither,
-    bool is_dh_terrain
+    bool is_lod
 ) {
 	float step_size = (GTAO_RADIUS * rcp(float(GTAO_HORIZON_STEPS))) * radius;
 
 	float max_cos_theta = -1.0;
 
-	vec2 ray_step = (view_to_screen_space(view_pos + view_slice_dir * step_size, true, is_dh_terrain) - screen_pos).xy;
+	vec2 ray_step = (view_to_screen_space(view_pos + view_slice_dir * step_size, true, is_lod) - screen_pos).xy;
 	vec2 ray_pos = screen_pos.xy + ray_step * (dither + max_of(view_pixel_size) * rcp_length(ray_step));
 
 	for (int i = 0; i < GTAO_HORIZON_STEPS; ++i, ray_pos += ray_step) {
@@ -55,7 +55,7 @@ vec2 compute_gtao(
 	vec3 view_pos,
 	vec3 view_normal,
 	vec2 dither,
-	bool is_dh_terrain,
+	bool is_lod,
 	out vec3 bent_normal
 ) {
 	float ao = 0.0;
@@ -71,9 +71,9 @@ vec2 compute_gtao(
 	// Reduce AO radius very close up, makes some screen-space artifacts less obvious
 	float ao_radius = max(0.25 + 0.75 * smoothstep(0.0, 81.0, length_squared(view_pos)), 0.5);
 
-    // Increase AO radius for DH terrain (looks nice)
-#ifdef DISTANT_HORIZONS
-    if (is_dh_terrain) {
+    // Increase AO radius for LoD terrain (looks nice)
+#ifdef LOD_MOD_ACTIVE
+    if (is_lod) {
         ao_radius *= 3.0;
     }
 #endif
@@ -96,8 +96,8 @@ vec2 compute_gtao(
 		float gamma = sgn_gamma * fast_acos(cos_gamma);
 
 		vec2 max_horizon_angles;
-		max_horizon_angles.x = compute_maximum_horizon_angle(-view_slice_dir, viewer_dir, screen_pos, view_pos, ao_radius, dither.y, is_dh_terrain);
-		max_horizon_angles.y = compute_maximum_horizon_angle( view_slice_dir, viewer_dir, screen_pos, view_pos, ao_radius, dither.y, is_dh_terrain);
+		max_horizon_angles.x = compute_maximum_horizon_angle(-view_slice_dir, viewer_dir, screen_pos, view_pos, ao_radius, dither.y, is_lod);
+		max_horizon_angles.y = compute_maximum_horizon_angle( view_slice_dir, viewer_dir, screen_pos, view_pos, ao_radius, dither.y, is_lod);
 
 		ambient_sss += max0(max_horizon_angles.y - half_pi) * rcp_pi;
 

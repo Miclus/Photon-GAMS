@@ -272,7 +272,7 @@ vec3 get_specular_reflections(
 	float alpha_squared = material.roughness * material.roughness;
 	float dither = r1(frameCounter, texelFetch(noisetex, ivec2(gl_FragCoord.xy) & 511, 0).b);
 
-#ifdef DISTANT_HORIZONS
+#ifdef LOD_MOD_ACTIVE
 	// Convert screen depth to combined depth
 	screen_pos = view_to_screen_space(SSRT_PROJECTION_MATRIX, view_pos, true);
 #endif
