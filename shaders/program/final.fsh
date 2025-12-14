@@ -56,6 +56,10 @@ uniform sampler2D noisetex;
 uniform float lens_flare_moon_phase_brightness;
 #endif
 
+#if defined LENS_FLARE && defined DISTANT_HORIZONS
+uniform sampler2D dhDepthTex;
+#endif
+
 #ifdef RAIN_LENS
 uniform float biome_may_rain;
 uniform ivec2 eyeBrightnessSmooth;
@@ -82,7 +86,7 @@ uniform vec2 taa_offset;
 uniform float near;
 uniform float far;
 
-#include "/include/misc/distant_horizons.glsl"
+#include "/include/misc/lod_mod_support.glsl"
 #include "/include/utility/space_conversion.glsl"
 #endif
 

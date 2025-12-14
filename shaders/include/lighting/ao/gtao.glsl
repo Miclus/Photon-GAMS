@@ -1,7 +1,7 @@
 #if !defined INCLUDE_LIGHTING_AO_GTAO
 #define INCLUDE_LIGHTING_AO_GTAO
 
-#include "/include/misc/distant_horizons.glsl"
+#include "/include/misc/lod_mod_support.glsl"
 #include "/include/utility/fast_math.glsl" 
 #include "/include/utility/space_conversion.glsl"
 
@@ -30,7 +30,7 @@ float compute_maximum_horizon_angle(
 
 	for (int i = 0; i < GTAO_HORIZON_STEPS; ++i, ray_pos += ray_step) {
         ivec2 texel = ivec2(clamp01(ray_pos) * view_res * taau_render_scale - 0.5);
-		float depth = texelFetch(combined_depth_buffer, texel, 0).x;
+		float depth = texelFetch(combined_depth_tex, texel, 0).x;
 
 		if (depth == 1.0 || depth < hand_depth || depth == screen_pos.z) continue;
 

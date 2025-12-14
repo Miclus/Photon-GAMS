@@ -341,15 +341,28 @@ float total_occlusion = 0.0;
         vec2 checkcoord = lightPos.xy + offset;
 
         if (checkcoord.x > -0.12 && checkcoord.x < 1.12 && checkcoord.y > -0.12 && checkcoord.y < 1.12) {
-            float depth_sample = texture2D(depthtex0, checkcoord).r;
-            float terrain_visibility = step(0.9999, depth_sample);
+            float depth_sample = texture(depthtex0, checkcoord).r;
+
+            #if defined TAA && defined TAAU
+                vec2 original_uv = checkcoord * TAAU_RENDER_SCALE;
+                depth_sample = texture(depthtex0, original_uv).r;
+            #else
+                depth_sample = texture(depthtex0, checkcoord).r;
+            #endif
+
+            #ifdef DISTANT_HORIZONS
+                float dh_depth_sample = texture(dhDepthTex, checkcoord).r;
+            #else
+                float dh_depth_sample = 1.0;
+            #endif
+            float min_depth = min(depth_sample, dh_depth_sample);
+            float terrain_visibility = step(1.0 - eps, min_depth);
         
             float cloud_visibility = 1.0;
-
             #if defined CLOUDS_CUMULUS || defined CLOUDS_CUMULUS_CONGESTUS || defined CLOUDS_CUMULONIMBUS || defined CLOUDS_ALTOCUMULUS || defined CLOUDS_CIRRUS || defined CLOUDS_NOCTILUCENT
                 if (terrain_visibility > 0.5) {
                     float cloud_sample = texture(colortex11, checkcoord).g;
-                    cloud_visibility = step(cloud_sample, 0.0001);
+                    cloud_visibility = step(cloud_sample, eps);
                 }
             #endif
 

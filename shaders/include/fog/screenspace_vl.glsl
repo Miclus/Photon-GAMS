@@ -1,57 +1,63 @@
-vec3 CalculateScreenSpaceVL(sampler2D depthTexture, sampler2D cloudTexture, vec2 lightPos, vec2 uv, vec3 light_color, float dither) {
-    vec2 deltaToLight = lightPos - uv;
+vec3 screenspace_vl(sampler2D depthtex0, vec2 lightPos, vec2 uv, vec3 light_color, float dither) {
+    vec2 delta_to_sun = lightPos - uv;
 
-    float distToSun = length(deltaToLight * vec2(aspectRatio, 1.0));
+    float dist_to_sun = length(delta_to_sun * vec2(aspectRatio, 1.0));
 
-    if (distToSun > SSVL_FADE_RADIUS) {
+    if (dist_to_sun > SSVL_FADE_RADIUS) {
         return vec3(0.0);
     }
 
-    vec2 sampleStep = deltaToLight / SSVL_SAMPLES * SSVL_DENSITY;
+    vec2 sample_step = delta_to_sun / SSVL_SAMPLES * SSVL_DENSITY;
 
-    vec3 accumulatedLight = vec3(0.0);
-    float decayFactor = 1.0;
+    vec3 accumulated_light = vec3(0.0);
+    float decay_factor = 1.0;
 
-    vec2 newUV = uv + sampleStep * dither;
+    vec2 sample_uv = uv + sample_step * dither;
 
     for (int i = 0; i < SSVL_SAMPLES; i++) {
-        newUV += sampleStep;
+        sample_uv += sample_step;
 
-        if (newUV.x < -0.12 || newUV.x > 1.12 || newUV.y < -0.12 || newUV.y > 1.12) {
+        if (sample_uv.x < -0.12 || sample_uv.x > 1.12 || sample_uv.y < -0.12 || sample_uv.y > 1.12) {
             break;
         }
 
-        vec2 coordFromLight = newUV - lightPos;
-        float angle = atan(coordFromLight.y, coordFromLight.x);
-        float dist = length(coordFromLight);
+        vec2 coord_from_light = sample_uv - lightPos;
+        float angle = atan(coord_from_light.y, coord_from_light.x);
+        float dist = length(coord_from_light);
 
-        vec2 noiseCoord = vec2(angle / tau, dist * SSVL_NOISE_SCALE);
-        float checkcoord = texture(noisetex, noiseCoord).r;
+        vec2 checkcoord = vec2(angle / tau, dist * SSVL_NOISE_SCALE);
+        float noise_coord = texture(noisetex, checkcoord).r;
 
-        checkcoord = mix(1.0, checkcoord, SSVL_NOISE_INTENSITY);
-        
-        float depthSample = texture(depthTexture, newUV).r;
-        float terrain_visibility = step(0.9999, depthSample);
+        noise_coord = mix(1.0, noise_coord, SSVL_NOISE_INTENSITY);
+
+        #if defined TAA && defined TAAU
+            vec2 original_uv = sample_uv * TAAU_RENDER_SCALE;
+            float depth_sample = texture(depthtex0, original_uv).r;
+        #else
+            float depth_sample = texture(depthtex0, sample_uv).r;
+        #endif
+
+        float terrain_visibility = step(1.0 - eps, depth_sample);
 
         if (sun_dir.z > 0.0) {
-            accumulatedLight += light_color * terrain_visibility * decayFactor * checkcoord;
+            accumulated_light += light_color * terrain_visibility * decay_factor * noise_coord;
         } else {
-            accumulatedLight += light_color * terrain_visibility * decayFactor;
+            accumulated_light += light_color * terrain_visibility * decay_factor;
         }
 
-        decayFactor *= SSVL_DECAY;
+        decay_factor *= SSVL_DECAY;
     }
 
-    float radialMask = 1.0 - clamp01(distToSun / SSVL_FADE_RADIUS);
-          radialMask = pow(radialMask, SSVL_FADE_FACTOR);
+    float radial_mask = 1.0 - clamp01(dist_to_sun / SSVL_FADE_RADIUS);
+          radial_mask = pow(radial_mask, SSVL_FADE_FACTOR);
 
 #ifdef SSVL_MOONPHASE
-    if (sun_dir.z < 0.0) {
-        return accumulatedLight * SSVL_INTENSITY * radialMask * lens_flare_moon_phase_brightness;
-    } else {
-        return accumulatedLight * SSVL_INTENSITY * radialMask;
+    if (sun_dir.z < 0.0) { // Moon
+        return accumulated_light * SSVL_INTENSITY * radial_mask * lens_flare_moon_phase_brightness;
+    } else { // Sun
+        return accumulated_light * SSVL_INTENSITY * radial_mask;
     }
 #else
-    return accumulatedLight * SSVL_INTENSITY * radialMask;
+    return accumulated_light * SSVL_INTENSITY * radial_mask;
 #endif
 }

@@ -155,12 +155,12 @@ uniform vec4 entityColor;
 
 #include "/include/fog/simple_fog.glsl"
 #include "/include/lighting/diffuse_lighting.glsl"
-#include "/include/lighting/shadows/sampling.glsl"
+#include "/include/lighting/shadows/pcss.glsl"
 #include "/include/lighting/specular_lighting.glsl"
-#include "/include/misc/distant_horizons.glsl"
-#include "/include/surface/material.glsl"
+#include "/include/misc/lod_mod_support.glsl"
 #include "/include/misc/material_masks.glsl"
 #include "/include/misc/purkinje_shift.glsl"
+#include "/include/surface/material.glsl"
 #include "/include/surface/water_normal.glsl"
 #include "/include/utility/color.glsl"
 #include "/include/utility/encoding.glsl"
@@ -379,11 +379,11 @@ void main() {
 
 	vec3 view_back_pos = screen_to_view_space(vec3(coord, depth1), true);
 
-#ifdef DISTANT_HORIZONS
-	float depth1_dh = texelFetch(dhDepthTex1, ivec2(gl_FragCoord.xy), 0).x;
+#ifdef LOD_MOD_ACTIVE
+	float depth1_lod = texelFetch(lod_depth_tex_solid, ivec2(gl_FragCoord.xy), 0).x;
 
-	if (is_distant_horizons_terrain(depth1, depth1_dh)) {
-		view_back_pos = screen_to_view_space(vec3(coord, depth1_dh), true, true);
+	if (is_lod_terrain(depth1, depth1_lod)) {
+		view_back_pos = screen_to_view_space(vec3(coord, depth1_lod), true, true);
 	}
 #endif
 
@@ -418,7 +418,7 @@ void main() {
 	#ifdef WATER_WAVES
 		if (abs(normal.y) > eps) {
 			vec3 flat_normal = tbn[2];
-			#ifdef DISTANT_HORIZONS
+			#ifdef LOD_MOD_ACTIVE
 			// Use hardcoded TBN matrix pointing upwards that is the same for DH water and regular water
 			mat3 tbn = mat3(
 			vec3(1.0, 0.0, 0.0),
@@ -539,7 +539,7 @@ void main() {
 #if defined SHADOW && (defined WORLD_OVERWORLD || defined WORLD_END || defined WORLD_SPACE)
 	float sss_depth;
 	float shadow_distance_fade;
-	vec3 shadows = calculate_shadows(position_scene, tbn[2], adjusted_light_levels.y, cloud_shadows, material.sss_amount, shadow_distance_fade, sss_depth);
+	vec3 shadows = get_filtered_shadows(position_scene, tbn[2], adjusted_light_levels.y, cloud_shadows, material.sss_amount, shadow_distance_fade, sss_depth);
 #else
 	#define sss_depth 0.0
 	#define shadow_distance_fade 0.0

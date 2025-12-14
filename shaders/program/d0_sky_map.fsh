@@ -84,6 +84,7 @@ uniform int isEyeInWater;
 uniform float eyeAltitude;
 uniform float rainStrength;
 uniform float blindness;
+uniform float darknessFactor;
 
 uniform vec3 light_dir;
 uniform vec3 sun_dir;
@@ -114,15 +115,19 @@ uniform sampler3D light_sampler_b;
 // ------------
 
 #define ATMOSPHERE_SCATTERING_LUT depthtex0
+#define CLOUDS_USE_LOCAL_COVERAGE_MAP
+
+#ifdef CLOUDS_CUMULUS_PRECOMPUTE_LOCAL_COVERAGE
+#define CLOUDS_USE_LOCAL_COVERAGE_MAP
+#endif
 
 #if defined WORLD_OVERWORLD
 #include "/include/fog/overworld/analytic.glsl"
 #include "/include/sky/aurora.glsl"
-#include "/include/sky/clouds.glsl"
 #endif
 
-#include "/include/sky/sky.glsl"
 #include "/include/sky/projection.glsl"
+#include "/include/sky/sky.glsl"
 
 void main() {
 	ivec2 texel = ivec2(gl_FragCoord.xy);
@@ -149,10 +154,10 @@ void main() {
 			cameraPosition,
 			cameraPosition + ray_dir,
 			true,
-			eye_skylight
+			eye_skylight,
+			1.0
 		);
 		sky_map = sky_map * fog[1] + fog[0];
 #endif
 	}
 }
-

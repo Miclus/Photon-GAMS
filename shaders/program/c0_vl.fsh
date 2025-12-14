@@ -51,10 +51,6 @@ uniform sampler2D shadowcolor0;
 #endif
 #endif
 
-#ifdef DISTANT_HORIZONS
-uniform sampler2D dhDepthTex;
-#endif
-
 uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
 uniform mat4 gbufferProjection;
@@ -65,16 +61,13 @@ uniform mat4 shadowModelViewInverse;
 uniform mat4 shadowProjection;
 uniform mat4 shadowProjectionInverse;
 
-#ifdef DISTANT_HORIZONS
-uniform int dhRenderDistance;
-#endif
-
 uniform vec3 cameraPosition;
 
 uniform float near;
 uniform float far;
 
 uniform float blindness;
+uniform float darknessFactor;
 uniform float eyeAltitude;
 uniform float rainStrength;
 uniform float wetness;
@@ -131,7 +124,7 @@ uniform float lens_flare_moon_phase_brightness;
 #endif
 
 #include "/include/fog/water_fog_vl.glsl"
-
+#include "/include/misc/lod_mod_support.glsl"
 #include "/include/utility/encoding.glsl"
 #include "/include/utility/random.glsl"
 #include "/include/utility/space_conversion.glsl"
@@ -149,24 +142,24 @@ void main() {
 	float depth1        = texelFetch(depthtex1, view_texel, 0).x;
 	vec4 gbuffer_data_0 = texelFetch(colortex1, view_texel, 0);
 
-#ifdef DISTANT_HORIZONS
+#ifdef LOD_MOD_ACTIVE
     mat4 projection_matrix, projection_matrix_inverse;
-    bool is_dh_terrain;
-	float dh_depth = texelFetch(dhDepthTex, view_texel, 0).x;
+    bool is_lod;
+	float depth_lod = texelFetch(lod_depth_tex, view_texel, 0).x;
 
     if (depth0 == 1.0) {
-        is_dh_terrain = true;
-        depth0 = dh_depth;
-        depth1 = dh_depth;
-        projection_matrix = dhProjection;
-        projection_matrix_inverse = dhProjectionInverse;
+        is_lod = true;
+        depth0 = depth_lod;
+        depth1 = depth_lod;
+        projection_matrix = lod_projection_matrix;
+        projection_matrix_inverse = lod_projection_matrix_inverse;
     } else {
-        is_dh_terrain = false;
+        is_lod = false;
         projection_matrix = gbufferProjection;
         projection_matrix_inverse = gbufferProjectionInverse;
     }
 #else
-    #define is_dh_terrain             false
+    #define is_lod            		  false
     #define projection_matrix         gbufferProjection
     #define projection_matrix_inverse gbufferProjectionInverse
 #endif
@@ -227,21 +220,21 @@ void main() {
 	}
 
 #ifdef SCREENSPACE_VL
-    if (isEyeInWater == 0 && rainStrength < 1.0 && blindness == 0.0) {
+    if (isEyeInWater == 0 && blindness == 0.0) {
         vec4 tpos = gbufferProjection * gbufferModelView * vec4(light_dir, 0.0);
         if (tpos.w > 0.0) {
             vec2 pos1 = tpos.xy / tpos.w;
             vec2 lightPos = pos1 * 0.5 + 0.5;
 
-                #ifdef TAA
-	                float dither = interleaved_gradient_noise(gl_FragCoord.xy, frameCounter);
-                #else
-	                float dither = bayer32(gl_FragCoord.xy);
-                #endif
+            #ifdef TAA
+	            float dither = interleaved_gradient_noise(gl_FragCoord.xy, frameCounter);
+            #else
+	            float dither = bayer32(gl_FragCoord.xy);
+            #endif
     
-	                vec3 ssvl_scattering = CalculateScreenSpaceVL(depthtex0, colortex11, lightPos, uv, light_color, dither);
+	            vec3 ssvl_scattering = screenspace_vl(depthtex0, lightPos, uv, light_color, dither);
 
-                    fog_scattering += ssvl_scattering;
+            fog_scattering += ssvl_scattering * (1.0 - rainStrength);
         }
     }
 #endif

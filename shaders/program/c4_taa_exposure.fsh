@@ -61,7 +61,7 @@ uniform vec2 taa_offset;
 
 #define TEMPORAL_REPROJECTION
 
-#include "/include/misc/distant_horizons.glsl"
+#include "/include/misc/lod_mod_support.glsl"
 #include "/include/utility/bicubic.glsl"
 #include "/include/utility/color.glsl"
 #include "/include/utility/space_conversion.glsl"

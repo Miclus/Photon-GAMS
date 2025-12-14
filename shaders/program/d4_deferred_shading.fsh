@@ -130,6 +130,7 @@ uniform float darknessFactor;
 uniform vec3 light_dir;
 uniform vec3 sun_dir;
 uniform vec3 moon_dir;
+uniform vec3 view_light_dir;
 
 uniform vec2 view_res;
 uniform vec2 view_pixel_size;
@@ -161,9 +162,11 @@ const bool colortex11MipmapEnabled = true;
 
 #include "/include/fog/simple_fog.glsl"
 #include "/include/lighting/diffuse_lighting.glsl"
-#include "/include/lighting/shadows/sampling.glsl"
+#include "/include/lighting/shadows/common.glsl"
+#include "/include/lighting/shadows/pcss.glsl"
+#include "/include/lighting/shadows/ssrt.glsl"
 #include "/include/lighting/specular_lighting.glsl"
-#include "/include/misc/distant_horizons.glsl"
+#include "/include/misc/lod_mod_support.glsl"
 #include "/include/surface/edge_highlight.glsl"
 #include "/include/surface/material.glsl"
 #include "/include/misc/purkinje_shift.glsl"
@@ -195,7 +198,7 @@ void main() {
 
 	// Sample textures
 
-	float depth         = texelFetch(combined_depth_buffer, texel, 0).x;
+	float depth         = texelFetch(combined_depth_tex, texel, 0).x;
 	vec4 gbuffer_data_0 = texelFetch(colortex1, texel, 0);
 #if defined NORMAL_MAPPING || defined SPECULAR_MAPPING
 	vec4 gbuffer_data_1 = texelFetch(colortex2, texel, 0);
@@ -204,15 +207,15 @@ void main() {
 	vec4 overlays       = texelFetch(colortex3, texel, 0);
 #endif
 
-    // Check for Distant Horizons terrain
+    // Check for LoD terrain
 
-#ifdef DISTANT_HORIZONS
+#ifdef LOD_MOD_ACTIVE
     float depth_mc = texelFetch(depthtex1, texel, 0).x;
-    float depth_dh = texelFetch(dhDepthTex, texel, 0).x;
-	bool is_dh_terrain = is_distant_horizons_terrain(depth_mc, depth_dh);
+    float depth_lod = texelFetch(lod_depth_tex, texel, 0).x;
+    bool is_lod = is_lod_terrain(depth_mc, depth_lod);
 #else
-    const bool is_dh_terrain = false;
-	#define depth_mc depth
+    const bool is_lod = false;
+#define depth_mc depth
 #endif
 
 	// Space conversions
@@ -345,8 +348,8 @@ void main() {
 		vec3 normal = flat_normal;
         bool parallax_shadow = false;
 
-#ifdef DISTANT_HORIZONS
-		if (!is_dh_terrain) {
+#ifdef LOD_MOD_ACTIVE
+        if (!is_lod) {
 #endif
 
 	#ifdef NORMAL_MAPPING
@@ -360,7 +363,7 @@ void main() {
 		parallax_shadow = gbuffer_data_1.z >= 0.5;
 	#endif
 
-#ifdef DISTANT_HORIZONS
+#ifdef LOD_MOD_ACTIVE
 		}
 #endif
 
@@ -426,7 +429,7 @@ void main() {
 			bent_normal = normal;
 		}
 
-		// Shadows
+        // Calculate lighting dot products
 
 		float NoL = dot(normal, light_dir);
 		float NoV = clamp01(dot(normal, -direction_world));
@@ -435,32 +438,79 @@ void main() {
 		float NoH = (NoL + NoV) * halfway_norm;
 		float LoH = LoV * halfway_norm + halfway_norm;
 
+        // Cloud shadows
+
 #if defined WORLD_OVERWORLD && defined CLOUD_SHADOWS
 		float cloud_shadows = get_cloud_shadows(colortex8, position_scene);
 #else
 		const float cloud_shadows = 1.0;
 #endif
 
-#if defined SHADOW && (defined WORLD_OVERWORLD || defined WORLD_END || defined WORLD_SPACE)
-		float sss_depth;
-		float shadow_distance_fade;
-		vec3 shadows;
+        // Shadows
 
-        shadows = calculate_shadows(position_scene, flat_normal, light_levels.y, cloud_shadows, material.sss_amount, shadow_distance_fade, sss_depth);
+#if defined WORLD_OVERWORLD || defined WORLD_END
+        vec3 shadows = vec3(0.0);
+        float shadow_distance_fade = 1.0;
+        float sss_depth = 0.0;
 
-	#ifdef DISTANT_HORIZONS
-		if (is_dh_terrain) {
-			shadow_distance_fade = 1.0;
-		}
-	#endif
-#else
-		vec3 shadows = vec3(sqrt(ao) * pow8(light_levels.y));
-		#define sss_depth 0.0
-		#define shadow_distance_fade 0.0
+        if (NoL > 1e-3 || material.sss_amount > 1e-3) {
+            // Calculate near shadows
+            vec3 shadow_near = vec3(0.0);
+            float shadow_distant = 0.0;
+            float sss_depth_near = 0.0;
+            float sss_depth_distant = 0.0;
+
+#ifdef SHADOW
+            shadow_near = get_filtered_shadows(
+                position_scene,
+                flat_normal,
+                light_levels.y,
+                cloud_shadows,
+                material.sss_amount,
+                shadow_distance_fade,
+                sss_depth_near
+            );
 #endif
 
-#if defined POM && defined POM_SHADOW && (defined SPECULAR_MAPPING || defined NORMAL_MAPPING)
-		shadows *= float(!parallax_shadow);// * clamp01(smoothstep(0.0, 0.1, NoL));
+            // Calculate distant shadows
+            if (shadow_distance_fade >= eps) {
+#ifdef SHADOW_SSRT
+                shadow_distant = get_screen_space_shadows(
+                    uv,
+                    position_view,
+                    depth,
+#ifdef LOD_MOD_ACTIVE
+                    depth_lod,
+#endif
+                    light_levels.y,
+                    material.sss_amount > eps,
+                    sss_depth_distant
+                );
+#else
+                shadow_distant = get_lightmap_shadows(light_levels.y);
+#endif
+            }
+
+            shadows =
+                mix(shadow_near,
+                    vec3(shadow_distant),
+                    clamp01(shadow_distance_fade));
+
+            sss_depth =
+                mix(sss_depth_near,
+                    sss_depth_distant,
+                    clamp01(shadow_distance_fade));
+
+            // Apply parallax shadow
+#if defined POM && defined POM_SHADOW && \
+    (defined SPECULAR_MAPPING || defined NORMAL_MAPPING)
+            shadows *= float(!parallax_shadow);
+#endif
+        }
+#else 
+        const vec3 shadows = vec3(1.0);
+        const float shadow_distance_fade = 1.0;
+        const float sss_depth = 0.0;
 #endif
 
 		// Diffuse lighting
@@ -479,7 +529,11 @@ void main() {
 #ifdef CLOUD_SHADOWS
 			cloud_shadows,
 #endif
-			shadow_distance_fade,
+#ifdef SHADOW_SSRT
+            0.0,
+#else
+            shadow_distance_fade,
+#endif
 			NoL,
 			NoV,
 			NoH,
