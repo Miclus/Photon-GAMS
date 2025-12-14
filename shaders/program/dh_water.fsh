@@ -195,7 +195,7 @@ void main() {
 
 	float back_depth_mc = texelFetch(depthtex0, ivec2(gl_FragCoord.xy), 0).x;
 	float back_depth_dh = texelFetch(dhDepthTex1, ivec2(gl_FragCoord.xy), 0).x;
-	bool back_is_dh_terrain = is_distant_horizons_terrain(back_depth_mc, back_depth_dh);
+	bool back_is_dh_terrain = is_lod_terrain(back_depth_mc, back_depth_dh);
 
 	// Prevent water behind terrain from rendering on top of it
 	float dh_depth_linear = screen_to_view_space_depth(dhProjectionInverse, gl_FragCoord.z);
