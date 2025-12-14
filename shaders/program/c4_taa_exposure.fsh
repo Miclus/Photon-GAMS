@@ -254,28 +254,25 @@ void main() {
 	ivec2 texel = ivec2(gl_FragCoord.xy * taau_render_scale);
 
 #ifdef TAA
-	#ifndef DISTANT_HORIZONS
-	vec3 closest = get_closest_fragment(depthtex0, texel);
+#ifndef LOD_MOD_ACTIVE
+    vec3 closest = get_closest_fragment(depthtex0, texel);
 
-	const bool is_dh_terrain = false;
-	#else
-	vec3 closest    = get_closest_fragment(depthtex0, texel);
-	vec3 closest_dh = get_closest_fragment(dhDepthTex, texel);
+    const bool is_lod = false;
+#else
+    vec3 closest = get_closest_fragment(depthtex0, texel);
+    vec3 closest_lod = get_closest_fragment(lod_depth_tex, texel);
 
-	bool is_dh_terrain = is_distant_horizons_terrain(closest.z, closest_dh.z);
+    bool is_lod = is_lod_terrain(closest.z, closest_lod.z);
 
-	closest = is_dh_terrain
-		? closest_dh
-		: closest;
+    closest = is_lod ? closest_lod : closest;
+#endif
 
-	#endif
-
-	vec3 closest_view  = screen_to_view_space(closest, false, is_dh_terrain);
+	vec3 closest_view  = screen_to_view_space(closest, false, is_lod);
 	vec3 closest_scene = view_to_scene_space(closest_view);
 
 	bool hand = closest.z < hand_depth;
 
-	vec2 velocity = closest.xy - reproject_scene_space(closest_scene, hand, is_dh_terrain).xy;
+	vec2 velocity = closest.xy - reproject_scene_space(closest_scene, hand, is_lod).xy;
 
 	vec2 previous_uv = uv - velocity;
 
