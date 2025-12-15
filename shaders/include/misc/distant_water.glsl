@@ -43,7 +43,7 @@ vec4 draw_distant_water(
 #if defined DISTANT_HORIZONS
     tint.rgb *= 1.45;
 #elif defined VOXY
-	tint.rgb *= 0.75;
+	tint.rgb *= 0.68;
 #endif
 
 	vec3 biome_water_color = srgb_eotf_inv(tint.rgb) * rec709_to_working_color;
