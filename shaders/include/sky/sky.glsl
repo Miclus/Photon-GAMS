@@ -74,8 +74,11 @@ vec3 draw_stars(vec3 ray_dir, float galaxy_luminance) {
 #include "/include/sky/projection.glsl"
 #include "/include/utility/geometry.glsl"
 #include "/include/sky/shooting_stars.glsl"
-#include "/include/sky/nebula.glsl"
 #include "/include/sky/rainbow.glsl"
+
+#ifdef NEBULA_ENABLED
+#include "/include/sky/nebula.glsl"
+#endif
 
 #if defined PROGRAM_DEFERRED0
 #include "/include/sky/clouds.glsl"
@@ -229,8 +232,10 @@ vec3 draw_sky(
 	#endif
 #endif
 
+#ifdef NEBULA_ENABLED
 	// Nebula
 	sky += draw_nebula(ray_dir, galaxy_luminance);
+#endif
 
 #ifndef VANILLA_SUN
 	// Sun

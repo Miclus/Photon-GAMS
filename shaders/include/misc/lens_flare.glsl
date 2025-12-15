@@ -335,7 +335,7 @@ float total_occlusion = 0.0;
         float angle = float(i) * golden_angle;
         float sampleRadius = 0.02;
 
-        vec2 offset = vec2(cos(angle), sin(angle)) * r * sampleRadius;
+        vec2 offset = polar_to_cartesian2(r * sampleRadius, angle);
         offset.x /= aspectRatio;
 
         vec2 checkcoord = lightPos.xy + offset;
@@ -344,7 +344,7 @@ float total_occlusion = 0.0;
             float depth_sample = texture(depthtex0, checkcoord).r;
 
             #if defined TAA && defined TAAU
-                vec2 original_uv = checkcoord * TAAU_RENDER_SCALE;
+                vec2 original_uv = checkcoord * taau_render_scale;
                 depth_sample = texture(depthtex0, original_uv).r;
             #else
                 depth_sample = texture(depthtex0, checkcoord).r;
@@ -702,6 +702,7 @@ scene_color.b += Xcross.b * 0.3 * sunmask;
         scene_color.g += Xcross.g * 0.13 * moonVisibility * sunmask;
         scene_color.b += Xcross.b * 0.0 * moonVisibility * sunmask;
 }
+#endif
 #endif
 
 //mid orange sweep

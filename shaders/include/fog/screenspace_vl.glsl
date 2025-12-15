@@ -22,16 +22,17 @@ vec3 screenspace_vl(sampler2D depthtex0, vec2 lightPos, vec2 uv, vec3 light_colo
         }
 
         vec2 coord_from_light = sample_uv - lightPos;
-        float angle = atan(coord_from_light.y, coord_from_light.x);
-        float dist = length(coord_from_light);
+        vec2 polar_coord = cartesian_to_polar(coord_from_light);
+        float angle = polar_coord.y;
+        float dist = polar_coord.x;
 
-        vec2 checkcoord = vec2(angle / tau, dist * SSVL_NOISE_SCALE);
+        vec2 checkcoord = vec2(angle / tau, dist * SSVL_NOISE_SCATTER);
         float noise_coord = texture(noisetex, checkcoord).r;
 
         noise_coord = mix(1.0, noise_coord, SSVL_NOISE_INTENSITY);
 
         #if defined TAA && defined TAAU
-            vec2 original_uv = sample_uv * TAAU_RENDER_SCALE;
+            vec2 original_uv = sample_uv * taau_render_scale;
             float depth_sample = texture(depthtex0, original_uv).r;
         #else
             float depth_sample = texture(depthtex0, sample_uv).r;

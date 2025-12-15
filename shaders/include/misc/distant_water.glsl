@@ -40,8 +40,10 @@ vec4 draw_distant_water(
 	
 	// Water absorption approx (must match gbuffers_water)
 
-#ifdef DISTANT_HORIZONS
+#if defined DISTANT_HORIZONS
     tint.rgb *= 1.45;
+#elif defined VOXY
+	tint.rgb *= 0.75;
 #endif
 
 	vec3 biome_water_color = srgb_eotf_inv(tint.rgb) * rec709_to_working_color;
