@@ -38,7 +38,14 @@ vec3 screenspace_vl(sampler2D depthtex0, vec2 lightPos, vec2 uv, vec3 light_colo
             float depth_sample = texture(depthtex0, sample_uv).r;
         #endif
 
-        float terrain_visibility = step(1.0 - eps, depth_sample);
+        #ifdef LOD_MOD_ACTIVE
+            ivec2 view_texel = ivec2(gl_FragCoord.xy * taau_render_scale * rcp(VL_RENDER_SCALE));
+            float depth_lod = texelFetch(lod_depth_tex, view_texel, 0).x;
+        #else
+            float depth_lod = 1.0;
+        #endif
+            float min_depth = min(depth_sample, depth_lod);
+            float terrain_visibility = step(1.0 - eps, min_depth);
 
         if (sun_dir.z > 0.0) {
             accumulated_light += light_color * terrain_visibility * decay_factor * noise_coord;

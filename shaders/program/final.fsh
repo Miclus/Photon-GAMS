@@ -15,10 +15,6 @@ layout (location = 0) out vec3 fragment_color;
 
 in vec2 uv;
 
-#ifdef LENS_FLARE
-flat in vec3 upVec, sunVec;
-#endif
-
 // ------------
 //   Uniforms
 // ------------
@@ -36,31 +32,8 @@ uniform float frameTimeCounter;
 uniform sampler2D shadowtex0;
 #endif
 
-#if defined LENS_FLARE || defined RAIN_LENS
-uniform float viewWidth;
-uniform float rainStrength;
-#endif
-
-#ifdef LENS_FLARE
-uniform vec3 sunPosition;
-uniform mat4 gbufferProjection;
-uniform float aspectRatio;
-uniform sampler2D depthtex0;
-uniform int isEyeInWater;
-uniform float blindness;
-uniform sampler2D colortex11;
-uniform sampler2D noisetex;
-#endif
-
-#if defined LENS_FLARE && defined LF_MOONPHASE
-uniform float lens_flare_moon_phase_brightness;
-#endif
-
-#if defined LENS_FLARE && defined DISTANT_HORIZONS
-uniform sampler2D dhDepthTex;
-#endif
-
 #ifdef RAIN_LENS
+uniform float viewWidth;
 uniform float biome_may_rain;
 uniform ivec2 eyeBrightnessSmooth;
 uniform vec3 playerLookVector;
@@ -70,7 +43,6 @@ uniform vec3 playerLookVector;
 #include "/include/utility/color.glsl"
 #include "/include/utility/dithering.glsl"
 #include "/include/utility/text_rendering.glsl"
-#include "/include/misc/lens_flare.glsl"
 #include "/include/misc/rain_lens.glsl"
 
 #ifdef DISTANCE_VIEW
@@ -235,10 +207,6 @@ void main() {
 	if (uv.x < 0.0) {
 		fragment_color = texture(shadowtex0, uv).rgb;
 	}
-#endif
-
-#if defined LENS_FLARE && !defined WORLD_MOON
-LensFlare(fragment_color);
 #endif
 
 #if defined RAIN_LENS && !defined WORLD_NETHER && !defined WORLD_END && !defined WORLD_MOON; // Add !defined for modded worlds that won't rain
