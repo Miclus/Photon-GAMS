@@ -42,7 +42,7 @@ vec2 blocker_search(vec3 scene_pos, float dither, bool has_sss) {
     float depth_sum_sss = 0.0;
 
     for (int i = 0; i < step_count; ++i) {
-        vec2 offset = vogel_disk_sample(i, step_count, dither * tau) * radius;
+        vec2 offset = vogel_disc_sample(i, step_count, dither * tau) * radius;
         vec2 uv = shadow_clip_pos.xy + offset;
         uv /= get_distortion_factor(uv);
         uv = uv * 0.5 + 0.5;
@@ -116,7 +116,7 @@ vec3 shadow_pcf(
 
     // perform first 4 iterations and filter shadow color
     for (int i = 0; i < 4; ++i) {
-        vec2 offset = vogel_disk_sample(i, step_count, dither * tau) * filter_radius;
+        vec2 offset = vogel_disc_sample(i, step_count, dither * tau) * filter_radius;
 
         vec2 uv = shadow_clip_pos.xy + offset;
         uv /= get_distortion_factor(uv);
@@ -158,7 +158,7 @@ vec3 shadow_pcf(
 
     // perform remaining iterations
     for (int i = 4; i < step_count; ++i) {
-        vec2 offset = vogel_disk_sample(i, step_count, dither * tau) * filter_radius;
+        vec2 offset = vogel_disc_sample(i, step_count, dither * tau) * filter_radius;
 
         vec2 uv = shadow_clip_pos.xy + offset;
         uv /= get_distortion_factor(uv);

@@ -1,8 +1,8 @@
 #if !defined INCLUDE_LIGHTING_AO_SSAO 
 #define INCLUDE_LIGHTING_AO_SSAO
 
-#include "/include/utility/random.glsl"
 #include "/include/utility/fast_math.glsl"
+#include "/include/utility/random.glsl"
 #include "/include/utility/space_conversion.glsl"
 
 #define SSAO_MAX_RADIUS_SCREEN 0.05

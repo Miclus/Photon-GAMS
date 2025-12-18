@@ -8,6 +8,7 @@
 float linearize_depth(float near, float far, float depth) {
 	return (near * far) / (depth * (near - far) + far);
 }
+
 float linearize_depth(float depth) {
     return linearize_depth(near, far, depth);
 }
@@ -15,6 +16,7 @@ float linearize_depth(float depth) {
 float reverse_linear_depth(float near, float far, float linear_z) {
 	return (far + near) / (far - near) + (2.0 * far * near) / (linear_z * (far - near));
 }
+
 float reverse_linear_depth(float linear_z) {
     return reverse_linear_depth(near, far, linear_z);
 }
@@ -23,6 +25,7 @@ float reverse_linear_depth(float linear_z) {
 float linearize_depth_fast(float near, float depth) {
 	return near / (1.0 - depth);
 }
+
 float linearize_depth_fast(float depth) {
     return linearize_depth_fast(near, depth);
 }
@@ -81,9 +84,8 @@ vec3 screen_to_view_space(vec3 screen_pos, bool handle_jitter, bool is_lod_terra
 
 vec3 view_to_screen_space(vec3 view_pos, bool handle_jitter, bool is_lod_terrain) {
 #ifdef LOD_MOD_ACTIVE
-    mat4 projection_matrix = is_lod_terrain
-        ? lod_projection_matrix
-        : gbufferProjection;
+    mat4 projection_matrix = 
+		is_lod_terrain ? lod_projection_matrix : gbufferProjection;
 
     return view_to_screen_space(projection_matrix, view_pos, handle_jitter);
 #else
@@ -144,9 +146,9 @@ vec3 reproject(vec3 screen_pos, bool is_lod_terrain) {
 
 	return reproject_scene_space(pos, hand, is_lod_terrain);
 }
-vec3 reproject(vec3 screen_pos) {
-    return reproject(screen_pos, false);
-}
+
+vec3 reproject(vec3 screen_pos) { return reproject(screen_pos, false); }
+
 vec3 reproject(vec3 screen_pos, sampler2D velocity_sampler) {
 	vec3 velocity = texelFetch(velocity_sampler, ivec2(screen_pos.xy * view_res), 0).xyz;
 

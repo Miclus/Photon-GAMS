@@ -97,11 +97,6 @@ uniform float time_noon;
 uniform float time_sunset;
 uniform float time_midnight;
 
-#ifdef COLORED_LIGHTS
-uniform sampler3D light_sampler_a;
-uniform sampler3D light_sampler_b;
-#endif
-
 #ifdef SCREENSPACE_VL
 uniform float aspectRatio;
 uniform sampler2D colortex11;
@@ -128,6 +123,13 @@ uniform float lens_flare_moon_phase_brightness;
 #include "/include/utility/encoding.glsl"
 #include "/include/utility/random.glsl"
 #include "/include/utility/space_conversion.glsl"
+
+#if defined LPV_VL && defined COLORED_LIGHTS
+uniform sampler3D light_sampler_a;
+uniform sampler3D light_sampler_b;
+
+#include "/include/fog/lpv_fog.glsl"
+#endif
 
 #ifdef SCREENSPACE_VL
 #include "/include/utility/dithering.glsl"
@@ -239,5 +241,8 @@ void main() {
     }
 #endif
 
+#if defined LPV_VL && defined COLORED_LIGHTS
+    fog_scattering +=
+        get_lpv_fog_scattering(world_start_pos, world_end_pos, dither);
 #endif
 }
