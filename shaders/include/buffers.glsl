@@ -14,7 +14,7 @@ const int colortex9Format  = RGBA16F;        // clouds res  | low-res clouds (d1
 const int colortex10Format = RG16F;          // clouds res  | low-res clouds apparent distance and indirect scattering (d1 -> d2)
 const int colortex11Format = RGBA16F;        // full res    | clouds history (always)
 const int colortex12Format = RGB16F;         // full res    | clouds pixel age, apparent distance, indirect scattering (always)
-const int colortex13Format = RGBA16F;        // full res    | rendered translucent layer (translucent -> c1
+const int colortex13Format = RGBA16F;        // full res    | rendered translucent layer (translucent -> c1)
 const int colortex14Format = RG16F;          // quarter res | ambient occlusion history data (always)
 const int colortex15Format = R32F;           // full res    | LoD combined depth buffer (d1 -> c2)
 

@@ -11,26 +11,6 @@
 
 #include "/include/global.glsl"
 
-
-//----------------------------------------------------------------------------//
-#ifdef vsh
-
-out vec2 uv;
-
-void main() {
-	uv = gl_MultiTexCoord0.xy;
-
-	gl_Position = vec4(gl_Vertex.xy * 2.0 - 1.0, 0.0, 1.0);
-}
-
-#endif
-//----------------------------------------------------------------------------//
-
-
-
-//----------------------------------------------------------------------------//
-#ifdef fsh
-
 layout (location = 0) out vec3 scene_color;
 
 /* RENDERTARGETS: 0 */
@@ -707,7 +687,7 @@ void main() {
 
 #endif
 
-#if defined LENS_FLARE && !defined WORLD_MOON
+#if defined LENS_FLARE && !defined WORLD_NETHER && !defined WORLD_MOON
 	lens_flare(scene_color);
 #endif
 }

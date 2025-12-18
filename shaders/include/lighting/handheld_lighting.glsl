@@ -16,6 +16,17 @@ uniform int heldBlockLightValue2;
 
 vec3 get_handheld_light_color(int held_item_id, int held_item_light_value) {
 #ifdef COLORED_LIGHTS
+	const int OPEN_EYEBLOSSOM_ID = 10059;
+	const int COPPER_TORCH_ID = 10060;
+	const int COPPER_LANTERN_ID = 10061;
+    if (held_item_id == OPEN_EYEBLOSSOM_ID) {
+		return vec3(1.0, 0.4, 0.1);
+	}
+
+	if (held_item_id == COPPER_TORCH_ID || held_item_id == COPPER_LANTERN_ID) {
+		return vec3(0.1, 0.9, 0.2);
+	}
+
 	bool is_emitter = 10032 <= held_item_id && held_item_id < 10332;
 
 	if (is_emitter) {

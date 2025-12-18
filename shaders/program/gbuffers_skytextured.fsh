@@ -58,8 +58,10 @@ void main() {
 		// Minecraft 1.21.4
 
 		// Cut out the sun itself (discard the halo around it)
-		// offset = uv * 2.0 - 1.0;
-		// if (max_of(abs(offset)) > 0.25) discard;
+        if (max_of(abs(offset)) > 0.25) {
+            discard;
+        }
+        offset = uv * 2.0 - 1.0;
 
 #ifdef VANILLA_SUN
 		frag_color  = texture(gtexture, new_uv).rgb;
@@ -75,6 +77,9 @@ void main() {
 		offset = fract(vec2(4.0, 2.0) * uv);
 		new_uv = new_uv + vec2(0.25, 0.5) * ((1.0 - offset.yx) - offset);
 		offset = offset * 2.0 - 1.0;		
+        if (max_of(abs(offset)) > 0.25) {
+            discard;
+        }
 		
 		frag_color += texture(gtexture, new_uv).rgb * vec3(MOON_R, MOON_G, MOON_B);
 		
@@ -96,6 +101,10 @@ void main() {
 		float moon = 1.0 - linear_step(0.85, 1.0, dist);
 		float moon_shadow = 1.0;
 		float a = sqrt(1.0 - offset.x * offset.x);
+
+        vec3 noise = texture(noisetex, 0.93 * fract(vec2(4.0, 2.0) * uv)).xyz;
+        float moon_texture =
+            pow1d5(noise.x) * 0.75 + 0.6 * cube(noise.y) - 0.1 * noise.z;
 
 		switch (moonPhase) { 
 			case 0: // Full moon

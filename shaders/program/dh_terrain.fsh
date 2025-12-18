@@ -33,8 +33,8 @@ flat in uint material_mask;
 uniform vec2 view_pixel_size;
 uniform int frameCounter;
 
-#include "/include/utility/encoding.glsl"
 #include "/include/utility/dithering.glsl"
+#include "/include/utility/encoding.glsl"
 
 // ------------
 //   Uniforms
@@ -89,4 +89,3 @@ void main() {
 	gbuffer_data_0.z  = pack_unorm_2x8(encode_unit_vector(normal));
 	gbuffer_data_0.w  = pack_unorm_2x8(light_levels);
 }
-
