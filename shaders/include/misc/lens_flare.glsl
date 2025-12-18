@@ -325,7 +325,7 @@ float sunVisibility = 1.0 - moonVisibility;
 
 #if LENS_FLARE_MODE == 2
       if (sunVec.z > 0.0) {
-          lenslc = get_luminance(lenslc) * vec3(0.1, 0.2, 0.3);
+          lenslc = get_luminance(lenslc) * vec3(0.05, 0.1, 0.15);
           lenslc *= sunVisibility;
       } else {
           lenslc = normalize(sqrt(scene_color))*inverseResponse;
@@ -561,13 +561,13 @@ vec3 strip1 = draw_anamprphic_center(
     1.0, 1.0, 1.0
 );
 
-    #ifdef WORLD_END
+#ifdef WORLD_END
     scene_color.r += strip1.r * 0.4 * sunVisibility * sunmask;
     scene_color.g += strip1.g * 0.2 * sunVisibility * sunmask;
     scene_color.b += strip1.b * 0.3 * sunVisibility * sunmask;
-    #endif
+#endif
 
-#if LENS_FLARE_MODE == 2
+#if !defined WORLD_END && LENS_FLARE_MODE == 2
     if (sunVec.z > 0.0) {
         scene_color.r += strip1.r * 0.12 * sunVisibility * sunmask;
         scene_color.g += strip1.g * 0.2 * sunVisibility * sunmask;
@@ -595,9 +595,9 @@ vec3 Xcross = draw_xcross_flare(
 );
 
 #ifdef WORLD_END
-scene_color.r += Xcross.r * 0.4 * sunmask;
-scene_color.g += Xcross.g * 0.2 * sunmask;
-scene_color.b += Xcross.b * 0.3 * sunmask;
+    scene_color.r += Xcross.r * 0.4 * sunmask;
+    scene_color.g += Xcross.g * 0.2 * sunmask;
+    scene_color.b += Xcross.b * 0.3 * sunmask;
 #endif
 
 #if LENS_FLARE_MODE == 2

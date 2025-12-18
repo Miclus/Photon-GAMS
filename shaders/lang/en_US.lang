@@ -32,6 +32,7 @@ screen.ao                              = Ambient Occlusion
 screen.color_grading                   = 🌈 Color Grading
 screen.exposure                        = §b📸§r Exposure
 screen.lpv_vl                          = Colored Lights Fog Scattering
+screen.ssvl                            = §7🌫§r Screen-Space Volumetric Lighting
 screen.tonemap_settings                = §a🎞§r Tonemap Settings
 
 screen.dof_settings                    = DoF Settings
@@ -894,6 +895,18 @@ option.LPV_VL_INTENSITY_UNDERGROUND    = Underground Intensity
 option.LPV_VL_INTENSITY_NETHER         = Nether Intensity
 option.LPV_VL_INTENSITY_END            = End Intensity
 
+# SCREENSPACE VL
+option.SCREENSPACE_VL                  = Enabled
+option.SSVL_INTENSITY                  = Intensity
+option.SSVL_SAMPLES                    = Samples
+option.SSVL_DENSITY                    = Density
+option.SSVL_DECAY                      = Decay
+option.SSVL_FADE_RADIUS                = Fade Radius
+option.SSVL_FADE_FACTOR                = Fade Factor
+option.SSVL_NOISE_SCATTER              = Noise Scatter Intensity
+option.SSVL_NOISE_INTENSITY            = Noise Intensity
+option.SSVL_NOISE_INTENSITY.comment    = Creats "starburst" shaped light, the higher the value, the higher the visibility
+
 # Rayleigh Fog
 option.AIR_FOG_RAYLEIGH_FALLOFF_START     = §7🌫§r Rayleigh Falloff Start
 option.AIR_FOG_RAYLEIGH_FALLOFF_START.comment = Altitude above sea level at which the rayleigh fog begins to decrease
@@ -1098,14 +1111,18 @@ option.LF_COLOR_B                      = Lens Flare Color Blue
 value.LENS_FLARE_MODE.1                = Sun Only
 value.LENS_FLARE_MODE.2                = Sun and Moon
 option.LENS_FLARE_INTENSITY            = Lens Flare Intensity
+option.LF_MOONPHASE                    = Moon Phase Influence
 option.LF_CLOUD_VISIBILITY             = Cloud Collision Intensity
 option.LF_CLOUD_VISIBILITY.comment     = Adjusts flare visibility when the sun/moon obscured by clouds
+option.LF_NOISE_INTENSITY              = Rainbow Flare Noise Intensity
 option.LF_BIG_RAINBOW                  = Big Rainbow Flare
 option.LF_RAINBOW                      = Medium Rainbow Flare
-option.LF_CENTER_STRIP                 = Center Anamorphic Lens Flare
+option.LF_CLOSERING                    = Rainbow Halo Flare
+option.LF_CLOSERING.comment            = Rainbow halo at the center of the sun/moon
+option.LF_CENTER_STRIP                 = Center Anamorphic Flare
 option.LF_CENTER_STRIP.comment         = Strip-shaped lens flare at the center of the sun/moon
-option.LF_XCROSS_STRIP                 = Center X cross Lens Flare
-option.LF_EDGE_STRIP                   = Edge Blue Anamorphic Lens Flare
+option.LF_XCROSS_STRIP                 = Center X cross Flare
+option.LF_EDGE_STRIP                   = Edge Blue Anamorphic Flare
 option.LF_EDGE_STRIP.comment           = 2 Blue strip-shaped lens flares at the edge of the screen
 option.LF_GLOWDOTS                     = Glow Dots
 option.LF_GLOWDOTS.comment             = Pointy Fuzzy Glow Dots

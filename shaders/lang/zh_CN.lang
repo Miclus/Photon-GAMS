@@ -33,6 +33,7 @@ screen.ao                              = 环境光遮蔽
 screen.color_grading                   = 颜色分级
 screen.exposure                        = 曝光
 screen.lpv_vl                          = 彩色光源雾气散射
+screen.ssvl                            = 屏幕空间体积光
 screen.box                             = 选择框
 screen.tonemap_settings                = 色调映射设置
 
@@ -806,6 +807,18 @@ option.LPV_VL_INTENSITY_UNDERGROUND    = 强度 - 地下
 option.LPV_VL_INTENSITY_NETHER         = 强度 - 下界
 option.LPV_VL_INTENSITY_END            = 强度 - 末地
 
+# SCREENSPACE VL
+option.SCREENSPACE_VL                  = 启用
+option.SSVL_INTENSITY                  = 强度
+option.SSVL_SAMPLES                    = 采样数
+option.SSVL_DENSITY                    = 密度
+option.SSVL_DECAY                      = 衰减
+option.SSVL_FADE_RADIUS                = 最大半径
+option.SSVL_FADE_FACTOR                = 半径过渡强度
+option.SSVL_NOISE_SCATTER              = 噪声分散程度
+option.SSVL_NOISE_INTENSITY            = 噪声强度
+option.SSVL_NOISE_INTENSITY.comment    = 调整噪声强度，制造星芒形体积光，值越高越明显
+
 option.AIR_FOG_RAYLEIGH_FALLOFF_START     = 瑞利 - 雾气消散起始位置
 option.AIR_FOG_RAYLEIGH_FALLOFF_START.comment = 瑞利雾气开始消散的海拔高度
 option.AIR_FOG_RAYLEIGH_FALLOFF_HALF_LIFE = 瑞利 - 雾气密度减半位置
@@ -1008,10 +1021,14 @@ option.LF_COLOR_B                      = 镜头光晕 - 蓝色
 value.LENS_FLARE_MODE.1                = 仅太阳
 value.LENS_FLARE_MODE.2                = 日月
 option.LENS_FLARE_INTENSITY            = 镜头光晕强度
+option.LF_MOONPHASE                    = 月相影响光晕强度
 option.LF_CLOUD_VISIBILITY             = 云层遮挡下的光晕强度
 option.LF_CLOUD_VISIBILITY.comment     = 调节太阳/月亮被云层遮挡时光晕的强度
+option.LF_NOISE_INTENSITY              = 彩虹光晕噪声强度
 option.LF_BIG_RAINBOW                  = 大型彩虹光晕
 option.LF_RAINBOW                      = 中型彩虹光晕
+option.LF_CLOSERING                    = 环状彩虹光晕
+option.LF_CLOSERING.comment            = 太阳/月亮中心的彩虹环
 option.LF_CENTER_STRIP                 = 中心变形镜头光晕
 option.LF_CENTER_STRIP.comment         = 太阳/月亮中心的长条形光晕
 option.LF_XCROSS_STRIP                 = 中心X形交叉光晕
