@@ -27,6 +27,7 @@ flat in vec3 moon_color;
 // ------------
 
 uniform sampler2D gtexture;
+uniform sampler2D noisetex;
 
 uniform int moonPhase;
 uniform int renderStage;
@@ -73,7 +74,7 @@ void main() {
 	} else {
 	 	// Moon
 #if MOON_TYPE == MOON_VANILLA
-		// Cut out the moon itself and flip moon texture along the diagonal
+		// Cut out the moon itself (discard the halo around it) and flip moon texture along the diagonal
 		offset = fract(vec2(4.0, 2.0) * uv);
 		new_uv = new_uv + vec2(0.25, 0.5) * ((1.0 - offset.yx) - offset);
 		offset = offset * 2.0 - 1.0;		
@@ -81,7 +82,7 @@ void main() {
             discard;
         }
 		
-		frag_color += texture(gtexture, new_uv).rgb * vec3(MOON_R, MOON_G, MOON_B);
+		frag_color = texture(gtexture, new_uv).rgb * vec3(MOON_R, MOON_G, MOON_B);
 		
 #elif MOON_TYPE == MOON_PHOTON
 		
@@ -89,16 +90,15 @@ void main() {
 		const float angle      = 0.7;
 		const mat2  rot        = mat2(cos(angle), sin(angle), -sin(angle), cos(angle));
 
-		const vec3  lit_color  = vec3(MOON_R, MOON_G <= 0.03 ? 0.0 : MOON_G - 0.03, MOON_B);
-		const vec3  glow_color = vec3(MOON_R <= 0.05 ? 0.0 : MOON_R - 0.05, MOON_G, MOON_B);
-		const vec3  dark_lit_color  = vec3(0.123,0.123,0.123);
-		const vec3  dark_glow_color = vec3(0.123,0.123,0.123);
+        const vec3 lit_color =
+            vec3(MOON_R, MOON_G <= 0.03 ? 0.0 : MOON_G - 0.03, MOON_B);
+        const vec3 glow_color =
+            vec3(MOON_R <= 0.05 ? 0.0 : MOON_R - 0.05, MOON_G, MOON_B);
 
 		offset = ((fract(vec2(4.0, 2.0) * uv) - 0.5) * rcp(0.15)) / MOON_ANGULAR_RADIUS;
 		offset = rot * offset;
 
 		float dist = length(offset);
-		float moon = 1.0 - linear_step(0.85, 1.0, dist);
 		float moon_shadow = 1.0;
 		float a = sqrt(1.0 - offset.x * offset.x);
 
@@ -132,17 +132,13 @@ void main() {
 			moon_shadow = 1.0 - linear_step(a * 0.6 - 0.12, a * 0.6 + 0.12, offset.y); break;
 		}
 
-		frag_color = max(
-		moon * 1.0 * dark_lit_color,
-		(0.1) // Dark Moon glow
-		);
+        float edge_glow = sqr(sqr(sqr(dist)));
 
-		frag_color += max(
-		moon * moon_shadow * lit_color,
-		(0.1 * glow_color) * pulse(dist, 0.95, 0.3) // Moon glow
-		);
+        frag_color = max(moon_shadow * lit_color * (1.0 + 2.0 * edge_glow),
+                         0.5 * glow_color * (0.1 + 0.1 * edge_glow)) *
+            (0.2 + 0.8 * moon_texture);
 
-		if (dist > 1.3) {
+        if (dist > 1.0) {
 			discard;
 		}
 

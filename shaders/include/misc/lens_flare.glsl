@@ -345,7 +345,7 @@ float sunVisibility = 1.0 - moonVisibility;
 #endif
 
 lenslc *= vec3(1.0 - centermask);
-lenslc *= LENS_FLARE_INTENSITY * 0.5;
+lenslc *= LENS_FLARE_INTENSITY * 0.25;
 
 //Adjust global flare settings
 float flaremultR = lenslc.r * LF_COLOR_R;
