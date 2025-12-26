@@ -585,6 +585,7 @@ vec3 strip1 = draw_anamprphic_center(
         scene_color.b += strip1.b * 0.2 * moonVisibility * sunmask;
 }
 #endif
+#endif
 
 #ifdef LF_XCROSS_STRIP
 //X cross flare
