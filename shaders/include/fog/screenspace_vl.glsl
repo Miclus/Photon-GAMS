@@ -39,8 +39,7 @@ vec3 screenspace_vl(sampler2D depthtex0, vec2 lightPos, vec2 uv, vec3 light_colo
         #endif
 
         #ifdef LOD_MOD_ACTIVE
-            ivec2 view_texel = ivec2(gl_FragCoord.xy * taau_render_scale * rcp(VL_RENDER_SCALE));
-            float depth_lod = texelFetch(lod_depth_tex, view_texel, 0).x;
+            float depth_lod = texture(lod_depth_tex, sample_uv).r;
         #else
             float depth_lod = 1.0;
         #endif
