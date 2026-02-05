@@ -34,6 +34,7 @@ uniform sampler2D shadowtex0;
 
 #ifdef RAIN_LENS
 uniform float viewWidth;
+uniform float rainStrength;
 uniform float biome_may_rain;
 uniform ivec2 eyeBrightnessSmooth;
 uniform vec3 playerLookVector;
