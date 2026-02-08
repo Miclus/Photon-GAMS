@@ -26,6 +26,7 @@ uniform sampler2D noisetex;
 
 uniform sampler2D colortex1; // gbuffer 0
 uniform sampler2D colortex2; // gbuffer 1
+uniform sampler2D colortex5; // scene history
 uniform sampler2D colortex6; // ambient lighting data
 uniform sampler2D colortex14; // ambient lighting history data
 
@@ -77,6 +78,10 @@ uniform bool world_age_changed;
 
 #if SHADER_AO == SHADER_AO_GTAO
 #include "/include/lighting/ao/gtao.glsl"
+#endif
+
+#if SHADER_AO == SHADER_AO_VBIL
+#include "/include/lighting/ao/vbil.glsl"
 #endif
 
 const float ao_render_scale = 0.5;
@@ -142,8 +147,10 @@ void main() {
 	// Calculate AO
 
 	vec2 ao;
+	vec4 vbil_output = vec4(0.0);
 	vec3 bent_normal;
-	
+    bent_normal = view_normal;
+
 #if   SHADER_AO == SHADER_AO_NONE
 	ao = vec2(1.0, 0.0);
 	bent_normal = view_normal;
@@ -153,6 +160,9 @@ void main() {
 	bent_normal = view_normal;
 #elif SHADER_AO == SHADER_AO_GTAO
 	ao = compute_gtao(screen_pos, view_pos, view_normal, dither, is_lod, bent_normal);
+#elif SHADER_AO == SHADER_AO_VBIL
+    // R = AO, GBA = GI
+    vbil_output = compute_vbil(screen_pos, view_pos, view_normal, dither, is_lod, colortex5);
 #endif
 
 	// Temporal accumulation
@@ -163,51 +173,59 @@ void main() {
 
 	vec4 history = max0(catmull_rom_filter_fast(colortex6, previous_screen_pos.xy, 0.65));
 	vec2 history_data = max0(texture(colortex14, previous_screen_pos.xy).xy);
-	
+
 	if (clamp01(previous_screen_pos.xy) == previous_screen_pos.xy) {
 		// Unpack history data
 		float history_depth = 1.0 - history_data.x;
 		float pixel_age = min(history_data.y, max_accumulated_frames);
 
-		vec3 history_bent_normal;
-		history_bent_normal.xy = history.zw * 2.0 - 1.0;
-        history_bent_normal.z = sqrt(
-            clamp01(1.0 - dot(history_bent_normal.xy, history_bent_normal.xy))
-        );
-
-        // Reproject bent normal
-        history_bent_normal =
-            history_bent_normal * mat3(gbufferPreviousModelView);
-        history_bent_normal = mat3(gbufferModelView) * history_bent_normal;
-
 		// Depth rejection
 		float view_norm = rcp_length(view_pos);
-		float NoV = abs(dot(view_normal, view_pos)) * view_norm; // NoV / sqrt(length(view_pos))
+		float NoV = abs(dot(view_normal, view_pos)) * view_norm;
 		float z0 = screen_to_view_space_depth(combined_projection_matrix_inverse, depth);
 		float z1 = screen_to_view_space_depth(combined_projection_matrix_inverse, history_depth);
 		float depth_weight = exp2(-abs(z0 - z1) * depth_rejection_strength * NoV * view_norm);
-		
-		// Offcenter rejection from Jessie, which is originally by Zombye
-		// Reduces blur in motion
+
+		// Offcenter rejection
 		vec2 pixel_offset = 1.0 - abs(2.0 * fract(view_res * ao_render_scale * previous_screen_pos.xy) - 1.0);
 		float offcenter_rejection = sqrt(pixel_offset.x * pixel_offset.y) * offcenter_rejection_strength + (1.0 - offcenter_rejection_strength);
-		
+
 		pixel_age *= depth_weight * offcenter_rejection * float(history_depth != 1.0);
-		
-		// Blend with history 
+
+		// Blend with history
 		float history_weight = pixel_age / (pixel_age + 1.0);
+
+#if SHADER_AO == SHADER_AO_VBIL
+        ambient = mix(vbil_output, history, history_weight);
+        ambient_history_data = vec2(1.0 - depth, pixel_age + 1.0);
+#else
+        // Logic for exsisting AO + Bent Normal
+		vec3 history_bent_normal;
+		history_bent_normal.xy = history.zw * 2.0 - 1.0;
+        history_bent_normal.z = sqrt(clamp01(1.0 - dot(history_bent_normal.xy, history_bent_normal.xy)));
+        history_bent_normal = history_bent_normal * mat3(gbufferPreviousModelView);
+        history_bent_normal = mat3(gbufferModelView) * history_bent_normal;
 
 		ao = mix(ao, history.xy, history_weight);
 		bent_normal = slerp(bent_normal, history_bent_normal, history_weight);
 
 		ambient = vec4(ao, bent_normal.xy * 0.5 + 0.5);
 		ambient_history_data = vec2(1.0 - depth, pixel_age + 1.0);
+#endif
 	} else {
+
+#if SHADER_AO == SHADER_AO_VBIL
+        ambient = vbil_output;
+#else
 		ambient = vec4(ao, bent_normal.xy * 0.5 + 0.5);
+#endif
 		ambient_history_data = vec2(0.0);
 	}
 
     if (is_hand) {
         ambient_history_data.x = 1.0;
+#if SHADER_AO == SHADER_AO_VBIL
+        ambient = vec4(1.0, 0.0, 0.0, 0.0); // No AO and GI on hand
+#endif
     }
 }

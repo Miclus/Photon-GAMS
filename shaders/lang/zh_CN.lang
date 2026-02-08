@@ -5,6 +5,8 @@ profile.low                            = §e低
 profile.medium                         = §a中
 profile.high                           = §b高§r (默认)
 profile.ultra                          = §d极致
+profile.highvbil                       = §b高§r+VBIL
+profile.ultravbil                      = §d极致§r+VBIL
 
 # Screens
 
@@ -142,6 +144,8 @@ value.INFO.1                           = §aby OUdefie17
 value.INFO.2                           = §bby OUdefie17
 value.INFO.3                           = §dby OUdefie17
 value.INFO.4                           = §6by OUdefie17
+value.INFO.5                           = §bby OUdefie17
+value.INFO.6                           = §dby OUdefie17
 option.INFO.comment                    = 原始着色器由 §bSixthSurge§r 制作，分支贡献者 §aSW-52 §c-Daytendo64- §dOUdefie17 §eArona74
 
 # World settings
@@ -249,10 +253,11 @@ option.SSS_STEPS                       = 次表面散射步数
 option.SSS_STEPS.comment               = 增加以减少草丛和其他具有次表面散射(SSS)材质的噪点, 但会牺牲性能.
 
 option.SHADER_AO                       = 光影环境光遮蔽
-option.SHADER_AO.comment               = 选择环境光遮蔽的算法类型. 关 - 不计算光影的环境光遮蔽算法. SSAO - 需要的采样数不多/闪烁更少但质量较低. GTAO - 更好的视觉质量但需要更多的采样也更多闪烁.
+option.SHADER_AO.comment               = 选择环境光遮蔽的算法类型. 关 - 不计算光影的环境光遮蔽算法. SSAO - 需要的采样数不多/闪烁更少但质量较低. GTAO - 更好的视觉质量但需要更多的采样也更多闪烁. VBIL - 可见性位掩码间接光照，具有SSGI颜色，但由于屏幕空间效果的天性会引入伪影和噪点. (建议配合高动态范围+自动曝光使用以使反弹颜色明显)
 value.SHADER_AO.SHADER_AO_NONE         = 关
 value.SHADER_AO.SHADER_AO_SSAO         = SSAO
 value.SHADER_AO.SHADER_AO_GTAO         = GTAO
+value.SHADER_AO.SHADER_AO_VBIL         = VBIL
 option.VANILLA_AO                      = 原版环境光遮蔽
 option.VANILLA_AO.comment              = 我的世界内置的环境光遮蔽.
 option.SSAO_RADIUS                     = SSAO 半径
@@ -265,6 +270,10 @@ option.GTAO_SLICES                     = GTAO 切面数
 option.GTAO_SLICES.comment             = 控制 GTAO 噪点明显程度.
 option.GTAO_HORIZON_STEPS              = GTAO 水平线采样数
 option.GTAO_HORIZON_STEPS.comment      = 控制 GTAO 的精确度.
+option.VBIL_STEPS                      = VBIL 步数
+option.VBIL_SLICES                     = VBIL 切面数
+option.VBIL_RADIUS                     = VBIL 半径
+
 option.SHADOW_DEPTH_SCALE              = 阴影深度比例
 option.SHADOW_DISTORTION               = 阴影扭曲
 

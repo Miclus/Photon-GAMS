@@ -5,6 +5,8 @@ profile.low                            = §eLow
 profile.medium                         = §aMedium
 profile.high                           = §bHigh§r (Default)
 profile.ultra                          = §dUltra
+profile.highvbil                       = §bHigh§r+VBIL
+profile.ultravbil                      = §dUltra§r+VBIL
 
 # Screens
 
@@ -123,6 +125,8 @@ value.INFO.1                           = §aby OUdefie17
 value.INFO.2                           = §bby OUdefie17
 value.INFO.3                           = §dby OUdefie17
 value.INFO.4                           = §6by OUdefie17
+value.INFO.5                           = §bby OUdefie17
+value.INFO.6                           = §dby OUdefie17
 option.INFO.comment                    = Original shader by §bSixthSurge§r, Fork Contributors §aSW-52 §c-Daytendo64- §dOUdefie17 §eArona74
 
 # World settings
@@ -241,10 +245,11 @@ option.SSS_STEPS.comment               = Increase to reduce noise on foliage and
 
 
 option.SHADER_AO                       = Shader AO
-option.SHADER_AO.comment               = AO method used. Off - no shader AO. SSAO - lower quality but requires fewer samples/less filtering. GTAO - better quality but requires more samples/filtering
+option.SHADER_AO.comment               = AO method used. Off - no shader AO. SSAO - lower quality but requires fewer samples/less filtering. GTAO - better quality but requires more samples/filtering. VBIL - Visibility Bitmask Indirect Lighting, has SSGI color but introduces artifacts and noises due to the nature of screen-space effects. (Recommended to use with high dynamic range & auto exposure to make the bounced lights more pronounced)
 value.SHADER_AO.SHADER_AO_NONE         = Off
 value.SHADER_AO.SHADER_AO_SSAO         = SSAO
 value.SHADER_AO.SHADER_AO_GTAO         = GTAO
+value.SHADER_AO.SHADER_AO_VBIL         = VBIL
 option.VANILLA_AO                      = Vanilla AO
 option.VANILLA_AO.comment              = Minecraft's built-in ambient occlusion
 option.SSAO_RADIUS                     = SSAO Radius
@@ -257,6 +262,9 @@ option.GTAO_SLICES                     = GTAO Slices
 option.GTAO_SLICES.comment             = Controls how noisy the GTAO appears
 option.GTAO_HORIZON_STEPS              = GTAO Horizon Steps
 option.GTAO_HORIZON_STEPS.comment      = Controls the accuracy of GTAO
+option.VBIL_STEPS                      = VBIL Steps
+option.VBIL_SLICES                     = VBIL Slices
+option.VBIL_RADIUS                     = VBIL Radius
 
 option.SUN_NR                          = Red
 option.SUN_NG                          = Green

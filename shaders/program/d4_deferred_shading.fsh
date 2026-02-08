@@ -412,21 +412,36 @@ void main() {
 			ambient_upscaled = ambient_00;
 		}
 
-		float ao = ambient_upscaled.x;
-		float ambient_sss = ambient_upscaled.y;
+        float ao;
+        float ambient_sss;
+        vec3 bent_normal;
+		vec3 gi_color;
 
-		vec3 bent_normal;
+#if SHADER_AO == SHADER_AO_VBIL
+        // x = AO, yzw = GI
+        ao = ambient_upscaled.x;
+        gi_color = ambient_upscaled.yzw;
+		// No SSS and bent normal for HBIL
+        ambient_sss = 0.0;
+        bent_normal = normal;
+#else
+        // Standard GTAO/SSAO decoding
+		ao = ambient_upscaled.x;
+		ambient_sss = ambient_upscaled.y;
+
 		bent_normal.xy = ambient_upscaled.zw * 2.0 - 1.0;
 		bent_normal.z = sqrt(clamp01(1.0 - dot(bent_normal.xy, bent_normal.xy)));
 		bent_normal = mat3(gbufferModelViewInverse) * bent_normal;
 
 		// Sense check bent normal
 		if (dot(bent_normal, normal) < eps) bent_normal = normal;
+#endif
 
 		// No AO/bent normal on hand
 		if (is_hand) {
 			ao = 1.0;
 			bent_normal = normal;
+			gi_color = vec3(0.0);
 		}
 
         // Calculate lighting dot products
@@ -539,6 +554,11 @@ void main() {
 			NoH,
 			LoV
 		);
+
+		// HBIL GI
+#if SHADER_AO == SHADER_AO_VBIL
+        fragment_color += gi_color * material.albedo * ao;
+#endif
 
 		// Specular highlight
 

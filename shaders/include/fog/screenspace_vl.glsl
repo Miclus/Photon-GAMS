@@ -31,17 +31,17 @@ vec3 screenspace_vl(sampler2D depthtex0, vec2 lightPos, vec2 uv, vec3 light_colo
 
         noise_coord = mix(1.0, noise_coord, SSVL_NOISE_INTENSITY);
 
+        #ifdef LOD_MOD_ACTIVE
+            float depth_lod = texture(lod_depth_tex, sample_uv).r;
+        #else
+            float depth_lod = 1.0;
+        #endif
+
         #if defined TAA && defined TAAU
             vec2 original_uv = sample_uv * taau_render_scale;
             float depth_sample = texture(depthtex0, original_uv).r;
         #else
             float depth_sample = texture(depthtex0, sample_uv).r;
-        #endif
-
-        #ifdef LOD_MOD_ACTIVE
-            float depth_lod = texture(lod_depth_tex, sample_uv).r;
-        #else
-            float depth_lod = 1.0;
         #endif
             float min_depth = min(depth_sample, depth_lod);
             float terrain_visibility = step(1.0 - eps, min_depth);
