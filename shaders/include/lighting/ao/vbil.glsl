@@ -1,4 +1,4 @@
-// GT-VBGI by TinyTexel on Shadertoy
+// Modified version of HBIL from Photon Legacy, GTAO and GT-VBGI by TinyTexel on Shadertoy
 // https://www.shadertoy.com/view/XcdBWf
 
 #if !defined INCLUDE_LIGHTING_AO_VBIL
@@ -9,7 +9,7 @@
 #include "/include/utility/space_conversion.glsl"
 
 // Configuration
-const float vbil_thickness = 0.25;
+const float vbil_thickness = 0.1;
 const float vbil_bias = 0.02;
 const uint vbil_bit_count = 32u;
 const uint vbil_bit_max = 31u;
@@ -63,13 +63,13 @@ VbilResult vbil_search(
         float t = fi / float(VBIL_STEPS);
         t *= t;
 
-        float sample_radius = (t * radius) + 0.02; 
+        float sample_radius = (t * radius) + 0.01; 
 
         vec3 target_view_pos = view_pos + view_slice_dir * sample_radius;
         vec3 target_screen_pos = view_to_screen_space(target_view_pos, true, is_lod);
         vec2 ray_pos = target_screen_pos.xy;
 
-        if (clamp01(ray_pos) != ray_pos) break;
+        if (ray_pos.x < eps || ray_pos.x > 1.0 - eps || ray_pos.y < eps || ray_pos.y > 1.0 - eps) break;
 
         ivec2 texel = ivec2(ray_pos * view_res * taau_render_scale);
         float sample_depth_nonlinear = texelFetch(combined_depth_tex, texel, 0).x;
@@ -94,7 +94,7 @@ VbilResult vbil_search(
         
         float angle_front = fast_acos(clamp(cos_theta_front, -1.0, 1.0));
 
-        float effective_thickness = vbil_thickness; 
+        float effective_thickness = vbil_thickness;
         effective_thickness *= (1.0 + dist * 0.5);
 
         vec3 sample_view_pos_back = sample_view_pos + (viewer_dir * -1.0) * effective_thickness;
@@ -203,9 +203,10 @@ vec4 compute_vbil(
     // Multi-bounce approximation for AO (GTAO style)
     const float albedo = 0.2;
     ao /= albedo * ao + (1.0 - albedo);
+    ao = pow(ao, 1.8) * 4.0;
 
     vec3 gi = (total_radiance / max_bits);
-    gi *= 3.0;
+    gi *= 1.0;
 
     // R = AO, GBA = GI Color
     return vec4(clamp01(ao), clamp01(gi));
