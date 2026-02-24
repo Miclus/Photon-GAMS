@@ -273,6 +273,7 @@ option.GTAO_HORIZON_STEPS.comment      = 控制 GTAO 的精确度.
 option.VBIL_STEPS                      = VBIL 步数
 option.VBIL_SLICES                     = VBIL 切面数
 option.VBIL_RADIUS                     = VBIL 半径
+option.VBIL_GI_I                       = VBGI 强度
 
 option.SHADOW_DEPTH_SCALE              = 阴影深度比例
 option.SHADOW_DISTORTION               = 阴影扭曲

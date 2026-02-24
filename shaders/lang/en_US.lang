@@ -265,6 +265,7 @@ option.GTAO_HORIZON_STEPS.comment      = Controls the accuracy of GTAO
 option.VBIL_STEPS                      = VBIL Steps
 option.VBIL_SLICES                     = VBIL Slices
 option.VBIL_RADIUS                     = VBIL Radius
+option.VBIL_GI_I                       = VBGI Intensity
 
 option.SUN_NR                          = Red
 option.SUN_NG                          = Green
