@@ -21,7 +21,7 @@ struct Material {
 	bool is_hardcoded_metal;
 };
 
-const Material water_material = Material(vec3(0.0), vec3(0.0), vec3(0.02), vec3(0.0), 0.002, 1.0, 0.0, 0.0, 1.0, false, false);
+const Material water_material = Material(vec3(0.0), vec3(0.0), vec3(0.02) * SKYLIGHT_I, vec3(0.0), 0.002, 1.0, 0.0, 0.0, 1.0, false, false); // Prevent specular blowout caused by low skylight intensity
 
 #if TEXTURE_FORMAT == TEXTURE_FORMAT_LAB
 void decode_specular_map(vec4 specular_map, inout Material material) {
@@ -56,7 +56,7 @@ void decode_specular_map(vec4 specular_map, inout Material material) {
 		#endif
 
 		// Dielectrics
-		material.f0 = max(material.f0, specular_map.g);
+		material.f0 = max(material.f0, specular_map.g) * SKYLIGHT_I; // Prevent specular blowout caused by low skylight intensity
 
 		float has_sss = step(64.5 / 255.0, specular_map.b);
 		material.sss_amount = max(material.sss_amount, linear_step(64.0 / 255.0, 1.0, specular_map.b * has_sss));

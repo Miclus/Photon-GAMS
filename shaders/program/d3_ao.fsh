@@ -101,7 +101,7 @@ void main() {
 #endif
 	vec2 dither = vec2(texelFetch(noisetex, texel & 511, 0).b, texelFetch(noisetex, (texel + 249) & 511, 0).b);
 
-    // Distant Horizons support
+    // Lod mods support
 
 #ifdef LOD_MOD_ACTIVE
     float depth_mc = texelFetch(depthtex1, view_texel, 0).x;
@@ -161,8 +161,10 @@ void main() {
 #elif SHADER_AO == SHADER_AO_GTAO
 	ao = compute_gtao(screen_pos, view_pos, view_normal, dither, is_lod, bent_normal);
 #elif SHADER_AO == SHADER_AO_VBIL
+	float vbil_dither = interleaved_gradient_noise(gl_FragCoord.xy, frameCounter);
+	vec4 dither_in = vec4(vec2(vbil_dither), dither);
     // R = AO, GBA = GI
-    vbil_output = compute_vbil(screen_pos, view_pos, view_normal, dither, is_lod, colortex5);
+    vbil_output = compute_vbil(screen_pos, view_pos, view_normal, dither_in, is_lod, colortex5);
 #endif
 
 	// Temporal accumulation

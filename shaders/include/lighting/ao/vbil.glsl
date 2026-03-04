@@ -25,18 +25,17 @@ float slice_rel_cdf_cos(float x, float ang_n, float cos_n) {
 
     return clamp01(t0 / t1);
 }
+
 vec4 compute_vbil(
     vec3 screen_pos,
     vec3 view_pos,
     vec3 view_normal,
-    vec2 dither_in,
+    vec4 dither,
     bool is_lod,
     sampler2D colortex5
 ) {
     float ao = 0.0;
     vec3  gi = vec3(0.0);
-
-    vec4 dither = vec4(dither_in, hash2(dither_in));
 
 	// Construct local working space
     vec3 viewer_dir   = normalize(-view_pos);
