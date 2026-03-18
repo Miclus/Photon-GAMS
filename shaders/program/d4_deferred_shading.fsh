@@ -555,7 +555,7 @@ void main() {
 			LoV
 		);
 
-		// HBIL GI
+		// VBIL GI
 #if SHADER_AO == SHADER_AO_VBIL
         fragment_color += gi_color * material.albedo * ao;
 #endif

@@ -46,13 +46,6 @@ vec4 compute_vbil(
 	// Reduce AO radius very close up, makes some screen-space artifacts less obvious
     float ao_radius = max(0.25 + 0.75 * smoothstep(0.0, 10.0, length_squared(view_pos)), 0.5);
 
-    // Increase AO radius for LoD terrain (looks nice)
-#ifdef LOD_MOD_ACTIVE
-    if (is_lod) {
-        ao_radius *= 3.0;
-    }
-#endif
-
     float step_size = (VBIL_RADIUS * rcp(float(VBIL_STEPS))) * ao_radius;
 
     for (int s = 0; s < VBIL_SLICES; ++s) {
@@ -138,13 +131,14 @@ vec4 compute_vbil(
 
     float normalization = rcp(float(VBIL_SLICES));
     ao *= normalization;
-    gi *= normalization * VBIL_GI_I;
+    gi *= normalization;
 
-    // Multi-bounce approximation for AO (GTAO style)
+    // Multi-bounce approximation for AO & GI (GTAO style)
     const float albedo = 0.2;
     ao /= albedo * ao + (1.0 - albedo);
+    gi /= albedo * gi + (1.0 - 2.5 * albedo);
 
-    return vec4(clamp01(ao), max0(gi));
+    return vec4(clamp01(ao), clamp01(gi * VBIL_GI_I));
 }
 
 #endif // INCLUDE_LIGHTING_AO_VBIL
