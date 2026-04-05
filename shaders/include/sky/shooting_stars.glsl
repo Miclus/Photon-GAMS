@@ -17,7 +17,7 @@ float DistLine(vec2 p, vec2 a, vec2 b) {
 
 float DrawLine(vec2 p, vec2 a, vec2 b) {
     float d = DistLine(p, a, b);
-    float m = S(SHOOTING_STARS_LINE_THICKNESS, 0.00001, d);
+    float m = S(0.0025, 0.00001, d);
     float d2 = length(a-b);
     m *= S(1.0, 0.5, d2) + S(0.04, 0.03, abs(d2-0.75));
     return m;
@@ -29,10 +29,10 @@ float ShootingStar(vec2 uv, vec2 startPos, vec2 direction) {
     
     float h = N21(id);
     
-    if (h > SHOOTING_STARS_DENSITY) return 0.0;
+    if (h > 0.005) return 0.0;
     
     float line = DrawLine(gv, startPos, startPos + direction * SHOOTING_STARS_TRAIL_LENGTH);
-    float trail = S(SHOOTING_STARS_TRAIL_FADE, 0.0, dot(gv - startPos, normalize(direction)));
+    float trail = S(0.20, 0.0, dot(gv - startPos, normalize(direction)));
 	
     return line * trail;
 }
@@ -52,7 +52,7 @@ vec3 DrawShootingStars(vec3 color, vec3 worldPosition) {
     if (visibility <= 0.0) return color;
 
     vec2 uv = worldPosition.xz / worldPosition.y;
-    uv *= SHOOTING_STARS_ZOOM;
+    uv *= 0.75;
     
     float t = frameTimeCounter * SHOOTING_STARS_SPEED;
 

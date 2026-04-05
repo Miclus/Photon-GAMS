@@ -26,6 +26,7 @@ uniform sampler2D noisetex;
 
 uniform sampler2D colortex1; // gbuffer 0
 uniform sampler2D colortex2; // gbuffer 1
+uniform sampler2D colortex5; // scene history
 uniform sampler2D colortex6; // ambient lighting data
 uniform sampler2D colortex14; // ambient lighting history data
 
@@ -62,7 +63,7 @@ uniform bool world_age_changed;
 // ------------
 
 #define TEMPORAL_REPROJECTION
-#include "/include/misc/distant_horizons.glsl"
+#include "/include/misc/lod_mod_support.glsl"
 #include "/include/utility/bicubic.glsl"
 #include "/include/utility/dithering.glsl"
 #include "/include/utility/encoding.glsl"
@@ -79,6 +80,10 @@ uniform bool world_age_changed;
 #include "/include/lighting/ao/gtao.glsl"
 #endif
 
+#if SHADER_AO == SHADER_AO_VBIL
+#include "/include/lighting/ao/vbil.glsl"
+#endif
+
 const float ao_render_scale = 0.5;
 
 void main() {
@@ -87,7 +92,7 @@ void main() {
 
 	if (clamp(view_texel, ivec2(0), ivec2(view_res)) != view_texel) { return; }
 
-	float depth = texelFetch(combined_depth_buffer, view_texel, 0).x;
+	float depth = texelFetch(combined_depth_tex, view_texel, 0).x;
 
 #ifndef NORMAL_MAPPING
 	vec4 gbuffer_data = texelFetch(colortex1, view_texel, 0);
@@ -96,15 +101,19 @@ void main() {
 #endif
 	vec2 dither = vec2(texelFetch(noisetex, texel & 511, 0).b, texelFetch(noisetex, (texel + 249) & 511, 0).b);
 
-    // Distant Horizons support
+    // Lod mods support
 
-#ifdef DISTANT_HORIZONS
+#ifdef LOD_MOD_ACTIVE
     float depth_mc = texelFetch(depthtex1, view_texel, 0).x;
-    float depth_dh = texelFetch(dhDepthTex, view_texel, 0).x;
-	bool is_dh_terrain = is_distant_horizons_terrain(depth_mc, depth_dh);
+    float depth_lod = texelFetch(lod_depth_tex_solid, view_texel, 0).x;
+    bool is_lod = is_lod_terrain(depth_mc, depth_lod);
 #else
-    const bool is_dh_terrain = false;
+#define depth_mc depth
+    const bool is_lod = false;
 #endif
+
+    bool is_hand;
+    fix_hand_depth(depth_mc, is_hand);
 
 	vec3 screen_pos = vec3(uv, depth);
 	vec3 view_pos = screen_to_view_space(combined_projection_matrix_inverse, screen_pos, true);
@@ -121,8 +130,8 @@ void main() {
 #ifdef NORMAL_MAPPING
 	vec3 world_normal = decode_unit_vector(gbuffer_data.xy);
 
-	#ifdef DISTANT_HORIZONS
-	if (is_dh_terrain) {
+	#ifdef LOD_MOD_ACTIVE
+	if (is_lod) {
 		vec4 gbuffer_data_0 = texelFetch(colortex1, view_texel, 0);
 		world_normal = decode_unit_vector(unpack_unorm_2x8(gbuffer_data_0.z));
 	}
@@ -138,7 +147,11 @@ void main() {
 	// Calculate AO
 
 	vec2 ao;
+	vec4 vbil_output = vec4(0.0);
 	vec3 bent_normal;
+
+	bent_normal = view_normal;
+
 	
 #if   SHADER_AO == SHADER_AO_NONE
 	ao = vec2(1.0, 0.0);
@@ -148,7 +161,12 @@ void main() {
 	ao.y = 0.0;
 	bent_normal = view_normal;
 #elif SHADER_AO == SHADER_AO_GTAO
-	ao = compute_gtao(screen_pos, view_pos, view_normal, dither, is_dh_terrain, bent_normal);
+	ao = compute_gtao(screen_pos, view_pos, view_normal, dither, is_lod, bent_normal);
+#elif SHADER_AO == SHADER_AO_VBIL
+    float vbil_dither = interleaved_gradient_noise(gl_FragCoord.xy, frameCounter);
+    vec4 dither_in = vec4(vec2(vbil_dither), dither);
+    // R = AO, GBA = GI
+    vbil_output = compute_vbil(screen_pos, view_pos, view_normal, dither_in, is_lod, colortex5);
 #endif
 
 	// Temporal accumulation
@@ -165,19 +183,14 @@ void main() {
 		float history_depth = 1.0 - history_data.x;
 		float pixel_age = min(history_data.y, max_accumulated_frames);
 
-		vec3 history_bent_normal;
-		history_bent_normal.xy = history.zw * 2.0 - 1.0;
-		history_bent_normal.z  = sqrt(clamp01(1.0 - dot(history_bent_normal.xy, history_bent_normal.xy)));
-
 		// Depth rejection
 		float view_norm = rcp_length(view_pos);
-		float NoV = abs(dot(view_normal, view_pos)) * view_norm; // NoV / sqrt(length(view_pos))
+		float NoV = abs(dot(view_normal, view_pos)) * view_norm;
 		float z0 = screen_to_view_space_depth(combined_projection_matrix_inverse, depth);
 		float z1 = screen_to_view_space_depth(combined_projection_matrix_inverse, history_depth);
 		float depth_weight = exp2(-abs(z0 - z1) * depth_rejection_strength * NoV * view_norm);
 		
-		// Offcenter rejection from Jessie, which is originally by Zombye
-		// Reduces blur in motion
+		// Offcenter rejection
 		vec2 pixel_offset = 1.0 - abs(2.0 * fract(view_res * ao_render_scale * previous_screen_pos.xy) - 1.0);
 		float offcenter_rejection = sqrt(pixel_offset.x * pixel_offset.y) * offcenter_rejection_strength + (1.0 - offcenter_rejection_strength);
 		
@@ -186,13 +199,37 @@ void main() {
 		// Blend with history 
 		float history_weight = pixel_age / (pixel_age + 1.0);
 
+#if SHADER_AO == SHADER_AO_VBIL
+        ambient = mix(vbil_output, history, history_weight);
+        ambient_history_data = vec2(1.0 - depth, pixel_age + 1.0);
+#else
+        // Logic for exsisting AO + Bent Normal
+		vec3 history_bent_normal;
+		history_bent_normal.xy = history.zw * 2.0 - 1.0;
+        history_bent_normal.z = sqrt(clamp01(1.0 - dot(history_bent_normal.xy, history_bent_normal.xy)));
+        history_bent_normal = history_bent_normal * mat3(gbufferPreviousModelView);
+        history_bent_normal = mat3(gbufferModelView) * history_bent_normal;
+
 		ao = mix(ao, history.xy, history_weight);
 		bent_normal = slerp(bent_normal, history_bent_normal, history_weight);
 
 		ambient = vec4(ao, bent_normal.xy * 0.5 + 0.5);
 		ambient_history_data = vec2(1.0 - depth, pixel_age + 1.0);
+#endif
 	} else {
+
+#if SHADER_AO == SHADER_AO_VBIL
+        ambient = vbil_output;
+#else
 		ambient = vec4(ao, bent_normal.xy * 0.5 + 0.5);
+#endif
 		ambient_history_data = vec2(0.0);
 	}
+
+    if (is_hand) {
+        ambient_history_data.x = 1.0;
+#if SHADER_AO == SHADER_AO_VBIL
+        ambient = vec4(1.0, 0.0, 0.0, 0.0); // No AO and GI on hand
+#endif
+    }
 }

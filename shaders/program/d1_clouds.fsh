@@ -12,7 +12,7 @@
 #include "/include/global.glsl"
 
 layout (location = 0) out vec4 clouds;
-layout (location = 1) out vec2 clouds_data;
+layout (location = 1) out vec3 clouds_data;
 
 /* RENDERTARGETS: 9,10 */
 
@@ -51,10 +51,8 @@ uniform mat4 gbufferModelViewInverse;
 uniform mat4 gbufferProjection;
 uniform mat4 gbufferProjectionInverse;
 
-#ifdef SHADOW
 uniform mat4 shadowModelView;
 uniform mat4 shadowModelViewInverse;
-#endif
 
 uniform vec3 cameraPosition;
 uniform vec3 previousCameraPosition;
@@ -112,21 +110,28 @@ uniform sampler3D light_sampler_b;
 #define ATMOSPHERE_SCATTERING_LUT depthtex0
 #define MIE_PHASE_CLAMP
 
+#ifdef CLOUDS_CUMULUS_PRECOMPUTE_LOCAL_COVERAGE
+#define CLOUDS_USE_LOCAL_COVERAGE_MAP
+#endif
+
 #if defined WORLD_OVERWORLD
 #include "/include/sky/atmosphere.glsl"
 #include "/include/sky/aurora.glsl"
 #include "/include/sky/clouds.glsl"
+
+#if defined CREPUSCULAR_RAYS && !defined BLOCKY_CLOUDS
 #include "/include/sky/crepuscular_rays.glsl"
 #endif
+#endif
 
-#include "/include/misc/distant_horizons.glsl"
+#include "/include/misc/lod_mod_support.glsl"
 #include "/include/utility/checkerboard.glsl"
 #include "/include/utility/random.glsl"
 #include "/include/utility/space_conversion.glsl"
 
 const int checkerboard_area = CLOUDS_TEMPORAL_UPSCALING * CLOUDS_TEMPORAL_UPSCALING;
 
-float depth_max_4x4(sampler2D depth_sampler) {
+float depth_max_4x4(sampler2D depth_sampler, float taau_render_scale) {
 	vec4 depth_samples_0 = textureGather(depth_sampler, uv * taau_render_scale + vec2( 2.0 * view_pixel_size.x,  2.0 * view_pixel_size.y));
 	vec4 depth_samples_1 = textureGather(depth_sampler, uv * taau_render_scale + vec2(-2.0 * view_pixel_size.x,  2.0 * view_pixel_size.y));
 	vec4 depth_samples_2 = textureGather(depth_sampler, uv * taau_render_scale + vec2( 2.0 * view_pixel_size.x, -2.0 * view_pixel_size.y));
@@ -149,30 +154,31 @@ void main() {
 	vec2 new_uv = vec2(checkerboard_pos) / vec2(view_res) * rcp(float(taau_render_scale));
 
 	// Get maximum depth from area covered by this fragment
-	float depth_max = depth_max_4x4(depthtex1);
+	float depth_max = depth_max_4x4(depthtex1, taau_render_scale);
+	if (depth_max < hand_depth) {
+		depth_max = 1.0;
+	}
 
 	vec3 screen_pos = vec3(new_uv, depth_max);
 	vec3 view_pos = screen_to_view_space(screen_pos, false);
 
-	// Distant Horizons support
-#ifdef DISTANT_HORIZONS
-	float depth_dh = depth_max_4x4(dhDepthTex);
-	bool is_dh_terrain = is_distant_horizons_terrain(depth_max, depth_dh);
+    // LoD terrain support
+#ifdef LOD_MOD_ACTIVE
+    float depth_lod = depth_max_4x4(lod_depth_tex_solid, lod_depth_tex_scale);
+    bool is_lod = is_lod_terrain(depth_max, depth_lod);
 
-	if (is_dh_terrain) {
-		screen_pos = vec3(new_uv, depth_dh);
+    if (is_lod) {
+        screen_pos = vec3(new_uv, depth_lod);
 		view_pos = screen_to_view_space(screen_pos, false, true);
 	}
 #else
-	const bool is_dh_terrain = false;
+	const bool is_lod = false;
 #endif
 
 	vec3 ray_origin = vec3(0.0, CLOUDS_SCALE * (eyeAltitude - SEA_LEVEL) + planet_radius, 0.0) + CLOUDS_SCALE * gbufferModelViewInverse[3].xyz;
 	vec3 ray_dir    = mat3(gbufferModelViewInverse) * normalize(view_pos);
 
-	float distance_to_terrain = (depth_max == 1.0 && !is_dh_terrain)
-		? -1.0
-		: length(view_pos) * CLOUDS_SCALE;
+	float distance_to_terrain = -1.0;
 
 	vec3 clear_sky = atmosphere_scattering(ray_dir, sun_color, sun_dir, moon_color, moon_dir, /* use_klein_nishina_phase */ false);
 
@@ -192,6 +198,7 @@ void main() {
 	clouds.w      = result.transmittance;
 	clouds_data.x = result.apparent_distance * rcp(CLOUDS_SCALE);
 	clouds_data.y = result.scattering.w;
+	clouds_data.z = result.lightning_intensity;
 #else
 	clouds        = vec4(0.0, 0.0, 0.0, 1.0);
 	clouds_data.x = 1e6;
@@ -200,7 +207,7 @@ void main() {
 
 	// Crepuscular rays
 
-#ifdef CREPUSCULAR_RAYS
+#if defined CREPUSCULAR_RAYS && !defined BLOCKY_CLOUDS
 	vec4 crepuscular_rays = draw_crepuscular_rays(
 		colortex8,
 		ray_dir,

@@ -13,7 +13,7 @@
 //#define TERRAIN_SHADOWS_ON_CLOUDS
 
 #ifdef TERRAIN_SHADOWS_ON_CLOUDS
-#include "/include/lighting/shadows.glsl"
+#include "/include/lighting/shadows/sampling.glsl"
 #endif
 
 #if defined COLORED_LIGHTS && defined COLORED_LIGHTS_CLOUDS
@@ -28,12 +28,14 @@ struct CloudsResult {
 	vec4 scattering; // w = ambient scattering, for lightning flashes
 	float transmittance;
 	float apparent_distance;
+	float lightning_intensity;
 };
 
 const CloudsResult clouds_not_hit = CloudsResult(
 	vec4(0.0),
 	1.0,
-	1e5
+	1e5,
+	0.0
 );
 
 // ----
@@ -133,10 +135,14 @@ CloudsResult blend_layers(CloudsResult old, CloudsResult new, uint iter) {
 	vec4 scattering_in_front     = new_in_front ? new.scattering : old.scattering;
 	float transmittance_in_front = new_in_front ? new.transmittance : old.transmittance;
 
+	float lightning_behind       = new_in_front ? old.lightning_intensity : new.lightning_intensity;
+	float lightning_in_front     = new_in_front ? new.lightning_intensity : old.lightning_intensity;
+
 	return CloudsResult(
 		scattering_in_front + transmittance_in_front * scattering_behind,
 		old.transmittance * new.transmittance,
-		min(old.apparent_distance, new.apparent_distance)
+		min(old.apparent_distance, new.apparent_distance),
+		lightning_in_front + transmittance_in_front * lightning_behind
 	);
 }
 
