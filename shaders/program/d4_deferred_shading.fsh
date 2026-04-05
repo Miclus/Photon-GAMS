@@ -211,7 +211,7 @@ void main() {
 
 #ifdef LOD_MOD_ACTIVE
     float depth_mc = texelFetch(depthtex1, texel, 0).x;
-    float depth_lod = texelFetch(lod_depth_tex, texel, 0).x;
+    float depth_lod = texelFetch(lod_depth_tex_solid, texel, 0).x;
     bool is_lod = is_lod_terrain(depth_mc, depth_lod);
 #else
     const bool is_lod = false;
@@ -338,7 +338,9 @@ void main() {
 #if !defined USE_SEPARATE_ENTITY_DRAWS
 		uint overlay_id = uint(255.0 * overlays.a);
 		albedo = overlay_id == 0u ? albedo + overlays.rgb : albedo; // enchantment glint
-		albedo = overlay_id == 1u && !is_hand ? 2.0 * albedo * overlays.rgb : albedo; // damage overlay
+		albedo = overlay_id == 1u && !is_hand
+			? 2.0 * albedo * overlays.rgb
+			: albedo; // damage overlay
 #endif
 
 		// Get material and normal
@@ -412,20 +414,20 @@ void main() {
 			ambient_upscaled = ambient_00;
 		}
 
-        float ao;
-        float ambient_sss;
-        vec3 bent_normal;
+		float ao;
+		float ambient_sss;
+		vec3 bent_normal;
 		vec3 gi_color;
 
 #if SHADER_AO == SHADER_AO_VBIL
-        // x = AO, yzw = GI
-        ao = ambient_upscaled.x;
-        gi_color = ambient_upscaled.yzw;
-		// No SSS and bent normal for HBIL
-        ambient_sss = 0.0;
-        bent_normal = normal;
+		// x = AO, yzw = GI
+		ao = ambient_upscaled.x;
+		gi_color = ambient_upscaled.yzw;
+		// No SSS and bent normal for VBIL
+		ambient_sss = 0.0;
+		bent_normal = normal;
 #else
-        // Standard GTAO/SSAO decoding
+		// Standard GTAO/SSAO decoding
 		ao = ambient_upscaled.x;
 		ambient_sss = ambient_upscaled.y;
 
@@ -522,7 +524,7 @@ void main() {
             shadows *= float(!parallax_shadow);
 #endif
         }
-#else 
+#else
         const vec3 shadows = vec3(1.0);
         const float shadow_distance_fade = 1.0;
         const float sss_depth = 0.0;
@@ -557,7 +559,7 @@ void main() {
 
 		// VBIL GI
 #if SHADER_AO == SHADER_AO_VBIL
-        fragment_color += gi_color * material.albedo * ao;
+		fragment_color += gi_color * material.albedo * ao;
 #endif
 
 		// Specular highlight
@@ -624,8 +626,12 @@ void main() {
 	#ifdef BLOCKY_CLOUDS
 		fragment_color = fragment_color * blocky_clouds.w + blocky_clouds.xyz;
 	#else
-		if (sqr(clouds_apparent_distance) < length_squared(position_view)) {
-			fragment_color = fragment_color * clouds_and_aurora.w + clouds_and_aurora.xyz;
+		float cloud_fade = smoothstep(-20.0, 40.0, view_distance - clouds_apparent_distance);
+		// Weaker overlay on hand and very close geometry (held items, F5 player)
+		cloud_fade *= mix(0.0, 1.0, smoothstep(0.0, 12.0, view_distance));
+		if (is_hand) cloud_fade *= 0.4;
+		if (cloud_fade > 0.0) {
+			fragment_color = fragment_color * mix(1.0, clouds_and_aurora.w, cloud_fade) + clouds_and_aurora.xyz * cloud_fade;
 		}
 	#endif
 

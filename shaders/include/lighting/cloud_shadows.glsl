@@ -68,7 +68,7 @@ vec2 render_cloud_shadow_map(vec2 uv) {
 	float distance_fade_strength = 0.0000001 * pulse(light_dir.y, -0.01, 0.2);
 
 #ifdef CLOUDS_CUMULUS
-	extinction_coeff = 0.25 * clouds_params.l0_extinction_coeff;
+	extinction_coeff = 1.0 * clouds_params.l0_extinction_coeff;
 	t = intersect_sphere(ray_origin, light_dir,	clouds_cumulus_radius + 0.25 * clouds_cumulus_thickness).y;
 	pos = ray_origin + light_dir * t;
 	distance_fade = exp2(-distance_fade_strength * length(pos.xy));
@@ -78,20 +78,22 @@ vec2 render_cloud_shadow_map(vec2 uv) {
 #endif // CLOUDS_CUMULUS
 
 #ifdef CLOUDS_TOWERING_CUMULUS
-	extinction_coeff = 0.25 * mix(0.05, 0.1, smoothstep(0.0, 0.3, abs(sun_dir.y))) * (1.0 - 0.33 * rainStrength) * CLOUDS_TOWERING_CUMULUS_DENSITY;
+	extinction_coeff = 1.0 * mix(0.05, 0.1, smoothstep(0.0, 0.3, abs(sun_dir.y))) * (1.0 - 0.33 * rainStrength) * CLOUDS_TOWERING_CUMULUS_DENSITY;
 	t = intersect_sphere(ray_origin, light_dir, clouds_towering_cumulus_radius + 0.25 * clouds_towering_cumulus_thickness).y;
 	pos = ray_origin + light_dir * t;
 	distance_fade = exp2(-distance_fade_strength * length(pos.xy));
 	density = clouds_towering_cumulus_density(pos);
-	shadow *= exp(-1.00 * distance_fade * extinction_coeff * clouds_towering_cumulus_thickness * rcp(abs(light_dir.y) + eps) * density);
+	float towering_transmittance = exp(-1.00 * distance_fade * extinction_coeff * clouds_towering_cumulus_thickness * rcp(abs(light_dir.y) + eps) * density);
+	shadow *= towering_transmittance;
+	shadow_cumulus_only *= towering_transmittance;
 #endif // CLOUDS_TOWERING_CUMULUS
 
 #ifdef CLOUDS_THUNDERHEAD
-	vec2 thunderhead_intersect = intersect_spherical_shell(ray_origin, light_dir, clouds_thunderhead_radius, clouds_thunderhead_top_radius + clouds_thunderhead_thickness);
+	vec2 thunderhead_intersect = intersect_spherical_shell(ray_origin, light_dir, clouds_thunderhead_radius, clouds_thunderhead_top_radius);
 	
 	if (thunderhead_intersect.y > 0.0) {
 		float ray_length = thunderhead_intersect.y - max(0.0, thunderhead_intersect.x);
-		const uint shadow_steps = 8u;
+		const uint shadow_steps = 16u;
 		float step_length = ray_length / float(shadow_steps);
 		vec3 ray_step = light_dir * step_length;
 		vec3 march_pos = ray_origin + light_dir * max(0.0, thunderhead_intersect.x);
@@ -105,12 +107,14 @@ vec2 render_cloud_shadow_map(vec2 uv) {
 			density = clouds_thunderhead_density(sample_pos);
 			thunderhead_optical_depth += density * extinction_coeff * step_length * distance_fade;
 		}
-		shadow *= exp(-thunderhead_optical_depth * rcp(abs(light_dir.y) + eps));
+		float thunderhead_transmittance = exp(-thunderhead_optical_depth * rcp(abs(light_dir.y) + eps));
+		shadow *= thunderhead_transmittance;
+		shadow_cumulus_only *= thunderhead_transmittance;
 	}
 #endif // CLOUDS_THUNDERHEAD
 
 #ifdef CLOUDS_ALTOCUMULUS
-	extinction_coeff = mix(0.05, 0.1, day_factor) * CLOUDS_ALTOCUMULUS_DENSITY * (1.0 - 0.33 * rainStrength);
+	extinction_coeff = mix(0.001, 0.1, day_factor) * CLOUDS_ALTOCUMULUS_DENSITY * (0.25 - 0.33 * rainStrength); 
 	t = intersect_sphere(ray_origin, light_dir,	clouds_altocumulus_radius + 0.5 * clouds_altocumulus_thickness).y;
 	pos = ray_origin + light_dir * t;
 	distance_fade = exp2(-distance_fade_strength * length(pos.xy));

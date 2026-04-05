@@ -13,7 +13,7 @@
 #include "/include/global.glsl"
 
 layout (location = 0) out vec4 clouds_history;
-layout (location = 1) out vec3 clouds_data;
+layout (location = 1) out vec4 clouds_data;
 
 /* RENDERTARGETS: 11,12 */
 
@@ -162,7 +162,7 @@ void main() {
 	ivec2 src_texel = clamp(dst_texel / CLOUDS_TEMPORAL_UPSCALING, ivec2(0), ivec2(view_res * taau_render_scale) / CLOUDS_TEMPORAL_UPSCALING - 1);
 
 	vec4 current      = texelFetch(colortex9, src_texel, 0);
-	vec2 current_data = texelFetch(colortex10, src_texel, 0).xy;
+	vec3 current_data = texelFetch(colortex10, src_texel, 0).xyz;
 	float depth       = texelFetch(depthtex1, dst_texel, 0).x;
 
     bool is_hand;
@@ -174,7 +174,7 @@ void main() {
 
 #ifdef LOD_MOD_ACTIVE
 	// Check for LoD terrain
-    float depth_lod = texelFetch(lod_depth_tex, dst_texel, 0).x;
+    float depth_lod = texelFetch(lod_depth_tex_solid, dst_texel, 0).x;
     bool is_lod = is_lod_terrain(depth, depth_lod);
 
 	float depth_linear    = screen_to_view_space_depth(gbufferProjectionInverse, depth);
@@ -218,20 +218,6 @@ void main() {
 		texture_min_4x4(colortex12, uv_clamped * taau_render_scale)
 	);
 
-	// Early exit if clouds covered by terrain
-	if (depth != 1.0) {
-		float view_distance_squared = length_squared(
-			screen_to_view_space(vec3(uv, depth), true)
-		);
-		if (view_distance_squared < sqr(closest_distance) && !is_hand) {
-			clouds_history = current;
-			clouds_data.x = 1e6; // apparent distance
-			clouds_data.y = 0.0; // pixel age
-			clouds_data.z = 0.0; // ambient scattering
-			return;
-		}
-	}
-
 	// Reproject clouds
 	vec2 previous_uv = reproject_clouds(uv, closest_distance).xy;
 
@@ -258,7 +244,6 @@ void main() {
 
 	// Work out whether the history should be invalidated
 	bool disocclusion = clamp01(previous_uv) != previous_uv;
-		 disocclusion = disocclusion || (history_depth < 1.0 && distance_to_terrain_squared < sqr(closest_distance));
 		 disocclusion = disocclusion || any(isnan(history));
 	     disocclusion = disocclusion || world_age_changed;
 
@@ -335,4 +320,5 @@ void main() {
 	clouds_data.x = mix(apparent_distance, apparent_distance_history, history_weight);
 	clouds_data.y = min(++pixel_age, CLOUDS_ACCUMULATION_LIMIT);
 	clouds_data.z = mix(ambient_scattering, history_data.z, history_weight);
+	clouds_data.w = current_data.z;
 }

@@ -149,8 +149,10 @@ void main() {
 	vec2 ao;
 	vec4 vbil_output = vec4(0.0);
 	vec3 bent_normal;
-    bent_normal = view_normal;
 
+	bent_normal = view_normal;
+
+	
 #if   SHADER_AO == SHADER_AO_NONE
 	ao = vec2(1.0, 0.0);
 	bent_normal = view_normal;
@@ -161,8 +163,8 @@ void main() {
 #elif SHADER_AO == SHADER_AO_GTAO
 	ao = compute_gtao(screen_pos, view_pos, view_normal, dither, is_lod, bent_normal);
 #elif SHADER_AO == SHADER_AO_VBIL
-	float vbil_dither = interleaved_gradient_noise(gl_FragCoord.xy, frameCounter);
-	vec4 dither_in = vec4(vec2(vbil_dither), dither);
+    float vbil_dither = interleaved_gradient_noise(gl_FragCoord.xy, frameCounter);
+    vec4 dither_in = vec4(vec2(vbil_dither), dither);
     // R = AO, GBA = GI
     vbil_output = compute_vbil(screen_pos, view_pos, view_normal, dither_in, is_lod, colortex5);
 #endif
@@ -175,7 +177,7 @@ void main() {
 
 	vec4 history = max0(catmull_rom_filter_fast(colortex6, previous_screen_pos.xy, 0.65));
 	vec2 history_data = max0(texture(colortex14, previous_screen_pos.xy).xy);
-
+	
 	if (clamp01(previous_screen_pos.xy) == previous_screen_pos.xy) {
 		// Unpack history data
 		float history_depth = 1.0 - history_data.x;
@@ -187,14 +189,14 @@ void main() {
 		float z0 = screen_to_view_space_depth(combined_projection_matrix_inverse, depth);
 		float z1 = screen_to_view_space_depth(combined_projection_matrix_inverse, history_depth);
 		float depth_weight = exp2(-abs(z0 - z1) * depth_rejection_strength * NoV * view_norm);
-
+		
 		// Offcenter rejection
 		vec2 pixel_offset = 1.0 - abs(2.0 * fract(view_res * ao_render_scale * previous_screen_pos.xy) - 1.0);
 		float offcenter_rejection = sqrt(pixel_offset.x * pixel_offset.y) * offcenter_rejection_strength + (1.0 - offcenter_rejection_strength);
-
+		
 		pixel_age *= depth_weight * offcenter_rejection * float(history_depth != 1.0);
-
-		// Blend with history
+		
+		// Blend with history 
 		float history_weight = pixel_age / (pixel_age + 1.0);
 
 #if SHADER_AO == SHADER_AO_VBIL

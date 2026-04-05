@@ -12,7 +12,7 @@
 #include "/include/global.glsl"
 
 layout (location = 0) out vec4 clouds;
-layout (location = 1) out vec2 clouds_data;
+layout (location = 1) out vec3 clouds_data;
 
 /* RENDERTARGETS: 9,10 */
 
@@ -51,10 +51,8 @@ uniform mat4 gbufferModelViewInverse;
 uniform mat4 gbufferProjection;
 uniform mat4 gbufferProjectionInverse;
 
-#ifdef SHADOW
 uniform mat4 shadowModelView;
 uniform mat4 shadowModelViewInverse;
-#endif
 
 uniform vec3 cameraPosition;
 uniform vec3 previousCameraPosition;
@@ -157,6 +155,9 @@ void main() {
 
 	// Get maximum depth from area covered by this fragment
 	float depth_max = depth_max_4x4(depthtex1, taau_render_scale);
+	if (depth_max < hand_depth) {
+		depth_max = 1.0;
+	}
 
 	vec3 screen_pos = vec3(new_uv, depth_max);
 	vec3 view_pos = screen_to_view_space(screen_pos, false);
@@ -177,9 +178,7 @@ void main() {
 	vec3 ray_origin = vec3(0.0, CLOUDS_SCALE * (eyeAltitude - SEA_LEVEL) + planet_radius, 0.0) + CLOUDS_SCALE * gbufferModelViewInverse[3].xyz;
 	vec3 ray_dir    = mat3(gbufferModelViewInverse) * normalize(view_pos);
 
-	float distance_to_terrain = (depth_max == 1.0 && !is_lod)
-		? -1.0
-		: length(view_pos) * CLOUDS_SCALE;
+	float distance_to_terrain = -1.0;
 
 	vec3 clear_sky = atmosphere_scattering(ray_dir, sun_color, sun_dir, moon_color, moon_dir, /* use_klein_nishina_phase */ false);
 
@@ -199,6 +198,7 @@ void main() {
 	clouds.w      = result.transmittance;
 	clouds_data.x = result.apparent_distance * rcp(CLOUDS_SCALE);
 	clouds_data.y = result.scattering.w;
+	clouds_data.z = result.lightning_intensity;
 #else
 	clouds        = vec4(0.0, 0.0, 0.0, 1.0);
 	clouds_data.x = 1e6;

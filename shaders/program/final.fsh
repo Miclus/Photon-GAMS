@@ -44,7 +44,9 @@ uniform vec3 playerLookVector;
 #include "/include/utility/color.glsl"
 #include "/include/utility/dithering.glsl"
 #include "/include/utility/text_rendering.glsl"
+#ifdef RAIN_LENS
 #include "/include/misc/rain_lens.glsl"
+#endif
 
 #ifdef DISTANCE_VIEW
 uniform sampler2D depthtex0;

@@ -72,8 +72,8 @@ vec3 draw_rainbows(
 
 	vec3 second_rainbow = draw_single_rainbow(
 		rainbow_angle,
-		second_rainbow_middle_angle + second_rainbow_thickness * 0.5,
-		second_rainbow_middle_angle - second_rainbow_thickness * 0.5
+		second_rainbow_middle_angle - second_rainbow_thickness * 0.5,
+		second_rainbow_middle_angle + second_rainbow_thickness * 0.5
 	);
 
 	vec3 transmittance_approx = mix(vec3(1.0, 0.75, 0.5), vec3(1.0), dampen(max0(direction_world.y)));

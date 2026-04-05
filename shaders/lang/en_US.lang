@@ -5,8 +5,6 @@ profile.low                            = §eLow
 profile.medium                         = §aMedium
 profile.high                           = §bHigh§r (Default)
 profile.ultra                          = §dUltra
-profile.highvbil                       = §bHigh§r+VBIL
-profile.ultravbil                      = §dUltra§r+VBIL
 
 # Screens
 
@@ -83,6 +81,8 @@ screen.clouds                          = §7☁§r Clouds
 screen.clouds_cumulus                  = Cumulus Clouds Settings
 screen.clouds_towering_cumulus         = Towering Cumulus Settings
 screen.clouds_thunderhead              = Thunderhead Settings
+screen.clouds_thunderhead_lightning    = Thunderhead Lightning Settings
+screen.thunderhead_lightning_settings  = Thunderhead Lightning Settings
 screen.clouds_altocumulus              = Altocumulus Clouds Settings
 screen.clouds_cumulus_congestus        = Cumulus Congestus Clouds Settings
 screen.clouds_cumulonimbus             = Cumulonimbus Clouds Settings
@@ -125,8 +125,6 @@ value.INFO.1                           = §aby OUdefie17
 value.INFO.2                           = §bby OUdefie17
 value.INFO.3                           = §dby OUdefie17
 value.INFO.4                           = §6by OUdefie17
-value.INFO.5                           = §bby OUdefie17
-value.INFO.6                           = §dby OUdefie17
 option.INFO.comment                    = Original shader by §bSixthSurge§r, Fork Contributors §aSW-52 §c-Daytendo64- §dOUdefie17 §eArona74
 
 # World settings
@@ -245,11 +243,10 @@ option.SSS_STEPS.comment               = Increase to reduce noise on foliage and
 
 
 option.SHADER_AO                       = Shader AO
-option.SHADER_AO.comment               = AO method used. Off - no shader AO. SSAO - lower quality but requires fewer samples/less filtering. GTAO - better quality but requires more samples/filtering. VBIL - Visibility Bitmask Indirect Lighting, has SSGI color but introduces artifacts and noises due to the nature of screen-space effects. (Recommended to use with high dynamic range & auto exposure to make the bounced lights more pronounced)
+option.SHADER_AO.comment               = AO method used. Off - no shader AO. SSAO - lower quality but requires fewer samples/less filtering. GTAO - better quality but requires more samples/filtering
 value.SHADER_AO.SHADER_AO_NONE         = Off
 value.SHADER_AO.SHADER_AO_SSAO         = SSAO
 value.SHADER_AO.SHADER_AO_GTAO         = GTAO
-value.SHADER_AO.SHADER_AO_VBIL         = VBIL
 option.VANILLA_AO                      = Vanilla AO
 option.VANILLA_AO.comment              = Minecraft's built-in ambient occlusion
 option.SSAO_RADIUS                     = SSAO Radius
@@ -262,10 +259,6 @@ option.GTAO_SLICES                     = GTAO Slices
 option.GTAO_SLICES.comment             = Controls how noisy the GTAO appears
 option.GTAO_HORIZON_STEPS              = GTAO Horizon Steps
 option.GTAO_HORIZON_STEPS.comment      = Controls the accuracy of GTAO
-option.VBIL_STEPS                      = VBIL Steps
-option.VBIL_SLICES                     = VBIL Slices
-option.VBIL_RADIUS                     = VBIL Radius
-option.VBIL_GI_I                       = VBGI Intensity
 
 option.SUN_NR                          = Red
 option.SUN_NG                          = Green
@@ -286,6 +279,9 @@ option.SKYLIGHT_I                      = 🌅 Skylight Intensity
 option.BOUNCED_LIGHT_I                 = 🌅 Bounced Sunlight Intensity
 option.CAVE_LIGHTING_I                 = 🦇 Cave Brightness
 option.LIGHTNING_FLASH                 = Lightning Flash
+option.LIGHTNING_FLASH_INTENSITY       = Lightning Flash Intensity
+option.SKY_BLUE_DEPTH                  = Blue Sky Color
+option.SKY_BLUE_DEPTH.comment          = Adjust the intensity of the blue sky color
 option.NETHER_USE_BIOME_COLOR          = Use Biome Color
 option.NETHER_I                        = Ambient Intensity
 option.NETHER_S                        = Ambient Saturation
@@ -400,6 +396,8 @@ option.ATMOSPHERE_SATURATION_BOOST_INTENSITY = Atmosphere Saturation Boost Inten
 option.ATMOSPHERE_SATURATION_BOOST_INTENSITY.comment = Adjust the intensity of Atmosphere Saturation Boost
 option.CREPUSCULAR_RAYS                = Crepuscular Rays
 option.LIGHTNING_FLASH                 = Lightning Flash
+option.BLUE_SKY_DARKENING              = Blue Sky Darkening
+option.BLUE_SKY_DARKENING.comment      = Adjust how much of the sky you want to be a deeper blue, doesn't affect the overall lighting and shadows. \n1.0 is default sky color
 
 # Sun settings
 option.VANILLA_SUN                     = §6☀§r Vanilla Sun
@@ -565,6 +563,12 @@ option.CLOUDS_THUNDERHEAD_WIND_ANGLE              = Wind Angle
 suffix.CLOUDS_THUNDERHEAD_WIND_ANGLE              = °
 option.CLOUDS_THUNDERHEAD_MIN                     = Min Thunderhead Coverage
 option.CLOUDS_THUNDERHEAD_MAX                     = Max Thunderhead Coverage
+option.CLOUDS_THUNDERHEAD_LIGHTNING_ENABLE          = Lightning
+option.CLOUDS_THUNDERHEAD_LIGHTNING_FREQUENCY       = Lightning Frequency
+option.CLOUDS_THUNDERHEAD_LIGHTNING_INTENSITY       = Lightning Intensity
+option.CLOUDS_THUNDERHEAD_LIGHTNING_COLOR_R         = Lightning Color Red
+option.CLOUDS_THUNDERHEAD_LIGHTNING_COLOR_G         = Lightning Color Green
+option.CLOUDS_THUNDERHEAD_LIGHTNING_COLOR_B         = Lightning Color Blue
 
 option.CLOUDS_CUMULUS_PRECOMPUTE_LOCAL_COVERAGE         = Precompute Local Coverage
 option.CLOUDS_CUMULUS_PRECOMPUTE_LOCAL_COVERAGE.comment = Aggressive optimization for cumulus clouds. Reduces the maximum distance clouds can be drawn and can cause some artifacts with cloud shapes morphing when the camera moves. Disable for taking screenshots above the clouds
@@ -1578,3 +1582,32 @@ option.BOX_LINE_WIDTH           = Line Width
 option.PHYSICS_MOD_OCEAN           = Physics Mod Ocean
 option.NOISE_ON_DH_TERRAIN         = Noise on DH terrain
 option.NOISE_ON_DH_TERRAIN.comment = High-frequency noise on Distant Horizons terrain
+
+ 
+ s c r e e n . b l a c k _ h o l e = B l a c k   H o l e 
+ 
+ s c r e e n . b l a c k _ h o l e _ c o l o r = A c c r e t i o n   D i s k   C o l o r 
+ 
+ o p t i o n . B L A C K _ H O L E _ E N A B L E D = E n a b l e   B l a c k   H o l e 
+ 
+ o p t i o n . B L A C K _ H O L E _ R A D I U S = E v e n t   H o r i z o n   R a d i u s 
+ 
+ o p t i o n . B L A C K _ H O L E _ D I S K _ S I Z E = A c c r e t i o n   D i s k   S i z e 
+ 
+ o p t i o n . B L A C K _ H O L E _ D I S K _ B R I G H T N E S S = D i s k   B r i g h t n e s s 
+ 
+ o p t i o n . B L A C K _ H O L E _ L E N S I N G = L e n s i n g   S t r e n g t h 
+ 
+ o p t i o n . B L A C K _ H O L E _ R O T A T I O N _ S P E E D = R o t a t i o n   S p e e d 
+ 
+ o p t i o n . B L A C K _ H O L E _ A Z I M U T H = A z i m u t h   ( H o r i z o n t a l ) 
+ 
+ o p t i o n . B L A C K _ H O L E _ A L T I T U D E = A l t i t u d e   ( V e r t i c a l ) 
+ 
+ o p t i o n . B L A C K _ H O L E _ D I S K _ C O L O R _ R = D i s k   R e d 
+ 
+ o p t i o n . B L A C K _ H O L E _ D I S K _ C O L O R _ G = D i s k   G r e e n 
+ 
+ o p t i o n . B L A C K _ H O L E _ D I S K _ C O L O R _ B = D i s k   B l u e 
+ 
+ 

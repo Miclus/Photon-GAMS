@@ -118,6 +118,16 @@ CloudsParameters get_clouds_parameters(Weather weather) {
 
 	params.cumulus_congestus_blend  = clouds_cumulus_congestus_blend(weather, params.l0_coverage);
 
+	// Towering Cumulus
+	params.towering_cumulus_altitude_scale = 1.0 / clouds_towering_cumulus_thickness;
+	params.towering_cumulus_detail_weights = vec2(0.33, 0.40) * CLOUDS_TOWERING_CUMULUS_DETAIL_STRENGTH;
+	params.towering_cumulus_edge_sharpening = vec2(3.0, 8.0);
+
+	// Thunderhead
+	params.thunderhead_altitude_scale = 0.8 / clouds_thunderhead_thickness;
+	params.thunderhead_detail_weights = vec2(0.06, 0.06) * CLOUDS_THUNDERHEAD_DETAIL_STRENGTH;
+	params.thunderhead_edge_sharpening = vec2(3.0, 8.0);
+
 	// Lighting parameters
 
 	params.l0_shadow = linear_step(

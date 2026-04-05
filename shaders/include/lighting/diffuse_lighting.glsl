@@ -8,9 +8,10 @@
 #include "/include/utility/fast_math.glsl"
 #include "/include/utility/phase_functions.glsl"
 #ifdef MC_GL_RENDERER_INTEL
-	#include "/include/utility/spherical_harmonics_fallback.glsl"
+#include "/include/utility/spherical_harmonics_fallback.glsl"
 #else
 #include "/include/utility/spherical_harmonics.glsl"
+#endif
 
 #ifdef DIRECTIONAL_LIGHTMAPS
 #include "/include/lighting/directional_lightmaps.glsl"
@@ -180,7 +181,7 @@ vec3 get_diffuse_lighting(
 	// Skylight
 
 #if defined WORLD_OVERWORLD && defined PROGRAM_DEFERRED4 && defined SH_SKYLIGHT
-	#ifdef MC_GL_RENDERER_INTEL
+#ifdef MC_GL_RENDERER_INTEL
 	sh3 sky_sh_compat;
 	for (uint band = 0u; band < 3u; ++band) {
 		sky_sh_compat.f1[band] = sky_sh[band];
@@ -188,9 +189,9 @@ vec3 get_diffuse_lighting(
 		sky_sh_compat.f3[band] = sky_sh[band + 6u];
 	}
 	vec3 skylight = sh_evaluate_irradiance(sky_sh_compat, bent_normal, ao);
-	#else
+#else
 	vec3 skylight = sh_evaluate_irradiance(sky_sh, bent_normal, ao);
-	#endif
+#endif
 	skylight = mix(skylight_up, skylight, sqr(light_levels.y));
 #else
 	vec3 skylight = ambient_color * ao;

@@ -102,6 +102,55 @@ vec3 draw_sun(vec3 ray_dir) {
 	return sun_luminance * sun_color * step(0.0, center_to_edge) * limb_darkening;
 }
 
+vec4 draw_moon(vec3 ray_dir) {
+	const vec3 lit_color =
+		vec3(MOON_R, MOON_G <= 0.03 ? 0.0 : MOON_G - 0.03, MOON_B);
+	const vec3 glow_color =
+		vec3(MOON_R <= 0.05 ? 0.0 : MOON_R - 0.05, MOON_G, MOON_B);
+
+	// Cut out the moon disc.
+	float MoV = dot(ray_dir, moon_dir);
+	if (MoV < cos(moon_angular_radius)) {
+		return vec4(0.0);
+	}
+
+	// Find distance from center to edge.
+	float dist = clamp01(fast_acos(MoV) / moon_angular_radius);
+
+	// Transform the coordinate space such that z is parallel to moon_dir
+	vec3 tangent = moon_dir.y == 1.0
+		? vec3(1.0, 0.0, 0.0)
+		: normalize(cross(vec3(0.0, 1.0, 0.0), moon_dir));
+	vec3 bitangent = normalize(cross(tangent, moon_dir));
+	mat3 tbn = mat3(tangent, bitangent, moon_dir);
+
+	// Vector from ray dir to moon dir.
+	vec2 offset = ((ray_dir - sun_dir) * tbn).xy;
+	offset = fract(offset + 0.5);
+
+	vec3 noise = texture(noisetex, 2.0 * offset).xyz;
+	float moon_texture =
+		pow1d5(noise.x) * 0.75 + 0.6 * cube(noise.y) - 0.1 * noise.z;
+
+	// Find the distance to the moon if it were 1 unit away, and its normal.
+	float moon_dist = intersect_sphere(-moon_dir, ray_dir, moon_angular_radius).x;
+	vec3 moon_normal = normalize(ray_dir * moon_dist - moon_dir);
+
+	// Get light direction which orbits around moon
+	float light_angle = 0.125 * tau * float(moonPhase);
+	vec3 left_dir = normalize(cross(vec3(0.0, 1.0, 0.0), ray_dir));
+	vec3 light_dir = cos(light_angle) * -ray_dir + sin(light_angle) * left_dir;
+	float moon_shadow = dampen(max0(dot(moon_normal, light_dir)));
+
+	float edge_glow = sqr(sqr(sqr(dist)));
+
+	vec3 color = max(moon_shadow * lit_color * (1.0 + 4.0 * edge_glow),
+		0.5 * glow_color * (0.1 + 0.1 * edge_glow)) *
+		(0.2 + 0.8 * moon_texture);
+	color = moon_luminance * sqr(color);
+	return vec4(color, 1.0);
+}
+
 #if defined GALAXY
 
 #if defined GALAXY_GAMS
@@ -241,39 +290,13 @@ vec3 draw_sky(
 	// Sun
 	sky += draw_sun(ray_dir);
 #endif
-	
-	// DEBUG Try to fix dimmed moon ############################################
-#if MOON_TYPE == MOON_VANILLA
-	//vec4 vanilla_sky = texelFetch(colortex0, ivec2(gl_FragCoord.xy), 0);
-	vec3 vanilla_sky_rgb = texelFetch(colortex0, ivec2(gl_FragCoord.xy), 0).rgb;
-	vec3 vanilla_sky_color = from_srgb(vanilla_sky_rgb);
-	//uint vanilla_sky_id = uint(255.0 * vanilla_sky.a);
-	
-	/*if (max_of(vanilla_sky_color) > 0.2) {
-		//const vec3 brightness_scale = sunlight_color * moon_luminance;
-		//if(dot(vanilla_sky_color, vec3(1.0)) > 1e-3) sky *= 0.0; // Hide stars behind moon
-		sky *= 0.0;
-	}*/
-	
-	sky += vanilla_sky_color * (sunlight_color * moon_luminance);
-	
-#elif MOON_TYPE == MOON_PHOTON
-	//vec4 vanilla_sky = texelFetch(colortex0, ivec2(gl_FragCoord.xy), 0);
-	vec3 vanilla_sky_rgb = texelFetch(colortex0, ivec2(gl_FragCoord.xy), 0).rgb;
-	vec3 vanilla_sky_color = from_srgb(vanilla_sky_rgb);
-	//uint vanilla_sky_id = uint(255.0 * vanilla_sky.a);
-	
-	if (max_of(vanilla_sky_color) > 0.00001) {
-		//const vec3 brightness_scale = sunlight_color * moon_luminance;
-		//if(dot(vanilla_sky_color, vec3(1.0)) > 1e-3) sky *= 0.0; // Hide stars behind moon
-		//sky += vanilla_sky_color * brightness_scale;
-		sky *= 0.0;
-	}
-	
-	sky += vanilla_sky_color * (sunlight_color * moon_luminance);
-	
+
+#if MOON_TYPE != MOON_VANILLA
+	// Shader moon (see draw_moon); gbuffers moon quad writes black to avoid UV issues
+	vec4 moon = draw_moon(ray_dir);
+	sky *= 1.0 - moon.a;
+	sky += moon.rgb;
 #endif
-	// END OF DEBUG Try to fix dimmed moon ############################################
 
 #endif
 
@@ -281,6 +304,16 @@ vec3 draw_sky(
 	atmosphere = adjust_night_atmosphere(atmosphere, ray_dir);
 	sky *= atmosphere_transmittance(ray_dir.y, planet_radius) * (1.0 - rainStrength);
 	sky += atmosphere;
+
+	// Shooting stars
+#if defined SHOOTING_STARS && !defined PROGRAM_DEFERRED0
+	sky = DrawShootingStars(sky, ray_dir);
+#endif
+
+	// Rain
+
+	vec3 rain_sky = get_weather_color() * (1.0 - exp2(-0.8 / clamp01(ray_dir.y)));
+	sky = mix(sky, rain_sky, rainStrength * mix(1.0, 0.9, time_sunrise + time_sunset));
 
 	// Clouds, aurora, crepuscular rays
 	sky *= clouds_and_aurora.a;   // Transmittance
@@ -293,11 +326,6 @@ vec3 draw_sky(
 		mix(clouds_apparent_distance, 1e6, linear_step(1.0, 0.95, clouds_and_aurora.w))
 	);
 
-	// Shooting stars
-#if defined SHOOTING_STARS && !defined PROGRAM_DEFERRED0
-	sky = DrawShootingStars(sky, ray_dir);
-#endif
-	
 	// Cave sky fix
 
 #if !defined PROGRAM_DEFERRED0
@@ -327,6 +355,13 @@ vec4 get_clouds_and_aurora(vec3 ray_dir, vec3 clear_sky, out float clouds_appare
 
 	// Lightning flash
 	result.scattering.rgb += LIGHTNING_FLASH_UNIFORM * lightning_flash_intensity * result.scattering.a;
+
+#ifdef CLOUDS_THUNDERHEAD_LIGHTNING_ENABLE
+	if (result.lightning_intensity > 0.0) {
+		vec3 lightning_color = vec3(CLOUDS_THUNDERHEAD_LIGHTNING_COLOR_R, CLOUDS_THUNDERHEAD_LIGHTNING_COLOR_G, CLOUDS_THUNDERHEAD_LIGHTNING_COLOR_B) * CLOUDS_THUNDERHEAD_LIGHTNING_INTENSITY;
+		result.scattering.rgb += lightning_color * result.lightning_intensity;
+	}
+#endif
 #else
 	CloudsResult result = clouds_not_hit;
 #endif

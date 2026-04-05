@@ -467,6 +467,9 @@ option.CREPUSCULAR_RAYS_STEPS_ZENITH   = 基础采样数 - 天顶
 option.LIGHTNING_FLASH                 = 闪电闪光
 option.RAINBOWS                        = 彩虹
 option.END_SUN_EFFECT                  = 末地日轮
+option.BLUE_SKY_DARKENING              = 蓝天加深
+option.BLUE_SKY_DARKENING.comment      = 调整天空变为更深蓝色的程度，不影响整体光照和阴影。\n1.0 是默认天空颜色
+
 
 # Clouds
 option.CLOUDS_CUMULUS                        = 积云

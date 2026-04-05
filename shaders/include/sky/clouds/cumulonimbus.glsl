@@ -300,7 +300,8 @@ CloudsResult draw_cumulonimbus_clouds(
 	return CloudsResult(
 		vec4(clouds_scattering, scattering.y),
 		clouds_transmittance,
-		apparent_distance
+		apparent_distance,
+		0.0
 	);
 }
 

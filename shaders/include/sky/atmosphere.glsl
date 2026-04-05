@@ -70,6 +70,11 @@ vec3 atmosphere_post_processing(vec3 atmosphere) {
 	return atmosphere;
 }
 
+// Darker, deeper blue for sky scattering only (not used on sunlight / transmittance-tinted lighting)
+vec3 atmosphere_sky_color_grade(vec3 atmosphere) {
+	return atmosphere * vec3(0.78, 0.88, 1.0) * BLUE_SKY_DARKENING;
+}
+
 /*
  * Mapping functions from Eric Bruneton's 2020 atmosphere implementation
  * https://ebruneton.github.io/precomputed_atmospheric_scattering/atmosphere/functions.glsl.html
@@ -110,13 +115,19 @@ vec3 atmosphere_scattering_uv(float nu, float mu, float mu_s) {
 
 	// Stretch the sky near the horizon upwards (to make it easier to admire the sunset without zooming in)
 
-	if (mu > 0.0) mu *= sqrt(sqrt(mu));
+	if (mu > 0.0) {
+		mu *= sqrt(sqrt(mu));
+	}
 
 	// Mapping for mu
 
 	const float r = planet_radius; // distance to the planet centre
-	const float H = sqrt(atmosphere_outer_radius_sq - atmosphere_inner_radius_sq); // distance to the atmosphere upper limit for a horizontal ray at ground level
-	const float rho = sqrt(max0(planet_radius * planet_radius - atmosphere_inner_radius_sq)); // distance to the horizon
+	const float H = sqrt(
+		atmosphere_outer_radius_sq - atmosphere_inner_radius_sq
+	); // distance to the atmosphere upper limit for a horizontal ray at ground level
+	const float rho = sqrt(
+		max0(planet_radius * planet_radius - atmosphere_inner_radius_sq)
+	); // distance to the horizon
 
 	// Discriminant of the quadratic equation for the intersections of the ray (r, mu) with the
 	// ground
@@ -190,7 +201,7 @@ vec3 atmosphere_scattering(
 	uv.x += 0.5;
 	scattering += texture(ATMOSPHERE_SCATTERING_LUT, uv).rgb * mie_phase;
 
-	return atmosphere_post_processing(scattering);
+	return atmosphere_sky_color_grade(atmosphere_post_processing(scattering));
 }
 
 vec3 atmosphere_scattering(vec3 ray_dir, vec3 light_dir, bool use_klein_nishina_phase) {
@@ -203,7 +214,7 @@ vec3 atmosphere_scattering(vec3 ray_dir, vec3 light_dir, bool use_klein_nishina_
 
 // Samples atmospheric scattering LUT for both sun and moon together
 // Prevents a few repeated calculations
-vec3 atmosphere_scattering(
+vec3 atmosphere_scattering_base(
 	vec3 ray_dir, 
 	vec3 sun_color, 
 	vec3 sun_dir, 
@@ -246,13 +257,19 @@ vec3 atmosphere_scattering(
 
 	// Stretch the sky near the horizon upwards (to make it easier to admire the sunset without zooming in)
 
-	if (mu > 0.0) mu *= sqrt(sqrt(mu));
+	if (mu > 0.0) {
+		mu *= sqrt(sqrt(mu));
+	}
 
 	// Mapping for mu
 
 	const float r = planet_radius; // distance to the planet centre
-	const float H = sqrt(atmosphere_outer_radius_sq - atmosphere_inner_radius_sq); // distance to the atmosphere upper limit for a horizontal ray at ground level
-	const float rho = sqrt(max0(planet_radius * planet_radius - atmosphere_inner_radius_sq)); // distance to the horizon
+	const float H = sqrt(
+		atmosphere_outer_radius_sq - atmosphere_inner_radius_sq
+	); // distance to the atmosphere upper limit for a horizontal ray at ground level
+	const float rho = sqrt(
+		max0(planet_radius * planet_radius - atmosphere_inner_radius_sq)
+	); // distance to the horizon
 
 	// Discriminant of the quadratic equation for the intersections of the ray (r, mu) with the
 	// ground
@@ -288,43 +305,88 @@ vec3 atmosphere_scattering(
 	const float d_min = atmosphere_thickness;
 	const float d_max = H;
 
-	// Distance to the atmosphere upper limit for the ray (atmosphere_inner_radius, min_mu_s)
-	float D = intersect_sphere(min_mu_s, atmosphere_inner_radius, atmosphere_outer_radius).y;
+	// Distance to the atmosphere upper limit for the ray
+	// (atmosphere_inner_radius, min_mu_s)
+	float D = intersect_sphere(
+		min_mu_s,
+		atmosphere_inner_radius,
+		atmosphere_outer_radius
+	).y;
 	float A = (D - d_min) / (d_max - d_min);
 
-	// Distance to the atmosphere outer limit for the ray (atmosphere_inner_radius, mu_s)
-	d = intersect_sphere(mu_sun, atmosphere_inner_radius, atmosphere_outer_radius).y;
+	// Distance to the atmosphere outer limit for the ray
+	// (atmosphere_inner_radius, mu_s)
+	d = intersect_sphere(
+		mu_sun,
+		atmosphere_inner_radius,
+		atmosphere_outer_radius
+	).y;
 	a = (d - d_min) / (d_max - d_min);
 
-	// An ad-hoc function equal to 0 for mu_s = min_mu_s (because then d = D and thus a = A, equal
-	// to 1 for mu_s = 1 (because then d = d_min and thus a = 0), and with a large slope around
-	// mu_s = 0, to get more texture samples near the horizon
-	float u_mu_sun = get_uv_from_unit_range(max0(1.0 - a / A) / (1.0 + a), scattering_res.z);
+	// An ad-hoc function equal to 0 for mu_s = min_mu_s (because then d = D and
+	// thus a = A, equal to 1 for mu_s = 1 (because then d = d_min and thus a =
+	// 0), and with a large slope around mu_s = 0, to get more texture samples
+	// near the horizon
+	float u_mu_sun =
+		get_uv_from_unit_range(max0(1.0 - a / A) / (1.0 + a), scattering_res.z);
 
-	d = intersect_sphere(mu_moon, atmosphere_inner_radius, atmosphere_outer_radius).y;
+	d = intersect_sphere(
+		mu_moon,
+		atmosphere_inner_radius,
+		atmosphere_outer_radius
+	).y;
 	a = (d - d_min) / (d_max - d_min);
 
-	float u_mu_moon = get_uv_from_unit_range(max0(1.0 - a / A) / (1.0 + a), scattering_res.z);
+	float u_mu_moon =
+		get_uv_from_unit_range(max0(1.0 - a / A) / (1.0 + a), scattering_res.z);
 
 	// Sample atmosphere LUT
 
-	vec3 uv_sc = vec3(u_nu_sun  * 0.5,       u_mu, u_mu_sun);  // Rayleigh + multiple scattering, sunlight
-	vec3 uv_sm = vec3(u_nu_sun  * 0.5 + 0.5, u_mu, u_mu_sun);  // Mie scattering, sunlight
-	vec3 uv_mc = vec3(u_nu_moon * 0.5,       u_mu, u_mu_moon); // Rayleigh + multiple scattering, moonlight
-	vec3 uv_mm = vec3(u_nu_moon * 0.5 + 0.5, u_mu, u_mu_moon); // Mie scattering, moonlight
+	vec3 uv_sc = vec3(
+		u_nu_sun * 0.5,
+		u_mu,
+		u_mu_sun
+	); // Rayleigh + multiple scattering, sunlight
+	vec3 uv_sm =
+		vec3(u_nu_sun * 0.5 + 0.5, u_mu, u_mu_sun); // Mie scattering, sunlight
+	vec3 uv_mc = vec3(
+		u_nu_moon * 0.5,
+		u_mu,
+		u_mu_moon
+	); // Rayleigh + multiple scattering, moonlight
+	vec3 uv_mm = vec3(
+		u_nu_moon * 0.5 + 0.5,
+		u_mu,
+		u_mu_moon
+	); // Mie scattering, moonlight
 
 	vec3 scattering_sc = texture(ATMOSPHERE_SCATTERING_LUT, uv_sc).rgb;
 	vec3 scattering_sm = texture(ATMOSPHERE_SCATTERING_LUT, uv_sm).rgb;
 	vec3 scattering_mc = texture(ATMOSPHERE_SCATTERING_LUT, uv_mc).rgb;
 	vec3 scattering_mm = texture(ATMOSPHERE_SCATTERING_LUT, uv_mm).rgb;
 
-	float mie_phase_sun  = atmosphere_mie_phase(nu_sun, use_klein_nishina_phase);
+	float mie_phase_sun = atmosphere_mie_phase(nu_sun, use_klein_nishina_phase);
 	float mie_phase_moon = atmosphere_mie_phase(nu_moon, use_klein_nishina_phase);
 
-	vec3 atmosphere = (scattering_sc + scattering_sm * mie_phase_sun)  * sun_color
-	     + (scattering_mc + scattering_mm * mie_phase_moon) * moon_color;
+	vec3 atmosphere =
+		(scattering_sc + scattering_sm * mie_phase_sun) * sun_color +
+		(scattering_mc + scattering_mm * mie_phase_moon) * moon_color;
 
-	return atmosphere_post_processing(atmosphere);
+	return atmosphere_sky_color_grade(atmosphere_post_processing(atmosphere));
+}
+
+vec3 atmosphere_scattering(
+	vec3 ray_dir, 
+	vec3 sun_color, 
+	vec3 sun_dir, 
+	vec3 moon_color, 
+	vec3 moon_dir, 
+	bool use_klein_nishina_phase
+) {
+	vec3 atmosphere = atmosphere_scattering_base(ray_dir, sun_color, sun_dir, moon_color, moon_dir, use_klein_nishina_phase);
+	
+
+	return atmosphere;
 }
 #else
 vec3 atmosphere_scattering(vec3 ray_dir, vec3 light_dir) {

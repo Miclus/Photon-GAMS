@@ -30,6 +30,10 @@ flat in CloudsParameters clouds_params;
 // ------------
 
 uniform sampler2D noisetex;
+uniform sampler3D colortex6;
+
+#define SAMPLER_WORLEY_BUBBLY colortex6
+#define ENABLE_THUNDERHEAD_SHADOW_DETAIL
 
 uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
@@ -57,6 +61,7 @@ uniform int isEyeInWater;
 uniform float eyeAltitude;
 uniform float rainStrength;
 uniform float blindness;
+uniform float darknessFactor;
 
 uniform vec3 light_dir;
 uniform vec3 sun_dir;

@@ -42,6 +42,7 @@ uniform vec2 view_pixel_size;
 
 #ifdef LENS_FLARE
 uniform sampler2D depthtex0;
+uniform sampler2D colortex8;
 uniform sampler2D colortex11;
 uniform sampler2D noisetex;
 uniform mat4 gbufferProjection;

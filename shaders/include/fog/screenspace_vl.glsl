@@ -1,3 +1,32 @@
+float get_cloud_occlusion(sampler2D colortex8) {
+    #if defined CLOUDS_CUMULUS || defined CLOUDS_CUMULUS_CONGESTUS || defined CLOUDS_CUMULONIMBUS || defined CLOUDS_TOWERING_CUMULUS || defined CLOUDS_THUNDERHEAD
+        
+        const float OCCLUSION_SAMPLES = 32.0;
+        float total_occlusion = 0.0;
+
+        vec2 zenith = vec2(0.5, 0.5); 
+        const float sample_radius = 0.2;
+
+        for (int i = 0; i < int(OCCLUSION_SAMPLES); i++) {
+            float r = sqrt(float(i) + 0.5) / sqrt(OCCLUSION_SAMPLES);
+            float angle = float(i) * golden_angle;
+
+            vec2 offset = polar_to_cartesian2(r * sample_radius, angle);
+            vec2 checkcoord = zenith + offset;
+
+            if (checkcoord.x > 0.0 && checkcoord.x < 1.0 && checkcoord.y > 0.0 && checkcoord.y < 1.0) {
+                ivec2 pixel_coord = ivec2(checkcoord * 256.0);
+                float cloud_occlusion_sample = texelFetch(colortex8, pixel_coord, 0).r; 
+
+                total_occlusion += clamp01(cloud_occlusion_sample);
+            }
+        }
+        return total_occlusion / OCCLUSION_SAMPLES;
+    #else
+        return 0.0; 
+    #endif
+}
+
 vec3 screenspace_vl(sampler2D depthtex0, vec2 lightPos, vec2 uv, vec3 light_color, float dither) {
     vec2 delta_to_sun = lightPos - uv;
 
@@ -58,13 +87,15 @@ vec3 screenspace_vl(sampler2D depthtex0, vec2 lightPos, vec2 uv, vec3 light_colo
     float radial_mask = 1.0 - clamp01(dist_to_sun / SSVL_FADE_RADIUS);
           radial_mask = pow(radial_mask, SSVL_FADE_FACTOR);
 
+    float cloud_occlusion = get_cloud_occlusion(colortex8);
+
 #ifdef SSVL_MOONPHASE
     if (sun_dir.z < 0.0) { // Moon
-        return accumulated_light * SSVL_INTENSITY * radial_mask * lens_flare_moon_phase_brightness;
+        return accumulated_light * SSVL_INTENSITY * radial_mask * cloud_occlusion * lens_flare_moon_phase_brightness;
     } else { // Sun
-        return accumulated_light * SSVL_INTENSITY * radial_mask;
+        return accumulated_light * SSVL_INTENSITY * radial_mask * cloud_occlusion;
     }
 #else
-    return accumulated_light * SSVL_INTENSITY * radial_mask;
+    return accumulated_light * SSVL_INTENSITY * radial_mask * cloud_occlusion;
 #endif
 }

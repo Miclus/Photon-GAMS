@@ -25,7 +25,6 @@ float slice_rel_cdf_cos(float x, float ang_n, float cos_n) {
 
     return clamp01(t0 / t1);
 }
-
 vec4 compute_vbil(
     vec3 screen_pos,
     vec3 view_pos,
