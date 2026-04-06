@@ -21,6 +21,10 @@ in vec2 uv;
 flat in vec3 ambient_color;
 flat in vec3 light_color;
 
+#ifdef SCREENSPACE_VL
+in float cloud_occlusion;
+#endif
+
 #if defined WORLD_OVERWORLD
 #include "/include/fog/overworld/parameters.glsl"
 flat in OverworldFogParameters fog_params;
@@ -236,7 +240,7 @@ void main() {
     
 	            vec3 ssvl_scattering = screenspace_vl(depthtex0, lightPos, uv, light_color, dither);
 
-            fog_scattering += ssvl_scattering * (1.0 - rainStrength);
+            fog_scattering += ssvl_scattering * (1.0 - rainStrength) * cloud_occlusion;
         }
     }
 #endif

@@ -44,35 +44,6 @@ vec3 flare_color(float intensity, float multR, float multG, float multB, float n
     return color * noise;
 }
 
-float get_cloud_occlusion(sampler2D colortex8) {
-    #if defined CLOUDS_CUMULUS || defined CLOUDS_CUMULUS_CONGESTUS || defined CLOUDS_CUMULONIMBUS || defined CLOUDS_TOWERING_CUMULUS || defined CLOUDS_THUNDERHEAD
-        
-        const float OCCLUSION_SAMPLES = 32.0;
-        float total_occlusion = 0.0;
-
-        vec2 zenith = vec2(0.5, 0.5); 
-        const float sample_radius = 0.2;
-
-        for (int i = 0; i < int(OCCLUSION_SAMPLES); i++) {
-            float r = sqrt(float(i) + 0.5) / sqrt(OCCLUSION_SAMPLES);
-            float angle = float(i) * golden_angle;
-
-            vec2 offset = polar_to_cartesian2(r * sample_radius, angle);
-            vec2 checkcoord = zenith + offset;
-
-            if (checkcoord.x > 0.0 && checkcoord.x < 1.0 && checkcoord.y > 0.0 && checkcoord.y < 1.0) {
-                ivec2 pixel_coord = ivec2(checkcoord * 256.0);
-                float cloud_occlusion_sample = texelFetch(colortex8, pixel_coord, 0).r; 
-
-                total_occlusion += clamp01(cloud_occlusion_sample);
-            }
-        }
-        return total_occlusion / OCCLUSION_SAMPLES;
-    #else
-        return 0.0; 
-    #endif
-}
-
 //--------------------FLARES--------------------//
 
 // Rainbow
@@ -325,9 +296,7 @@ float total_occlusion = 0.0;
     }
     total_occlusion /= LF_OCCLUSION_SAMPLES;
 
-float global_cloud_occlusion = get_cloud_occlusion(colortex8);
-
-float sunmask = total_occlusion * global_cloud_occlusion * edgeMask * float(isEyeInWater <= 0.1 && blindness == 0.0) * (1.0 - rainStrength);
+float sunmask = total_occlusion * cloud_occlusion * edgeMask * float(isEyeInWater <= 0.1 && blindness == 0.0) * (1.0 - rainStrength);
 
 #ifdef LF_MOONPHASE
     if (sunVec.z > 0.0) { // Moon phase influence
