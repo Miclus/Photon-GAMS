@@ -174,7 +174,7 @@ void main() {
 
 #ifdef LOD_MOD_ACTIVE
 	// Check for LoD terrain
-    float depth_lod = texelFetch(lod_depth_tex_solid, dst_texel, 0).x;
+    float depth_lod = texelFetch(lod_depth_tex, dst_texel, 0).x;
     bool is_lod = is_lod_terrain(depth, depth_lod);
 
 	float depth_linear    = screen_to_view_space_depth(gbufferProjectionInverse, depth);
@@ -217,6 +217,19 @@ void main() {
 		apparent_distance,
 		texture_min_4x4(colortex12, uv_clamped * taau_render_scale)
 	);
+
+    // Early exit if clouds covered by terrain
+    if (depth != 1.0) {
+        float view_distance_squared =
+            length_squared(screen_to_view_space(vec3(uv, depth), true));
+        if (view_distance_squared < sqr(closest_distance) || is_hand) {
+            clouds_history = current;
+            clouds_data.x = 1e6; // apparent distance
+            clouds_data.y = 0.0; // pixel age
+            clouds_data.z = 0.0; // ambient scattering
+            return;
+        }
+    }
 
 	// Reproject clouds
 	vec2 previous_uv = reproject_clouds(uv, closest_distance).xy;

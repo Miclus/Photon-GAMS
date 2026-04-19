@@ -211,7 +211,7 @@ void main() {
 
 #ifdef LOD_MOD_ACTIVE
     float depth_mc = texelFetch(depthtex1, texel, 0).x;
-    float depth_lod = texelFetch(lod_depth_tex_solid, texel, 0).x;
+    float depth_lod = texelFetch(lod_depth_tex, texel, 0).x;
     bool is_lod = is_lod_terrain(depth_mc, depth_lod);
 #else
     const bool is_lod = false;
@@ -402,7 +402,7 @@ void main() {
 		vec4 ambient_upscaled;
 		float weight_sum = w00 + w10 + w01 + w11;
 		
-		if (weight_sum != 0.0) {
+		if (abs(weight_sum) > eps) {
 			ambient_upscaled
 				= ambient_00 * w00
 				+ ambient_10 * w10
