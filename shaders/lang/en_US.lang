@@ -251,6 +251,7 @@ option.SHADER_AO.comment               = AO method used. Off - no shader AO. SSA
 value.SHADER_AO.SHADER_AO_NONE         = Off
 value.SHADER_AO.SHADER_AO_SSAO         = SSAO
 value.SHADER_AO.SHADER_AO_GTAO         = GTAO
+value.SHADER_AO.SHADER_AO_VBIL         = VBIL
 option.VANILLA_AO                      = Vanilla AO
 option.VANILLA_AO.comment              = Minecraft's built-in ambient occlusion
 option.SSAO_RADIUS                     = SSAO Radius
@@ -263,6 +264,10 @@ option.GTAO_SLICES                     = GTAO Slices
 option.GTAO_SLICES.comment             = Controls how noisy the GTAO appears
 option.GTAO_HORIZON_STEPS              = GTAO Horizon Steps
 option.GTAO_HORIZON_STEPS.comment      = Controls the accuracy of GTAO
+option.VBIL_STEPS                      = VBIL Steps
+option.VBIL_SLICES                     = VBIL Slices
+option.VBIL_RADIUS                     = VBIL Radius
+option.VBIL_GI_I                       = VBGI Intensity
 
 option.SUN_NR                          = §cRed
 option.SUN_NG                          = §aGreen
@@ -675,6 +680,7 @@ suffix.BLOCKY_CLOUDS_WIND_SPEED          = m/s
 option.BLOCKY_CLOUDS_WIND_ANGLE          = Wind Angle
 suffix.BLOCKY_CLOUDS_WIND_ANGLE          = °
 
+option.CLOUDS_ACCUMULATION_LIMIT       = Clouds Accumulation Limit
 option.CLOUDS_TEMPORAL_UPSCALING       = Temporal Upscaling
 option.CLOUDS_AERIAL_PERSPECTIVE_BOOST = Aerial Perspective Boost
 option.CLOUDS_SCALE                    = Scale

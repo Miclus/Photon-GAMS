@@ -297,6 +297,7 @@ option.SKYLIGHT_I                      = 天空光强度
 option.BOUNCED_LIGHT_I                 = 阳光反射强度
 option.CAVE_LIGHTING_I                 = 洞穴亮度
 option.LIGHTNING_FLASH                 = 闪电
+option.LIGHTNING_FLASH_INTENSITY       = 闪电强度
 option.NETHER_USE_BIOME_COLOR          = 使用群系颜色
 option.NETHER_I                        = 环境光强度
 option.NETHER_S                        = 环境光饱和度
@@ -591,6 +592,7 @@ suffix.BLOCKY_CLOUDS_WIND_SPEED          = m/s
 option.BLOCKY_CLOUDS_WIND_ANGLE          = 风向角
 suffix.BLOCKY_CLOUDS_WIND_ANGLE          = °
 
+option.CLOUDS_ACCUMULATION_LIMIT       = 云层累加上限
 option.CLOUDS_TEMPORAL_UPSCALING       = 云层时间性升采样
 option.CLOUDS_AERIAL_PERSPECTIVE_BOOST = 空中云层透视增益
 option.CLOUDS_SCALE                    = 云层缩放

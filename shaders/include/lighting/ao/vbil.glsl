@@ -8,7 +8,7 @@
 #include "/include/utility/fast_math.glsl" 
 #include "/include/utility/space_conversion.glsl"
 
-#define VBIL_THICKNESS 0.2
+const float vbil_thickness = 0.2;
 
 float slice_rel_cdf_cos(float x, float ang_n, float cos_n) {
     if (x <= 0.0 || x >= 1.0) return x;
@@ -89,7 +89,7 @@ vec4 compute_vbil(
 
                 vec3 sample_view_pos = screen_to_view_space(combined_projection_matrix_inverse, vec3(ray_pos, depth), true);
                 vec3 delta_pos_front = sample_view_pos - view_pos;
-                vec3 delta_pos_back  = delta_pos_front + normalize(sample_view_pos) * VBIL_THICKNESS;
+                vec3 delta_pos_back  = delta_pos_front + normalize(sample_view_pos) * vbil_thickness;
 
                 vec2 horizon_cos = vec2(dot(normalize(delta_pos_front), viewer_dir), 
                                         dot(normalize(delta_pos_back),  viewer_dir));

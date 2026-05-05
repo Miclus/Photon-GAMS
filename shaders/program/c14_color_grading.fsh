@@ -225,9 +225,6 @@ vec3 grade_output(vec3 rgb) {
 	const float green_sat_boost  = GRADE_GREEN_SAT_BOOST;
 	const float green_hue_shift  = GRADE_GREEN_HUE_SHIFT / 360.0;
 	const float cyan_hue_shift   = GRADE_CYAN_HUE_SHIFT / 360.0;
-	const float dark_cyan_blue_hue_shift  = -2.5 / 360.0;
-	const float cyan_blue_hue_shift  = 5.5 / 360.0;
-	const float cyan_blue_sat_boost  = -0.14;
 	const float purple_hue_shift  = GRADE_PURPLE_HUE_SHIFT / 360.0;
 
 	vec3 hsl = rgb_to_hsl(rgb);
@@ -245,27 +242,14 @@ vec3 grade_output(vec3 rgb) {
 	hsl.x += green_hue_shift * green;
 	hsl.y *= 1.0 + green_sat_boost * green;
 
-	// Cyans, Cyan-Blues & Purples by A17Forkybest303
+	// Cyans & Purples by A17Forkybest303
     // Cyans
-	float cyan = isolate_hue(hsl, 190.0, 17.5); //isolate_hue(hsl, 190.0, 17.5) // custom : 185.0, 30.0
-    float darkness_mask_cyan = smoothstep(0.3, 0.0, hsl.z);
-	hsl.x += cyan_hue_shift * cyan * darkness_mask_cyan;
-
-    // Cyan-Blues
-	float dark_cyan_blue = isolate_hue(hsl, 215.0, 17.5); // isolate_hue(hsl, 215.0, 17.5) // custom : 217.0, 17.5
-    float mask_dark_cyan_blue = smoothstep(0.35, 0.0, hsl.z);
-	hsl.x += dark_cyan_blue_hue_shift * dark_cyan_blue * mask_dark_cyan_blue;
-
-	float cyan_blue = isolate_hue(hsl, 210.0, 22.5); // isolate_hue(hsl, 217.0, 17.5) // custom : 218.0, 22.5, 220.0, 30.0
-    float mask_cyan_blue_x = smoothstep(1.0, 0.9, hsl.y);
-    float mask_cyan_blue_y = smoothstep(0.4, 0.6, hsl.z);
-	hsl.x += cyan_blue_hue_shift * cyan_blue * mask_cyan_blue_x * mask_cyan_blue_y;
-	hsl.y *= 1.0 + cyan_blue_sat_boost * cyan_blue * mask_cyan_blue_x * mask_cyan_blue_y;
+	float cyan = isolate_hue(hsl, 190.0, 25.0); //isolate_hue(hsl, 190.0, 17.5) // custom : 185.0, 30.0
+	hsl.x += cyan_hue_shift * cyan;
 
     // Purples
 	float purple = isolate_hue(hsl, 250.0, 40.0); //isolate_hue(hsl, 255.0, 30.0) // custom : 255.0, 30.0
-    float mask_purple = smoothstep(0.1, 0.7, hsl.z);
-	hsl.x += purple_hue_shift * purple * mask_purple;
+	hsl.x += purple_hue_shift * purple;
 
 	rgb = hsl_to_rgb(hsl);
 
