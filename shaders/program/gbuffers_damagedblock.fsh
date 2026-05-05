@@ -41,6 +41,16 @@ void main() {
 #endif
 
 	damage_overlay = texture(gtexture, uv, lod_bias);
+
+#if defined COLORWHEEL
+	vec2 lmcoord;
+	float ao;
+	vec4 overlayColor;
+
+	clrwl_computeFragment(damage_overlay, damage_overlay, lmcoord, ao, overlayColor);
+	damage_overlay.rgb = mix(damage_overlay.rgb, overlayColor.rgb, overlayColor.a);
+#endif
+
 	if (damage_overlay.a < 0.1) discard;
 
 #ifdef USE_SEPARATE_ENTITY_DRAWS

@@ -160,6 +160,10 @@ const bool colortex11MipmapEnabled = true;
 #define ATMOSPHERE_SCATTERING_LUT depthtex0
 #define TEMPORAL_REPROJECTION
 
+#ifdef PHOTONICS_IN_USE
+#define PHOTONICS_DIFFUSE
+#endif
+
 #include "/include/fog/simple_fog.glsl"
 #include "/include/lighting/diffuse_lighting.glsl"
 #include "/include/lighting/shadows/common.glsl"
@@ -551,6 +555,9 @@ void main() {
 #else
             shadow_distance_fade,
 #endif
+#ifdef PHOTONICS_DIFFUSE
+            is_lod,
+#endif
 			NoL,
 			NoV,
 			NoH,
@@ -558,7 +565,7 @@ void main() {
 		);
 
 		// VBIL GI
-#if SHADER_AO == SHADER_AO_VBIL
+#if SHADER_AO == SHADER_AO_VBIL && !defined PHOTONICS_IN_USE
 		fragment_color += gi_color * material.albedo * ao;
 #endif
 

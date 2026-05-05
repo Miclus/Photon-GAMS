@@ -129,6 +129,7 @@ float get_water_caustics() {
 }
 
 void main() {
+#ifndef COLORWHEEL
 #ifdef SHADOW_COLOR
 	if (material_mask == 1) { // Water
 		vec3 biome_water_color = srgb_eotf_inv(tint) * rec709_to_working_color;
@@ -157,8 +158,26 @@ void main() {
 		shadowcolor0_out  = 0.25 * srgb_eotf_inv(shadowcolor0_out) * rec709_to_rec2020;
 		shadowcolor0_out *= step(base_color.a, 1.0 - rcp(255.0));
 	}
+/*#else
+	if (texture(tex, uv).a < 0.1) discard;*/
 #else
-	if (texture(tex, uv).a < 0.1) discard;
+    vec4 base_color = textureLod(tex, uv, 0);
+    vec2 lmcoord;
+    float ao;
+    vec4 overlayColor;
+
+    clrwl_computeFragment(base_color, base_color, lmcoord, ao, overlayColor);
+    base_color.rgb = mix(base_color.rgb, overlayColor.rgb, overlayColor.a);
+
+    if (base_color.a < 0.1) {
+        discard;
+    }
+
+    vec3 outColor = mix(vec3(1.0), base_color.rgb, base_color.a);
+    outColor = 0.25 * srgb_eotf_inv(outColor) * rec709_to_rec2020;
+    outColor *= step(base_color.a, 1.0 - rcp(255.0));
+
+    shadowcolor0_out = vec4(outColor, 1.0);
 #endif
 }
 

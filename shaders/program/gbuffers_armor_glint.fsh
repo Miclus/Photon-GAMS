@@ -13,7 +13,7 @@
 
 layout (location = 0) out vec4 frag_color;
 
-#if MC_VERSION >= 260100
+#if MC_VERSION >= 12111
 /* RENDERTARGETS: 13 */
 #else
 /* RENDERTARGETS: 3 */
@@ -40,7 +40,19 @@ void main() {
 	if (clamp01(coord) != coord) discard;
 #endif
 
+#if defined COLORWHEEL
+	vec4 color = texture(gtexture, uv, lod_bias);
+	vec2 lmcoord;
+	float ao;
+	vec4 overlayColor;
+
+	clrwl_computeFragment(color, color, lmcoord, ao, overlayColor);
+	color.rgb = mix(color.rgb, overlayColor.rgb, overlayColor.a);
+    
+	vec3 armor_glint = color.rgb;
+#else
 	vec3 armor_glint = texture(gtexture, uv, lod_bias).rgb * vec3(ENCHANTMENT_GLINT_R, ENCHANTMENT_GLINT_G, ENCHANTMENT_GLINT_B);
+#endif
 
 #if defined IS_IRIS
 	// New overlay handling

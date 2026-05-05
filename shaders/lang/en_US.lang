@@ -5,8 +5,6 @@ profile.low                            = §eLow
 profile.medium                         = §aMedium
 profile.high                           = §bHigh§r (Default)
 profile.ultra                          = §dUltra
-profile.highvbil                       = §bHigh§r+VBIL
-profile.ultravbil                      = §dUltra§r+VBIL
 
 # Screens
 
@@ -127,8 +125,6 @@ value.INFO.1                           = §aby OUdefie17
 value.INFO.2                           = §bby OUdefie17
 value.INFO.3                           = §dby OUdefie17
 value.INFO.4                           = §6by OUdefie17
-value.INFO.5                           = §bby OUdefie17
-value.INFO.6                           = §dby OUdefie17
 option.INFO.comment                    = Original shader by §bSixthSurge§r, Fork Contributors §aSW-52 §c-Daytendo64- §dOUdefie17 §eArona74
 
 # World settings
@@ -269,20 +265,20 @@ option.VBIL_SLICES                     = VBIL Slices
 option.VBIL_RADIUS                     = VBIL Radius
 option.VBIL_GI_I                       = VBGI Intensity
 
-option.SUN_NR                          = §cRed
-option.SUN_NG                          = §aGreen
-option.SUN_NB                          = §9Blue
-option.SUN_MR                          = §cRed
-option.SUN_MG                          = §aGreen
-option.SUN_MB                          = §9Blue
-option.SUN_ER                          = §cRed
-option.SUN_EG                          = §aGreen
-option.SUN_EB                          = §9Blue
+option.SUN_NR                          = §c▍ §fRed
+option.SUN_NG                          = §a▍ §fGreen
+option.SUN_NB                          = §9▍ §fBlue
+option.SUN_MR                          = §c▍ §fRed
+option.SUN_MG                          = §a▍ §fGreen
+option.SUN_MB                          = §9▍ §fBlue
+option.SUN_ER                          = §c▍ §fRed
+option.SUN_EG                          = §a▍ §fGreen
+option.SUN_EB                          = §9▍ §fBlue
 option.SUN_I                           = §6☀§r Sunlight Intensity
 option.SUN_BLUE_HOUR_BOOST             = Blue Hour Boost
-option.MOON_R                          = §cRed
-option.MOON_G                          = §aGreen
-option.MOON_B                          = §9Blue
+option.MOON_R                          = §c▍ §fRed
+option.MOON_G                          = §a▍ §fGreen
+option.MOON_B                          = §9▍ §fBlue
 option.MOON_I                          = §7🌔§r Moonlight Intensity
 option.SKYLIGHT_I                      = 🌅 Skylight Intensity
 option.BOUNCED_LIGHT_I                 = 🌅 Bounced Sunlight Intensity
@@ -294,20 +290,20 @@ option.SKY_BLUE_DEPTH.comment          = Adjust the intensity of the blue sky co
 option.NETHER_USE_BIOME_COLOR          = Use Biome Color
 option.NETHER_I                        = Ambient Intensity
 option.NETHER_S                        = Ambient Saturation
-option.NETHER_R                        = §cRed
-option.NETHER_G                        = §aGreen
-option.NETHER_B                        = §9Blue
-option.END_LIGHT_R                     = §cRed
-option.END_LIGHT_G                     = §aGreen
-option.END_LIGHT_B                     = §9Blue
+option.NETHER_R                        = §c▍ §fRed
+option.NETHER_G                        = §a▍ §fGreen
+option.NETHER_B                        = §9▍ §fBlue
+option.END_LIGHT_R                     = §c▍ §fRed
+option.END_LIGHT_G                     = §a▍ §fGreen
+option.END_LIGHT_B                     = §9▍ §fBlue
 option.END_LIGHT_I                     = Light Intensity
-option.END_AMBIENT_R                   = §cRed
-option.END_AMBIENT_G                   = §aGreen
-option.END_AMBIENT_B                   = §9Blue
+option.END_AMBIENT_R                   = §c▍ §fRed
+option.END_AMBIENT_G                   = §a▍ §fGreen
+option.END_AMBIENT_B                   = §9▍ §fBlue
 option.END_AMBIENT_I                   = Ambient Intensity
-option.BLOCKLIGHT_R                    = §c🔥§r Red
-option.BLOCKLIGHT_G                    = §a🔥§r Green
-option.BLOCKLIGHT_B                    = §1🔥§r Blue
+option.BLOCKLIGHT_R                    = §c▍ §fRed
+option.BLOCKLIGHT_G                    = §a▍ §fGreen
+option.BLOCKLIGHT_B                    = §9▍ §fBlue
 option.BLOCKLIGHT_I                    = §b🔥§r Blocklight Intensity
 option.NIGHT_VISION_R                  = Red
 option.NIGHT_VISION_G                  = Green
@@ -319,14 +315,17 @@ option.SNOW_LIGHT_I                    = ❄ Snow Intensity
 option.SANDSTORM_LIGHT_I               = §e⛆§r Sandstorm Intensity
 
 screen.colored_lights_sources          = Colored Light Sources
-option.VOXEL_VOLUME_SIZE               = Voxel Volume Size
-option.VOXEL_VOLUME_SIZE.comment       = High performance impact, also affected by shadow distance
-suffix.VOXEL_VOLUME_SIZE               = m³
-option.VOXEL_VOLUME_CENTER             = Voxel Volume Center
-option.VOXEL_VOLUME_CENTER.comment     = Ahead: voxel volume is centered in front of the player, meaning that more of it is visible
+option.COLORED_LIGHTS_VANILLA_LIGHTMAP_CONTRIBUTION                 = Vanilla Lightmap Contribution
+option.COLORED_LIGHTS_VANILLA_LIGHTMAP_CONTRIBUTION_FALLOFF         = Contribution Falloff
+option.COLORED_LIGHTS_VANILLA_LIGHTMAP_CONTRIBUTION_FALLOFF.comment = Changes the vanilla lightmap's contribution falloff.\nSquared: Lighting is brighter at the source and diminishes quickly.\nLinear: Lighting is soft and travels further from the source
+option.VOXEL_VOLUME_SIZE                                            = Voxel Volume Size
+option.VOXEL_VOLUME_SIZE.comment                                    = Adjusts the size of the volume in which colored lighting is calculated. High performance impact, also affected by shadow distance
+suffix.VOXEL_VOLUME_SIZE                                            = m³
+option.VOXEL_VOLUME_CENTER                                          = Voxel Volume Center
+option.VOXEL_VOLUME_CENTER.comment                                  = Ahead: voxel volume is centered in front of the player, meaning that more of it is visible
 
-value.VOXEL_VOLUME_CENTER.VOXEL_VOLUME_CENTER_AHEAD  = Ahead
-value.VOXEL_VOLUME_CENTER.VOXEL_VOLUME_CENTER_PLAYER = Player
+value.COLORED_LIGHTS_VANILLA_LIGHTMAP_CONTRIBUTION_FALLOFF.COLORED_LIGHTS_VANILLA_LIGHTMAP_CONTRIBUTION_FALLOFF_SQUARED = Squared
+value.COLORED_LIGHTS_VANILLA_LIGHTMAP_CONTRIBUTION_FALLOFF.COLORED_LIGHTS_VANILLA_LIGHTMAP_CONTRIBUTION_FALLOFF_LINEAR  = Linear
 
 suffix.shadowMapResolution             = ²
 suffix.sunPathRotation                 = °
@@ -957,39 +956,39 @@ option.AIR_FOG_MIE_FALLOFF_HALF_LIFE      = §7🌫§r Mie Falloff Half-Life
 option.AIR_FOG_MIE_FALLOFF_HALF_LIFE.comment = Altitude above the Mie Falloff Start where the mie fog density is halved
 
 option.AIR_FOG_RAYLEIGH_DENSITY        = §7🌫§r Normal Density
-option.AIR_FOG_RAYLEIGH_R              = §cRed
-option.AIR_FOG_RAYLEIGH_G              = §aGreen
-option.AIR_FOG_RAYLEIGH_B              = §9Blue
+option.AIR_FOG_RAYLEIGH_R              = §c▍ §fRed
+option.AIR_FOG_RAYLEIGH_G              = §a▍ §fGreen
+option.AIR_FOG_RAYLEIGH_B              = §9▍ §fBlue
 
 option.AIR_FOG_RAYLEIGH_DENSITY_RAIN   = §7🌫§r Rain Density
-option.AIR_FOG_RAYLEIGH_R_RAIN         = §cRed
-option.AIR_FOG_RAYLEIGH_G_RAIN         = §aGreen
-option.AIR_FOG_RAYLEIGH_B_RAIN         = §9Blue
+option.AIR_FOG_RAYLEIGH_R_RAIN         = §c▍ §fRed
+option.AIR_FOG_RAYLEIGH_G_RAIN         = §a▍ §fGreen
+option.AIR_FOG_RAYLEIGH_B_RAIN         = §9▍ §fBlue
 
 option.AIR_FOG_RAYLEIGH_DENSITY_ARID   = §7🌫§r Arid/Desert Density
-option.AIR_FOG_RAYLEIGH_R_ARID         = §cRed
-option.AIR_FOG_RAYLEIGH_G_ARID         = §aGreen
-option.AIR_FOG_RAYLEIGH_B_ARID         = §9Blue
+option.AIR_FOG_RAYLEIGH_R_ARID         = §c▍ §fRed
+option.AIR_FOG_RAYLEIGH_G_ARID         = §a▍ §fGreen
+option.AIR_FOG_RAYLEIGH_B_ARID         = §9▍ §fBlue
 
 option.AIR_FOG_RAYLEIGH_DENSITY_SNOWY  = §7🌫§r Snowy Density
-option.AIR_FOG_RAYLEIGH_R_SNOWY        = §cRed
-option.AIR_FOG_RAYLEIGH_G_SNOWY        = §aGreen
-option.AIR_FOG_RAYLEIGH_B_SNOWY        = §9Blue
+option.AIR_FOG_RAYLEIGH_R_SNOWY        = §c▍ §fRed
+option.AIR_FOG_RAYLEIGH_G_SNOWY        = §a▍ §fGreen
+option.AIR_FOG_RAYLEIGH_B_SNOWY        = §9▍ §fBlue
 
 option.AIR_FOG_RAYLEIGH_DENSITY_TAIGA  = §7🌫§r Taiga Density
-option.AIR_FOG_RAYLEIGH_R_TAIGA        = §cRed
-option.AIR_FOG_RAYLEIGH_G_TAIGA        = §aGreen
-option.AIR_FOG_RAYLEIGH_B_TAIGA        = §9Blue
+option.AIR_FOG_RAYLEIGH_R_TAIGA        = §c▍ §fRed
+option.AIR_FOG_RAYLEIGH_G_TAIGA        = §a▍ §fGreen
+option.AIR_FOG_RAYLEIGH_B_TAIGA        = §9▍ §fBlue
 
 option.AIR_FOG_RAYLEIGH_DENSITY_JUNGLE = §7🌫§r Jungle Density
-option.AIR_FOG_RAYLEIGH_R_JUNGLE       = §cRed
-option.AIR_FOG_RAYLEIGH_G_JUNGLE       = §aGreen
-option.AIR_FOG_RAYLEIGH_B_JUNGLE       = §9Blue
+option.AIR_FOG_RAYLEIGH_R_JUNGLE       = §c▍ §fRed
+option.AIR_FOG_RAYLEIGH_G_JUNGLE       = §a▍ §fGreen
+option.AIR_FOG_RAYLEIGH_B_JUNGLE       = §9▍ §fBlue
 
 option.AIR_FOG_RAYLEIGH_DENSITY_SWAMP  = §7🌫§r Swamp Density
-option.AIR_FOG_RAYLEIGH_R_SWAMP        = §cRed
-option.AIR_FOG_RAYLEIGH_G_SWAMP        = §aGreen
-option.AIR_FOG_RAYLEIGH_B_SWAMP        = §9Blue
+option.AIR_FOG_RAYLEIGH_R_SWAMP        = §c▍ §fRed
+option.AIR_FOG_RAYLEIGH_G_SWAMP        = §a▍ §fGreen
+option.AIR_FOG_RAYLEIGH_B_SWAMP        = §9▍ §fBlue
 
 # Mie Fog
 option.AIR_FOG_MIE_DENSITY_MORNING     = §7🌫§r Morning Density
@@ -1130,14 +1129,14 @@ option.WATER_DISPLACEMENT.comment      = Similar to how waving leaves work, it m
 option.WATER_WAVES_HEIGHT_VARIATION    = Water Waves Height Variation
 option.WATER_WAVES_HEIGHT_VARIATION.comment   = The height of water waves varies in space
 
-option.WATER_ABSORPTION_R              = Red Absorption
-option.WATER_ABSORPTION_G              = Green Absorption
-option.WATER_ABSORPTION_B              = Blue Absorption
+option.WATER_ABSORPTION_R              = §c▍ §fRed Absorption
+option.WATER_ABSORPTION_G              = §a▍ §fGreen Absorption
+option.WATER_ABSORPTION_B              = §9▍ §fBlue Absorption
 option.WATER_SCATTERING                = Scattering
 
-option.WATER_ABSORPTION_R_UNDERWATER   = Red Absorption - Underwater
-option.WATER_ABSORPTION_G_UNDERWATER   = Green Absorption - Underwater
-option.WATER_ABSORPTION_B_UNDERWATER   = Blue Absorption - Underwater
+option.WATER_ABSORPTION_R_UNDERWATER   = §c▍ §fRed Absorption - Underwater
+option.WATER_ABSORPTION_G_UNDERWATER   = §a▍ §fGreen Absorption - Underwater
+option.WATER_ABSORPTION_B_UNDERWATER   = §9▍ §fBlue Absorption - Underwater
 option.WATER_SCATTERING_UNDERWATER     = Scattering - Underwater
 
 # Post-processing settings
@@ -1269,12 +1268,12 @@ option.GRADE_VIBRANCE                  = Vibrance
 option.GRADE_GAIN                      = Gain
 option.GRADE_WHITE_BALANCE             = White Balance
 suffix.GRADE_WHITE_BALANCE             = K
-option.GRADE_ORANGE_SAT_BOOST          = Orange Saturation Boost
-option.GRADE_TEAL_SAT_BOOST            = Teal Saturation Boost
-option.GRADE_GREEN_SAT_BOOST           = Green Saturation Boost
-option.GRADE_GREEN_HUE_SHIFT           = Green Hue Shift
-option.GRADE_CYAN_HUE_SHIFT            = Cyan Hue Shift
-option.GRADE_PURPLE_HUE_SHIFT          = Purple Hue Shift
+option.GRADE_ORANGE_SAT_BOOST          = §6▋ §fOrange Saturation Boost
+option.GRADE_TEAL_SAT_BOOST            = §3▋ §fTeal Saturation Boost
+option.GRADE_GREEN_SAT_BOOST           = §a▍ §fGreen Saturation Boost
+option.GRADE_GREEN_HUE_SHIFT           = §a▍ §fGreen Hue Shift
+option.GRADE_CYAN_HUE_SHIFT            = §b▋ §Cyan Hue Shift
+option.GRADE_PURPLE_HUE_SHIFT          = §5▋ §Purple Hue Shift
 suffix.GRADE_WHITE_BALANCE             = K
 suffix.GRADE_GREEN_HUE_SHIFT           = °
 suffix.GRADE_CYAN_HUE_SHIFT            = °
@@ -1599,9 +1598,9 @@ value.BOX_MODE.BOX_MODE_NONE    = None
 value.BOX_MODE.BOX_MODE_COLOR   = Color
 value.BOX_MODE.BOX_MODE_RAINBOW = Rainbow
 option.BOX_MODE_RAINBOW_SPEED   = Rainbow Effect Speed Multiplier
-option.BOX_COLOR_R              = Red
-option.BOX_COLOR_G              = Green
-option.BOX_COLOR_B              = Blue
+option.BOX_COLOR_R              = §c▍ §fRed
+option.BOX_COLOR_G              = §a▍ §fGreen
+option.BOX_COLOR_B              = §9▍ §fBlue
 option.BOX_EMISSION             = Emission
 option.BOX_EMISSION.comment     = Scales color past 1. Requires bloom.
 option.BOX_LINE_WIDTH           = Line Width

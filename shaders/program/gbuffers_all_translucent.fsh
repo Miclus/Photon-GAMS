@@ -24,10 +24,15 @@ layout (location = 0) out vec4 fragment_color;
 #endif
 
 in vec2 uv;
-in vec2 light_levels;
 in vec3 position_view;
 in vec3 position_scene;
 in vec4 tint;
+
+#if defined COLORWHEEL
+vec2 light_levels;
+#else
+in vec2 light_levels;
+#endif
 
 flat in uint material_mask;
 flat in mat3 tbn;
@@ -468,7 +473,20 @@ void main() {
 	} else {
 		// Sample textures
 
+#if defined COLORWHEEL
+        fragment_color = texture(gtexture, uv, lod_bias);
+
+        float ao;
+        vec4 overlayColor;
+
+        clrwl_computeFragment(fragment_color, fragment_color, light_levels, ao, overlayColor);
+        light_levels = clamp((light_levels - 1.0 / 32.0) * 32.0 / 30.0, 0.0, 1.0);
+
+        adjusted_light_levels = light_levels;
+#else
 		fragment_color    = texture(gtexture, uv, lod_bias) * tint;
+#endif
+
 #ifdef NORMAL_MAPPING
 		vec3 normal_map   = texture(normals, uv, lod_bias).xyz;
 #endif
@@ -482,7 +500,10 @@ void main() {
 		}
 #endif
 
-#if defined PROGRAM_GBUFFERS_ENTITIES_TRANSLUCENT
+#if defined COLORWHEEL
+        fragment_color.rgb =
+            mix(fragment_color.rgb, overlayColor.rgb, overlayColor.a);
+#elif defined PROGRAM_GBUFFERS_ENTITIES_TRANSLUCENT
 		// Lightning (old versions)
 		if (material_mask == MATERIAL_LIGHTNING_BOLT) fragment_color = vec4(1.0);
 

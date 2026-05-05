@@ -12,12 +12,17 @@
 #include "/include/global.glsl"
 
 out vec2 uv;
-out vec2 light_levels;
 out vec3 scene_pos;
 out vec4 tint;
 
 flat out uint material_mask;
 flat out mat3 tbn;
+
+#if defined COLORWHEEL
+vec2 light_levels;
+#else
+out vec2 light_levels;
+#endif
 
 #if defined POM
 out vec2 atlas_tile_coord;
@@ -28,10 +33,16 @@ flat out vec2 atlas_tile_scale;
 
 #if defined PROGRAM_GBUFFERS_TERRAIN
 out float vanilla_ao;
+#elif defined COLORWHEEL
+float vanilla_ao;
 #endif
 
 #if defined PROGRAM_GBUFFERS_ENTITIES || defined PROGRAM_GBUFFERS_HAND
 out vec2 uv_local;
+#endif
+
+#if defined PROGRAM_GBUFFERS_VOXELS
+out vec3 block_normal;
 #endif
 
 // --------------
@@ -98,6 +109,10 @@ void main() {
 	material_mask = get_material_mask();
 	tbn           = get_tbn_matrix();
 
+#if defined PROGRAM_GBUFFERS_VOXELS
+    block_normal = gl_Normal;
+#endif
+
 #if defined PROGRAM_GBUFFERS_TERRAIN
 	vanilla_ao = gl_Color.a < 0.1 ? 1.0 : gl_Color.a; // fixes models where vanilla ao breaks (eg lecterns)
 	vanilla_ao = material_mask == 5 ? 1.0 : vanilla_ao; // no vanilla ao on leaves
@@ -112,7 +127,7 @@ void main() {
 	#endif
 #endif
 
-#if defined PROGRAM_GBUFFERS_ENTITIES
+#if defined PROGRAM_GBUFFERS_ENTITIES && !defined COLORWHEEL
 	// Fix fire entity not glowing with Colored Lights
 	if (light_levels.x > 0.99) material_mask = 40;
 #endif

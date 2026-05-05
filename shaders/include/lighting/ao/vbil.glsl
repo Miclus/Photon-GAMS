@@ -125,7 +125,9 @@ vec4 compute_vbil(
         float occlusion = float(bitCount(occlusion_mask)) * (1.0 / 32.0);
 
         ao += 1.0 - occlusion;
+    #ifndef PHOTONICS_IN_USE
         gi += total_radiance;
+    #endif
     }
 
     float normalization = rcp(float(VBIL_SLICES));

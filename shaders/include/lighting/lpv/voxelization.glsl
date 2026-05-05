@@ -46,7 +46,11 @@ bool is_inside_voxel_volume(vec3 voxel_pos) {
 
 #ifdef PROGRAM_SHADOW
 bool is_voxelized(uint block_id, bool vertex_at_grid_corner) {
+    #if !defined COLORWHEEL
 	bool is_terrain = any(equal(ivec4(renderStage), ivec4(MC_RENDER_STAGE_TERRAIN_SOLID, MC_RENDER_STAGE_TERRAIN_TRANSLUCENT, MC_RENDER_STAGE_TERRAIN_CUTOUT, MC_RENDER_STAGE_TERRAIN_CUTOUT_MIPPED)));
+    #else
+    bool is_terrain = true;
+    #endif
 
 #ifdef COLORED_LIGHTS_ENTITIES
 	bool is_entity = any(equal(ivec3(renderStage), ivec3(MC_RENDER_STAGE_ENTITIES, MC_RENDER_STAGE_BLOCK_ENTITIES, MC_RENDER_STAGE_PARTICLES)));

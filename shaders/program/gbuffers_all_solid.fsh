@@ -25,7 +25,6 @@ layout (location = 1) out vec4 gbuffer_data_1; // detailed normal, specular map 
 #endif
 
 in vec2 uv;
-in vec2 light_levels;
 in vec3 scene_pos;
 in vec4 tint;
 
@@ -39,12 +38,22 @@ flat in vec2 atlas_tile_offset;
 flat in vec2 atlas_tile_scale;
 #endif
 
+#ifdef COLORWHEEL
+vec2 light_levels;
+float vanilla_ao;
+#else
+in vec2 light_levels;
 #if defined PROGRAM_GBUFFERS_TERRAIN
 in float vanilla_ao;
+#endif
 #endif
 
 #if defined PROGRAM_GBUFFERS_ENTITIES || defined PROGRAM_GBUFFERS_HAND
 in vec2 uv_local;
+#endif
+
+#if defined PROGRAM_GBUFFERS_VOXELS
+in vec3 block_normal;
 #endif
 
 // ------------
@@ -108,6 +117,10 @@ uniform vec4 entityColor;
 #include "/include/utility/fast_math.glsl"
 #include "/include/utility/random.glsl"
 #include "/include/utility/space_conversion.glsl"
+
+#if defined PROGRAM_GBUFFERS_VOXELS
+#include "/photonics/photonics.glsl"
+#endif
 
 #if defined PROGRAM_GBUFFERS_TERRAIN && defined POM
 	#define read_tex(x) textureGrad(x, parallax_uv, uv_gradient[0], uv_gradient[1])
@@ -220,6 +233,7 @@ void main() {
 	bool parallax_shadow = false;
 	float dither = interleaved_gradient_noise(gl_FragCoord.xy, frameCounter);
 
+#ifndef PROGRAM_GBUFFERS_VOXELS
 #if defined PROGRAM_GBUFFERS_TERRAIN && defined POM
 	float view_distance = length(tangent_pos);
 
@@ -251,12 +265,65 @@ void main() {
 
 	//--//
 
-	vec4 base_color   = read_tex(gtexture) * tint;
+    vec4 base_color;
+#if defined COLORWHEEL
+    base_color = read_tex(gtexture);
+    vec4 overlayColor;
+
+    clrwl_computeFragment(
+        base_color,
+        base_color,
+        light_levels,
+        vanilla_ao,
+        overlayColor
+    );
+    light_levels = clamp((light_levels - 1.0 / 32.0) * 32.0 / 30.0, 0.0, 1.0);
+#else
+    base_color = read_tex(gtexture) * tint;
+#endif
+
 #ifdef NORMAL_MAPPING
 	vec3 normal_map   = read_tex(normals).xyz;
 #endif
 #ifdef SPECULAR_MAPPING
 	vec4 specular_map = read_tex(specular);
+#endif
+#else
+    vec3 screen_pos = vec3(
+        gl_FragCoord.xy * view_pixel_size * rcp(taau_render_scale),
+        gl_FragCoord.z
+    );
+
+    vec3 view_pos = screen_to_view_space(screen_pos, true);
+    vec3 scene_pos = view_to_scene_space(view_pos);
+
+    vec3 world_pos = scene_pos + cameraPosition;
+    vec3 world_dir = normalize(scene_pos - gbufferModelViewInverse[3].xyz);
+
+    RayJob ray = RayJob(
+        world_pos - world_offset - 0.001f * block_normal, // Ray origin
+        world_dir, // Ray direction
+        vec3(0), vec3(0), vec3(0), false
+    );
+
+    ray_constraint = ivec3(ray.origin);
+    trace_ray(ray);
+
+    if (!ray.result_hit) discard;
+    if (ray.result_normal == vec3(0.0)) ray.result_normal = block_normal;
+
+    scene_pos = ray.result_position + world_offset - cameraPosition;
+    view_pos = scene_to_view_space(scene_pos);
+    screen_pos = view_to_screen_space(gbufferProjection, view_pos, true);
+
+    gl_FragDepth = screen_pos.z;
+
+    vec4 base_color = vec4(ray.result_color, 1f);
+    vec3 ph_normal = ray.result_normal;
+
+#if defined SPECULAR_MAPPING
+    vec4 specular_map = vec4(0f);
+#endif
 #endif
 
 #if defined PROGRAM_GBUFFERS_ENTITIES
@@ -301,6 +368,10 @@ void main() {
 	if (material_mask != 102) base_color.rgb = mix(base_color.rgb, entityColor.rgb, entityColor.a);
 #endif
 
+#if defined COLORWHEEL
+    base_color.rgb = mix(base_color.rgb, overlayColor.rgb, overlayColor.a);
+#endif
+
 #if defined PROGRAM_GBUFFERS_BLOCK
 	// parallax end portal
 	if (material_mask == MATERIAL_END_PORTAL) base_color.rgb = draw_end_portal();
@@ -313,7 +384,7 @@ void main() {
 
 	vec2 adjusted_light_levels = light_levels;
 
-#ifdef NORMAL_MAPPING
+#if defined NORMAL_MAPPING && !defined PROGRAM_GBUFFERS_VOXELS
 	vec3 normal; float material_ao;
 	decode_normal_map(normal_map, normal, material_ao);
 
@@ -326,7 +397,10 @@ void main() {
 	#endif
 #endif
 
-#if defined NO_NORMAL
+#if defined PROGRAM_GBUFFERS_VOXELS
+#define flat_normal ph_normal
+#define detailed_normal ph_normal
+#elif defined NO_NORMAL
 	// No normal vector => make one from screen-space partial derivatives
 	vec3 particle_normal = normalize(cross(dFdx(scene_pos), dFdy(scene_pos)));
 	#define flat_normal particle_normal

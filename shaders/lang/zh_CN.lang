@@ -5,8 +5,6 @@ profile.low                            = §e低
 profile.medium                         = §a中
 profile.high                           = §b高§r (默认)
 profile.ultra                          = §d极致
-profile.highvbil                       = §b高§r+VBIL
-profile.ultravbil                      = §d极致§r+VBIL
 
 # Screens
 
@@ -144,8 +142,6 @@ value.INFO.1                           = §aby OUdefie17
 value.INFO.2                           = §bby OUdefie17
 value.INFO.3                           = §dby OUdefie17
 value.INFO.4                           = §6by OUdefie17
-value.INFO.5                           = §bby OUdefie17
-value.INFO.6                           = §dby OUdefie17
 option.INFO.comment                    = 原始着色器由 §bSixthSurge§r 制作，分支贡献者 §aSW-52 §c-Daytendo64- §dOUdefie17 §eArona74
 
 # World settings

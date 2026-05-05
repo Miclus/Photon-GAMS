@@ -190,114 +190,56 @@ vec3 get_lpv_direction_clouds(vec3 scene_pos, vec2 dither) {
 
 #if !defined(PROGRAM_COMPOSITE0) && !defined(PROGRAM_DEFERRED0)
 
-vec3 get_lpv_blocklight(vec3 scene_pos, vec3 normal, vec3 flat_normal, vec3 mc_blocklight, float ao, Material material) {
-	vec3 voxel_pos = scene_to_voxel_space(scene_pos);
-	//vec3 lpv_specular = vec3(0.0);
-	float normal_diff_angle = 0.0;
-	vec3 lpv_normal = vec3(0.0);
+vec3 get_lpv_blocklight(
+    vec3 scene_pos,
+    vec3 normal,
+    vec3 mc_blocklight,
+    float ao
+) {
+    vec3 voxel_pos = scene_to_voxel_space(scene_pos);
 
-	if (is_inside_voxel_volume(voxel_pos)) {
-
+    if (is_inside_voxel_volume(voxel_pos)) {
 #ifndef NO_NORMAL
-	vec3 lpv_specular = vec3(1.0);
-	voxel_pos += flat_normal * 0.5;
-
-	#ifdef DIRECTIONAL_LIGHTMAPS
-	vec3 normal_diff = normal - flat_normal;
-	//normal_diff = sign(normal_diff) * sqrt(abs(normal_diff));
-	// 0 at angle == 0 rad, 1 at angle >= PI rad
-	normal_diff_angle = 1.0 - clamp01(dot(normalize(normal_diff), normalize(flat_normal)));
-	vec3 normal_boost = normal_diff + sqrt(normal_diff_angle) * normal_diff * 1.0;
-	lpv_normal += normal_boost /* 2.5*/;
-	#endif
-	
+        vec3 sample_pos
+            = clamp01((voxel_pos + normal * 0.5) / vec3(voxel_volume_size));
+        vec3 lpv_blocklight = sqrt(read_lpv_linear(sample_pos)) * ao;
 #else
-	ao = 1.0;
+        vec3 sample_pos = clamp01(voxel_pos / vec3(voxel_volume_size));
+        vec3 lpv_blocklight = sqrt(read_lpv_linear(sample_pos));
 #endif
 
-		vec3 sample_pos = clamp01((voxel_pos + lpv_normal) / vec3(voxel_volume_size));
-		vec3 lpv_blocklight = read_lpv_linear(sample_pos);
-
-/*#if !defined(NO_NORMAL) && defined(DIRECTIONAL_LIGHTMAPS)
-		// Fix directional lightmap occlusion
-		const float min_lpv = 0.05;
-		const float max_lpv_diff = 5.0;
-		sample_pos = clamp01((voxel_pos) / vec3(voxel_volume_size));
-		vec3 lpv_blocklight2 = read_lpv_linear(sample_pos);
-
-		lpv_blocklight = min(lpv_blocklight, lpv_blocklight2 * max_lpv_diff);
-		lpv_blocklight = max(lpv_blocklight, lpv_blocklight2 * min_lpv);
-#endif*/
-
-		lpv_blocklight = sqrt(lpv_blocklight) * ao;
-
-/*#ifdef DIRECTIONAL_LIGHTMAPS
-		//lpv_blocklight *= 1.0 + normal_diff_angle;
-		//lpv_blocklight *= mix(vec3(1.0), vec3(8.0 * normal_diff_angle), ao);
-		lpv_blocklight *= material.f0 * (0.5 + normal_diff_angle * 8.0) + (1.0 - material.f0);
-#endif*/
-
-#if !defined(NO_NORMAL) && defined(DIRECTIONAL_LIGHTMAPS) && DIRECTIONAL_LIGHTMAPS_INTENSITY > 0.0
-		//lpv_blocklight *= get_directional_lpv(normal, scene_pos, lpv_blocklight);
-		vec3 sample_pos_normal = clamp01((voxel_pos + lpv_normal) / vec3(voxel_volume_size));
-		vec3 lpv_blocklight_normal = read_lpv_linear(sample_pos_normal);
-		lpv_blocklight_normal = sqrt(lpv_blocklight_normal) * ao;
-		vec3 lpv_blocklight_directional = lpv_blocklight * get_directional_lpv_mult(normal - flat_normal, scene_pos, lpv_blocklight);
-
-		vec3 lpv_blocklight_x_directional = lpv_blocklight * lpv_blocklight_directional;
-		float dot_nd = dot(lpv_blocklight_normal, lpv_blocklight_x_directional);
-		if (abs(max_of(lpv_blocklight_normal) - max_of(lpv_blocklight * lpv_blocklight_directional)) < 0.2)
-			lpv_blocklight += lpv_blocklight_normal * lpv_blocklight_directional;
-		else 
-			lpv_blocklight += lpv_blocklight * lpv_blocklight_directional;
-#endif
-
-/*#ifdef DIRECTIONAL_LIGHTMAPS
-	vec3 world_dir = normalize(scene_pos - gbufferModelViewInverse[3].xyz);
-	float light_length = length_squared(lpv_blocklight);
-	vec2 light_gradient = vec2(dFdx(light_length), dFdy(light_length));
-
-	if (length_squared(light_gradient) > 1e-12) {
-		mat2x3 pos_gradient = mat2x3(dFdx(scene_pos), dFdy(scene_pos));
-		vec3 light_dir = pos_gradient * light_gradient;
-
-		float NoL = dot(normal, light_dir);
-		float NoV = clamp01(dot(normal, -world_dir));
-		float LoV = dot(light_dir, -world_dir);
-		float halfway_norm = inversesqrt(2.0 * LoV + 2.0);
-		float NoH = (NoL + NoV) * halfway_norm;
-		float LoH = LoV * halfway_norm + halfway_norm;
-
-		vec3 lpv_specular = get_specular_highlight(material, NoL, NoV, NoH, LoV, LoH);
-		lpv_blocklight += lpv_specular * lpv_blocklight;
-	}
-#endif*/
+        lpv_blocklight *= 1.25 * BLOCKLIGHT_I;
 
 #ifdef COLORED_LIGHTS_VANILLA_LIGHTMAP_CONTRIBUTION
-		float vanilla_lightmap_contribution =
-			exp2(-4.0 * dot(lpv_blocklight, luminance_weights_rec2020));
-		lpv_blocklight +=
-			mix(vec3(dot(mc_blocklight, luminance_weights_rec2020)),
-				mc_blocklight,
-				0.5) *
-			mc_blocklight * 0.5 * vanilla_lightmap_contribution;
+        float vanilla_lightmap_contribution
+            = exp2(-4.0 * dot(lpv_blocklight, luminance_weights_rec2020));
+#if COLORED_LIGHTS_VANILLA_LIGHTMAP_CONTRIBUTION_FALLOFF \
+    == COLORED_LIGHTS_VANILLA_LIGHTMAP_CONTRIBUTION_FALLOFF_SQUARED
+        lpv_blocklight
+            += mix(vec3(dot(mc_blocklight, luminance_weights_rec2020)),
+                   mc_blocklight,
+                   0.5)
+            * mc_blocklight * 0.5 * vanilla_lightmap_contribution;
+#else
+        lpv_blocklight += mc_blocklight * vanilla_lightmap_contribution;
+#endif
 #endif
 
         // Darkness effect
-        float darkness_factor =
-            mix(1.0,
-                dampen(abs(cos(2.0 * frameTimeCounter))) * 0.67 + 0.2,
-                darknessFactor) *
-                0.75 +
-            0.25;
+        float darkness_factor
+            = mix(1.0,
+                  dampen(abs(cos(2.0 * frameTimeCounter))) * 0.67 + 0.2,
+                  darknessFactor)
+                * 0.75
+            + 0.25;
         lpv_blocklight *= darkness_factor;
 
-		float distance_fade = lpv_distance_fade(scene_pos);
+        float distance_fade = lpv_distance_fade(scene_pos);
 
-		return mix(lpv_blocklight * COLORED_LIGHT_I, mc_blocklight, distance_fade);
-	} else {
-		return mc_blocklight;
-	}
+        return mix(lpv_blocklight, mc_blocklight, distance_fade);
+    } else {
+        return mc_blocklight;
+    }
 }
 
 #endif // PROGRAMS
