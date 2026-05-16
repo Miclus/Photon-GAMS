@@ -5,6 +5,7 @@
 #include "/include/lighting/cloud_shadows.glsl"
 #include "/include/lighting/shadows/distortion.glsl"
 #include "/include/misc/lod_mod_support.glsl"
+#include "/include/misc/lightning_flash.glsl"
 #include "/include/sky/atmosphere.glsl"
 #include "/include/utility/encoding.glsl"
 #include "/include/utility/phase_functions.glsl"
@@ -12,86 +13,105 @@
 #include "/include/utility/space_conversion.glsl"
 
 vec2 air_fog_density(vec3 world_pos) {
-	const vec2 mul = -rcp(air_fog_falloff_half_life);
-	const vec2 add = -mul * air_fog_falloff_start;
+    const vec2 mul = -rcp(air_fog_falloff_half_life);
+    const vec2 add = -mul * air_fog_falloff_start;
 
-	vec2 density = exp2(min(world_pos.y * mul + add, 0.0));
+    vec2 density = exp2(min(world_pos.y * mul + add, 0.0));
 
-	// fade away below sea level
-	density *= linear_step(air_fog_volume_bottom, SEA_LEVEL, world_pos.y);
+    // fade away below sea level
+    density *= linear_step(air_fog_volume_bottom, SEA_LEVEL, world_pos.y);
 
 #ifdef AIR_FOG_CLOUDY_NOISE
-	
-	// Controls how fast the clouds move (higher = faster)
-	// x = horizontal movement, z = depth movement
-	/*const vec3 wind = 0.0001 * AIR_FOG_CLOUDY_NOISE_CLOUD_SPEED * vec3(AIR_FOG_CLOUDY_NOISE_CLOUD_X, 0.0, AIR_FOG_CLOUDY_NOISE_CLOUD_Z);
 
-	// Controls the spacing between clouds
-	// Lower values = more spread out clouds, Higher values = tighter packed clouds
-	// Default: 0.001
-	const float cloud_spacing = 0.0001 * AIR_FOG_CLOUDY_NOISE_CLOUD_SPACING;
+    // Controls how fast the clouds move (higher = faster)
+    // x = horizontal movement, z = depth movement
+    /*const vec3 wind = 0.0001 * AIR_FOG_CLOUDY_NOISE_CLOUD_SPEED *
+    vec3(AIR_FOG_CLOUDY_NOISE_CLOUD_X, 0.0, AIR_FOG_CLOUDY_NOISE_CLOUD_Z);
 
-	// Controls the vertical height/thickness of clouds
-	// Higher values create taller clouds, lower values create flatter clouds
-	// Default: 3.0
-	const float vertical_scale = AIR_FOG_CLOUDY_NOISE_VERTICAL_SCALE;
+    // Controls the spacing between clouds
+    // Lower values = more spread out clouds, Higher values = tighter packed
+    clouds
+    // Default: 0.001
+    const float cloud_spacing = 0.0001 * AIR_FOG_CLOUDY_NOISE_CLOUD_SPACING;
 
-	// Controls overall cloud density
-	// Higher values = denser/more opaque clouds
-	// Default: 1.0
-	const float density_multiplier = AIR_FOG_CLOUDY_NOISE_DENSITY_MULTIPLIER;
+    // Controls the vertical height/thickness of clouds
+    // Higher values create taller clouds, lower values create flatter clouds
+    // Default: 3.0
+    const float vertical_scale = AIR_FOG_CLOUDY_NOISE_VERTICAL_SCALE;
 
-	// Sample noise texture for cloud pattern
-	float noise = texture(noisetex, cloud_spacing * world_pos.xz + wind.xz * frameTimeCounter).w;
+    // Controls overall cloud density
+    // Higher values = denser/more opaque clouds
+    // Default: 1.0
+    const float density_multiplier = AIR_FOG_CLOUDY_NOISE_DENSITY_MULTIPLIER;
 
-	// Apply all modifiers to density
-	density.y *= vertical_scale * density_multiplier * sqr(0.5 - noise);*/
-	
-	//LEGACY AIR FOG CLOUDY NOISE
-	const vec3 wind = 0.0003 * vec3(1.0, 0.0, 0.7);
+    // Sample noise texture for cloud pattern
+    float noise = texture(noisetex, cloud_spacing * world_pos.xz + wind.xz *
+    frameTimeCounter).w;
 
-	float noise = texture(noisetex, 0.001 * world_pos.xz + wind.xz * frameTimeCounter).w;
+    // Apply all modifiers to density
+    density.y *= vertical_scale * density_multiplier * sqr(0.5 - noise);*/
 
-	density.y *= 4.0 * sqr(noise);
-	
+    // LEGACY AIR FOG CLOUDY NOISE
+    const vec3 wind = 0.0003 * vec3(1.0, 0.0, 0.7);
+
+    float noise
+        = texture(noisetex, 0.001 * world_pos.xz + wind.xz * frameTimeCounter)
+              .w;
+
+    density.y *= 4.0 * sqr(noise);
+
 #endif
 
-	return density * (0.5 * OVERWORLD_FOG_INTENSITY);
+    return density * (0.5 * OVERWORLD_FOG_INTENSITY);
 }
 
-mat2x3 raymarch_air_fog(vec3 world_start_pos, vec3 world_end_pos, bool sky, float skylight, float dither) {
-	const uint air_fog_multiple_scattering_iterations = FOG_MULTIPLE_SCATTERING_ITERATIONS; // 4
+mat2x3 raymarch_air_fog(
+    vec3 world_start_pos,
+    vec3 world_end_pos,
+    bool sky,
+    float skylight,
+    float dither
+) {
+    const uint air_fog_multiple_scattering_iterations
+        = FOG_MULTIPLE_SCATTERING_ITERATIONS; // 4
 
-	vec3 world_dir = world_end_pos - world_start_pos;
+    vec3 world_dir = world_end_pos - world_start_pos;
 
-	float length_sq = length_squared(world_dir);
-	float norm = inversesqrt(length_sq);
-	float ray_length = length_sq * norm;
-	world_dir *= norm;
+    float length_sq = length_squared(world_dir);
+    float norm = inversesqrt(length_sq);
+    float ray_length = length_sq * norm;
+    world_dir *= norm;
 
-	vec3 shadow_start_pos = transform(shadowModelView, world_start_pos - cameraPosition);
-	     shadow_start_pos = project_ortho(shadowProjection, shadow_start_pos);
+    vec3 shadow_start_pos
+        = transform(shadowModelView, world_start_pos - cameraPosition);
+    shadow_start_pos = project_ortho(shadowProjection, shadow_start_pos);
 
-	vec3 shadow_dir = mat3(shadowModelView) * world_dir;
-	     shadow_dir = diagonal(shadowProjection).xyz * shadow_dir;
+    vec3 shadow_dir = mat3(shadowModelView) * world_dir;
+    shadow_dir = diagonal(shadowProjection).xyz * shadow_dir;
 
-	float distance_to_lower_plane = (air_fog_volume_bottom - eyeAltitude) / world_dir.y;
-	float distance_to_upper_plane = (air_fog_volume_top    - eyeAltitude) / world_dir.y;
-	float distance_to_volume_start, distance_to_volume_end;
+    float distance_to_lower_plane
+        = (air_fog_volume_bottom - eyeAltitude) / world_dir.y;
+    float distance_to_upper_plane
+        = (air_fog_volume_top - eyeAltitude) / world_dir.y;
+    float distance_to_volume_start, distance_to_volume_end;
 
-	if (eyeAltitude < air_fog_volume_bottom) {
-		// Below volume
-		distance_to_volume_start = distance_to_lower_plane;
-		distance_to_volume_end = world_dir.y < 0.0 ? -1.0 : distance_to_upper_plane;
-	} else if (eyeAltitude < air_fog_volume_top) {
-		// Inside volume
-		distance_to_volume_start = 0.0;
-		distance_to_volume_end = world_dir.y < 0.0 ? distance_to_lower_plane : distance_to_upper_plane;
-	} else {
-		// Above volume
-		distance_to_volume_start = distance_to_upper_plane;
-		distance_to_volume_end = world_dir.y < 0.0 ? distance_to_upper_plane : -1.0;
-	}
+    if (eyeAltitude < air_fog_volume_bottom) {
+        // Below volume
+        distance_to_volume_start = distance_to_lower_plane;
+        distance_to_volume_end
+            = world_dir.y < 0.0 ? -1.0 : distance_to_upper_plane;
+    } else if (eyeAltitude < air_fog_volume_top) {
+        // Inside volume
+        distance_to_volume_start = 0.0;
+        distance_to_volume_end = world_dir.y < 0.0
+            ? distance_to_lower_plane
+            : distance_to_upper_plane;
+    } else {
+        // Above volume
+        distance_to_volume_start = distance_to_upper_plane;
+        distance_to_volume_end
+            = world_dir.y < 0.0 ? distance_to_upper_plane : -1.0;
+    }
 
 #ifdef LOD_MOD_ACTIVE
     float fog_end = float(lod_render_distance);
@@ -99,123 +119,161 @@ mat2x3 raymarch_air_fog(vec3 world_start_pos, vec3 world_end_pos, bool sky, floa
     float fog_end = far;
 #endif
 
-	if (distance_to_volume_end < 0.0) return mat2x3(vec3(0.0), vec3(1.0));
+    if (distance_to_volume_end < 0.0) {
+        return mat2x3(vec3(0.0), vec3(1.0));
+    }
 
-	ray_length = sky ? distance_to_volume_end : ray_length;
-	ray_length = clamp(ray_length - distance_to_volume_start, 0.0, fog_end);
+    ray_length = sky ? distance_to_volume_end : ray_length;
+    ray_length = clamp(ray_length - distance_to_volume_start, 0.0, fog_end);
 
-	uint step_count = uint(float(air_fog_min_step_count) + air_fog_step_count_growth * ray_length);
-	     step_count = min(step_count, air_fog_max_step_count);
+    uint step_count = uint(
+        float(air_fog_min_step_count) + air_fog_step_count_growth * ray_length
+    );
+    step_count = min(step_count, air_fog_max_step_count);
 
-	float step_length = ray_length * rcp(float(step_count));
+    float step_length = ray_length * rcp(float(step_count));
 
-	vec3 world_step = world_dir * step_length;
-	vec3 world_pos  = world_start_pos + world_dir * (distance_to_volume_start + step_length * dither);
+    vec3 world_step = world_dir * step_length;
+    vec3 world_pos = world_start_pos
+        + world_dir * (distance_to_volume_start + step_length * dither);
 
-	vec3 shadow_step = shadow_dir * step_length;
-	vec3 shadow_pos  = shadow_start_pos + shadow_dir * (distance_to_volume_start + step_length * dither);
+    vec3 shadow_step = shadow_dir * step_length;
+    vec3 shadow_pos = shadow_start_pos
+        + shadow_dir * (distance_to_volume_start + step_length * dither);
 
-	vec3 transmittance = vec3(1.0);
+    vec3 transmittance = vec3(1.0);
 
-	mat2x3 light_sun = mat2x3(0.0); // Rayleigh, mie
-	mat2x3 light_sky = mat2x3(0.0); // Rayleigh, mie
-	mat2x3 light_lpv = mat2x3(0.0); // Rayleigh, mie
+    mat2x3 light_sun = mat2x3(0.0); // Rayleigh, mie
+    mat2x3 light_sky = mat2x3(0.0); // Rayleigh, mie
+    mat2x3 light_lpv = mat2x3(0.0); // Rayleigh, mie
+    vec3 light_lightning = vec3(0.0);
 
-	for (int i = 0; i < step_count; ++i, world_pos += world_step, shadow_pos += shadow_step) {
-		vec3 shadow_screen_pos = distort_shadow_space(shadow_pos) * 0.5 + 0.5;
+    for (int i = 0; i < step_count;
+         ++i, world_pos += world_step, shadow_pos += shadow_step) {
+        vec3 shadow_screen_pos = distort_shadow_space(shadow_pos) * 0.5 + 0.5;
 
 #if defined SHADOW && !defined PROGRAM_DEFERRED0
-	 	ivec2 shadow_texel = ivec2(shadow_screen_pos.xy * shadowMapResolution * MC_SHADOW_QUALITY);
+        ivec2 shadow_texel = ivec2(
+            shadow_screen_pos.xy * shadowMapResolution * MC_SHADOW_QUALITY
+        );
 
-	#ifdef AIR_FOG_COLORED_LIGHT_SHAFTS
-		float depth0 = texelFetch(shadowtex0, shadow_texel, 0).x;
-		float depth1 = texelFetch(shadowtex1, shadow_texel, 0).x;
-		vec3  color = clamp01(texelFetch(shadowcolor0, shadow_texel, 0).rgb * 4.0);
-		float color_weight = step(depth0, shadow_screen_pos.z) * step(eps, max_of(color));
+#ifdef AIR_FOG_COLORED_LIGHT_SHAFTS
+        float depth0 = texelFetch(shadowtex0, shadow_texel, 0).x;
+        float depth1 = texelFetch(shadowtex1, shadow_texel, 0).x;
+        vec3 color
+            = clamp01(texelFetch(shadowcolor0, shadow_texel, 0).rgb * 4.0);
+        float color_weight
+            = step(depth0, shadow_screen_pos.z) * step(eps, max_of(color));
 
-		color = color * color_weight + (1.0 - color_weight);
+        color = color * color_weight + (1.0 - color_weight);
 
-		vec3 shadow = step(shadow_screen_pos.z, depth1) * color;
-		     shadow = (clamp01(shadow_screen_pos) == shadow_screen_pos) ? shadow : vec3(1.0);
-	#else
-		float depth1 = texelFetch(shadowtex1, shadow_texel, 0).x;
-		float shadow = step(float(clamp01(shadow_screen_pos) == shadow_screen_pos) * shadow_screen_pos.z, depth1);
-	#endif
+        vec3 shadow = step(shadow_screen_pos.z, depth1) * color;
+        shadow = (clamp01(shadow_screen_pos) == shadow_screen_pos)
+            ? shadow
+            : vec3(1.0);
+#else
+        float depth1 = texelFetch(shadowtex1, shadow_texel, 0).x;
+        float shadow = step(
+            float(clamp01(shadow_screen_pos) == shadow_screen_pos)
+                * shadow_screen_pos.z,
+            depth1
+        );
+#endif
 
-	#if defined CLOUD_SHADOWS && defined FOG_CLOUD_SHADOWS && defined WORLD_OVERWORLD
-		shadow *= get_cloud_shadows(colortex8, world_pos - cameraPosition);
-	#endif
-#elif defined CLOUD_SHADOWS && defined FOG_CLOUD_SHADOWS && defined WORLD_OVERWORLD
-	float shadow = get_cloud_shadows(colortex8, world_pos - cameraPosition);
+#if defined CLOUD_SHADOWS && defined FOG_CLOUD_SHADOWS \
+    && defined WORLD_OVERWORLD
+        shadow *= get_cloud_shadows(colortex8, world_pos - cameraPosition);
+#endif
+#elif defined CLOUD_SHADOWS && defined FOG_CLOUD_SHADOWS \
+    && defined WORLD_OVERWORLD
+        float shadow = get_cloud_shadows(colortex8, world_pos - cameraPosition);
 
 #else
-		#define shadow 1.0
+#define shadow 1.0
 #endif
 
-		vec2 density = air_fog_density(world_pos) * step_length;
+        vec2 density = air_fog_density(world_pos) * step_length;
 
-		vec3 step_optical_depth = fog_params.rayleigh_scattering_coeff * density.x
-			+ fog_params.mie_extinction_coeff * density.y;
-		vec3 step_transmittance = exp(-step_optical_depth);
-		vec3 step_transmitted_fraction = (1.0 - step_transmittance) / max(step_optical_depth, eps);
+        vec3 step_optical_depth
+            = fog_params.rayleigh_scattering_coeff * density.x
+            + fog_params.mie_extinction_coeff * density.y;
+        vec3 step_transmittance = exp(-step_optical_depth);
+        vec3 step_transmitted_fraction
+            = (1.0 - step_transmittance) / max(step_optical_depth, eps);
 
-		vec3 visible_scattering = step_transmitted_fraction * transmittance;
+        vec3 visible_scattering = step_transmitted_fraction * transmittance;
 
-		light_sun[0] += visible_scattering * density.x * shadow;
-		light_sun[1] += visible_scattering * density.y * shadow;
-		light_sky[0] += visible_scattering * density.x;
-		light_sky[1] += visible_scattering * density.y;
-		
-		transmittance *= step_transmittance;
-	}
+        light_sun[0] += visible_scattering * density.x * shadow;
+        light_sun[1] += visible_scattering * density.y * shadow;
+        light_sky[0] += visible_scattering * density.x;
+        light_sky[1] += visible_scattering * density.y;
 
-	light_sun[0] *= fog_params.rayleigh_scattering_coeff;
-	light_sun[1] *= fog_params.mie_scattering_coeff;
-	light_sky[0] *= fog_params.rayleigh_scattering_coeff;
-	light_sky[1] *= fog_params.mie_scattering_coeff;
+        vec3 lightning_scattering_coeff
+            = fog_params.rayleigh_scattering_coeff * density.x
+            + fog_params.mie_scattering_coeff * density.y;
+        light_lightning += lightning_flash_fog_sample_scattering(
+            world_pos - cameraPosition,
+            lightning_scattering_coeff,
+            visible_scattering
+        );
 
-	if (!sky) {
-		// Skylight falloff
-		light_sky[0] *= max(skylight, eye_skylight);
-		light_sky[1] *= max(skylight, eye_skylight);
-	}
+        transmittance *= step_transmittance;
+    }
 
-	float LoV = dot(world_dir, light_dir);
-	float mie_phase = 0.7 * henyey_greenstein_phase(LoV, 0.5) + 0.3 * henyey_greenstein_phase(LoV, -0.2);
+    light_sun[0] *= fog_params.rayleigh_scattering_coeff;
+    light_sun[1] *= fog_params.mie_scattering_coeff;
+    light_sky[0] *= fog_params.rayleigh_scattering_coeff;
+    light_sky[1] *= fog_params.mie_scattering_coeff;
 
-	/*
-	// Single scattering
-	vec3 scattering  = light_color * (light_sun * vec2(isotropic_phase, mie_phase));
-	     scattering += ambient_color * (light_sky * vec2(isotropic_phase));
-	/*/
-	// Multiple scattering
-	vec3 scattering = vec3(0.0);
-	float scatter_amount = 1.0;
-		float anisotropy = 1.0;
+    if (!sky) {
+        // Skylight falloff
+        light_sky[0] *= max(skylight, eye_skylight);
+        light_sky[1] *= max(skylight, eye_skylight);
+    }
+
+    float LoV = dot(world_dir, light_dir);
+    float mie_phase = 0.7 * henyey_greenstein_phase(LoV, 0.5)
+        + 0.3 * henyey_greenstein_phase(LoV, -0.2);
+
+    /*
+    // Single scattering
+    vec3 scattering  = light_color * (light_sun * vec2(isotropic_phase,
+    mie_phase)); scattering += ambient_color * (light_sky *
+    vec2(isotropic_phase));
+    /*/
+    // Multiple scattering
+    vec3 scattering = vec3(0.0);
+    float scatter_amount = 1.0;
+    float anisotropy = 1.0;
 
 #ifdef PROGRAM_DEFERRED0
-	vec3 ambient_color = ambient_color_fog;
+    vec3 ambient_color = ambient_color_fog;
 #endif
 
-	scattering += 2.0 * light_sky * vec2(isotropic_phase) * ambient_color;
+    scattering += 2.0 * light_sky * vec2(isotropic_phase) * ambient_color;
 
-	for (int i = 0; i < air_fog_multiple_scattering_iterations; ++i) {
-		float mie_phase = 0.7 * henyey_greenstein_phase(LoV, 0.5 * anisotropy) + 0.3 * henyey_greenstein_phase(LoV, -0.2 * anisotropy);
+    for (int i = 0; i < air_fog_multiple_scattering_iterations; ++i) {
+        float mie_phase = 0.7 * henyey_greenstein_phase(LoV, 0.5 * anisotropy)
+            + 0.3 * henyey_greenstein_phase(LoV, -0.2 * anisotropy);
 
-		scattering += scatter_amount * (light_sun * vec2(isotropic_phase, mie_phase)) * light_color * (1.0 - 0.9 * rainStrength);
+        scattering += scatter_amount
+            * (light_sun * vec2(isotropic_phase, mie_phase)) * light_color
+            * (1.0 - 0.9 * rainStrength);
 
-		scatter_amount *= 0.5;
-		anisotropy *= 0.7;
-	}
-	//*/
+        scatter_amount *= 0.5;
+        anisotropy *= 0.7;
+    }
+    //*/
 
-	scattering *= clamp01(1.0 - blindness - darknessFactor);
+    scattering += light_lightning;
+    scattering *= clamp01(1.0 - blindness - darknessFactor);
 
-	// Artifically brighten fog in the early morning and evening (looks nice)
-	float evening_glow = 0.75 * linear_step(0.05, 1.0, exp(-300.0 * sqr(sun_dir.y + 0.02)));
-	scattering += scattering * evening_glow;
+    // Artifically brighten fog in the early morning and evening (looks nice)
+    float evening_glow
+        = 0.75 * linear_step(0.05, 1.0, exp(-300.0 * sqr(sun_dir.y + 0.02)));
+    scattering += scattering * evening_glow;
 
-	return mat2x3(scattering, transmittance);
+    return mat2x3(scattering, transmittance);
 }
 
 #endif // INCLUDE_FOG_AIR_FOG_VL

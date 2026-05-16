@@ -3,7 +3,7 @@
 
  Photon Shader by SixthSurge
 
- program/program/c22_copy_ao.fsh:
+ program/c22_copy_ao.fsh:
  manally copies colortex6 alt to main to fix ao on intel
 
 --------------------------------------------------------------------------------
@@ -18,6 +18,6 @@ layout(location = 0) out vec4 ao_history;
 uniform sampler2D colortex6;
 
 void main() {
-	ivec2 texel = ivec2(gl_FragCoord.xy);
-	ao_history = texelFetch(colortex6, texel, 0);
+    ivec2 texel = ivec2(gl_FragCoord.xy);
+    ao_history = texelFetch(colortex6, texel, 0);
 }

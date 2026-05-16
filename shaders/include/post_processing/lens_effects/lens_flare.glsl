@@ -300,7 +300,7 @@ float sunmask = total_occlusion * cloud_occlusion * edgeMask * float(isEyeInWate
 
 #ifdef LF_MOONPHASE
     if (sunVec.z > 0.0) { // Moon phase influence
-        sunmask *= lens_flare_moon_phase_brightness;
+        sunmask *= (moon_phase_brightness * 2.0 - 1.0);
     }
 #endif
 
@@ -346,6 +346,11 @@ float sunVisibility = 1.0 - moonVisibility;
 
 lenslc *= vec3(1.0 - centermask);
 lenslc *= LENS_FLARE_INTENSITY * 0.25;
+
+#ifdef LENS_DIRT
+    vec3 lens_dirt = texture(colortex17, uv).rgb * 1.5;
+    lenslc += lens_dirt * LENS_DIRT_LENS_FLARE_INTENSITY;
+#endif
 
 //Adjust global flare settings
 float flaremultR = lenslc.r * LF_COLOR_R;

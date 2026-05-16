@@ -92,51 +92,53 @@ uniform float desert_sandstorm;
 #endif
 
 void main() {
-	light_levels = linear_step(
+    light_levels = linear_step(
         vec2(1.0 / 32.0),
         vec2(31.0 / 32.0),
         (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy
     );
-	tint          = gl_Color;
-	normal        = mat3(gbufferModelViewInverse) * (mat3(gl_ModelViewMatrix) * gl_Normal);
+    tint = gl_Color;
+    normal = mat3(gbufferModelViewInverse)
+        * (mat3(gl_ModelViewMatrix) * gl_Normal);
 
-	light_color   = texelFetch(colortex4, ivec2(191, 0), 0).rgb;
+    light_color = texelFetch(colortex4, ivec2(191, 0), 0).rgb;
 #if defined WORLD_OVERWORLD && defined SH_SKYLIGHT
-	ambient_color = texelFetch(colortex4, ivec2(191, 11), 0).rgb;
-#else	
-	ambient_color = texelFetch(colortex4, ivec2(191, 1), 0).rgb;
+    ambient_color = texelFetch(colortex4, ivec2(191, 11), 0).rgb;
+#else
+    ambient_color = texelFetch(colortex4, ivec2(191, 1), 0).rgb;
 #endif
 
-	is_water = uint(dhMaterialId == DH_BLOCK_WATER);
+    is_water = uint(dhMaterialId == DH_BLOCK_WATER);
 
     vec3 camera_offset = fract(cameraPosition);
 
     vec3 pos = gl_Vertex.xyz;
-         pos = floor(pos + camera_offset + 0.5) - camera_offset;
-         pos = transform(gl_ModelViewMatrix, pos);
+    pos = floor(pos + camera_offset + 0.5) - camera_offset;
+    pos = transform(gl_ModelViewMatrix, pos);
 
     scene_pos = transform(gbufferModelViewInverse, pos);
 
     vec4 clip_pos = dhProjection * vec4(pos, 1.0);
 
 #ifdef WORLD_CURVATURE
-    	 pos = (gbufferProjectionInverse * clip_pos).xyz;
-		 pos = transform(gbufferModelViewInverse, pos);
-		 pos = world_curvature(pos);
-		 pos = transform(gbufferModelView, pos);
-	clip_pos = project(gl_ProjectionMatrix, pos);
+    pos = (gbufferProjectionInverse * clip_pos).xyz;
+    pos = transform(gbufferModelViewInverse, pos);
+    pos = world_curvature(pos);
+    pos = transform(gbufferModelView, pos);
+    clip_pos = project(gl_ProjectionMatrix, pos);
 #endif
 
-#if   defined TAA && defined TAAU
-	clip_pos.xy  = clip_pos.xy * taau_render_scale + clip_pos.w * (taau_render_scale - 1.0);
-	clip_pos.xy += taa_offset * clip_pos.w;
+#if defined TAA && defined TAAU
+    clip_pos.xy = clip_pos.xy * taau_render_scale
+        + clip_pos.w * (taau_render_scale - 1.0);
+    clip_pos.xy += taa_offset * clip_pos.w;
 #elif defined TAA
-	clip_pos.xy += taa_offset * clip_pos.w * 0.66;
+    clip_pos.xy += taa_offset * clip_pos.w * 0.66;
 #endif
 
 #if defined WORLD_OVERWORLD
-	fog_params = get_fog_parameters(get_weather());
+    fog_params = get_fog_parameters(get_weather());
 #endif
 
-	gl_Position = clip_pos;
+    gl_Position = clip_pos;
 }

@@ -60,7 +60,6 @@ void load_fragment_variables(out vec3 albedo, out vec3 world_pos, out vec3 world
 #else
     indirect_light_color = mix(texelFetch(colortex4, ivec2(191, 1), 0).rgb, vec3(1f), 0.5);
 #endif
-#endif
 
     // Photonics expects this offset when it uses world_pos
     world_pos = load_world_position() - 0.01f * world_normal;

@@ -12,10 +12,17 @@ screen.world                           = §a🌎§r 世界
 screen.lighting                        = §6☀§r 照明
 screen.sky                             = §3☁§r 天空
 screen.fog                             = §7🌫§r 雾气
+screen.nether                          = §c🔥§r 下界
+screen.end                             = §d🌟§r 末地
+screen.end_world                       = §d🌟§r 世界
+screen.end_fog                         = §d🌫§r 末地雾气
+screen.end_fog_advanced                = §d🌫§r 末地雾气（高级）
+screen.end_storm_fog                   = §d🌪§r 末地风暴雾
 screen.materials                       = §e☼§r 材质 & 反射
 screen.water                           = §b🌊§r 水
 screen.post                            = §e▓§r 后处理
 screen.misc                            = §e⌛§r 杂项
+screen.mods                            = 模组选项
 
 screen.weather                         = 天气变化
 
@@ -29,20 +36,27 @@ screen.reflections                     = 反射
 screen.refraction                      = 折射
 screen.light_sources                   = 光源
 screen.shadows                         = 阴影
-screen.ao                              = 环境光遮蔽
+screen.ao                              = 间接光照
 screen.color_grading                   = 颜色分级
 screen.exposure                        = 曝光
 screen.lpv_vl                          = 彩色光源雾气散射
 screen.ssvl                            = 屏幕空间体积光
+screen.distant_horizons                = 遥远的地平线
+screen.photonics                       = Photonics
+screen.photonics_sharp                 = 锐利设置
+screen.photonics_restir                = ReSTIR 设置
 screen.box                             = 选择框
 screen.tonemap_settings                = 色调映射设置
 
 screen.dof_settings                    = 景深设置
 
-screen.lens_flare_settings             = 镜头光晕设置
+screen.lens_effects                    = §b📸§r 镜头特效
+screen.lens_flare_settings             = §e🌈§r 镜头光晕设置
 screen.lens_flare_color                = 光晕颜色
-
-screen.rain_lens_settings              = 💧 镜头雨滴设置
+screen.lens_dirt_settings              = §7🕸§r 镜头污渍设置
+screen.water_on_lens_settings          = §b💧§r 镜头水滴设置
+screen.spreading_frost_settings        = §b❄§r 冰霜扩散设置
+screen.spreading_frost_cr_color        = 冻结色差颜色
 
 screen.tonemap_general_settings        = 通用色调映射设置
 screen.aces_settings                   = Academy 色调映射设置
@@ -94,6 +108,8 @@ screen.end_solar_flare                 = 末地太阳耀斑
 screen.solar_flare_color               = 太阳耀斑颜色
 
 screen.fog_advanced                    = 高级雾气设置
+screen.nether_lava_crust               = §c🔥§r 下界熔岩斑块
+screen.nether_volumetric_fog           = §c🔥§r 下界体积雾
 screen.fog_rlh                         = 瑞利系数
 screen.fog_mie                         = 米氏系数
 screen.sunlight_color                  = 阳光颜色
@@ -147,40 +163,42 @@ option.INFO.comment                    = 原始着色器由 §bSixthSurge§r 制
 # World settings
 
 option.WAVING_PLANTS                   = 植物摇晃
-option.WAVING_PLANTS.comment           = 地面随风摇动的植物。\n\n若需添加一个方块到植物摇晃清单，打开 shaders/block.properties 文件然后添加它的 ID 到所属的类别中 (10016, 10017 或 10018)
+option.WAVING_PLANTS.comment           = 地面随风摇动的植物.\n\n若需添加一个方块到植物摇晃清单，打开 shaders/block.properties 文件然后添加它的 ID 到所属的类别中 (10016, 10017 或 10018)
 option.WAVING_LEAVES                   = 树叶摇晃
-option.WAVING_LEAVES.comment           = 树叶随风摇摆。\n\n若需添加一个方块到树叶摇晃清单，打开 shaders/block.properties 文件然后添加它的 ID 到所属的类别中 (10019)
+option.WAVING_LEAVES.comment           = 树叶随风摇摆.\n\n若需添加一个方块到树叶摇晃清单，打开 shaders/block.properties 文件然后添加它的 ID 到所属的类别中 (10019)
 option.WAVING_CLEAR_STRENGTH           = 摇晃强度 (晴天)
-option.WAVING_CLEAR_STRENGTH.comment   = 控制晴天时植物摇晃的强度。更高的数值使植物摇晃更明显。
+option.WAVING_CLEAR_STRENGTH.comment   = 控制晴天时植物摇晃的强度.更高的数值使植物摇晃更明显.
 option.WAVING_RAIN_STRENGTH            = 摇晃强度 (雨天)
-option.WAVING_RAIN_STRENGTH.comment    = 控制雨天时植物摇晃的强度。更高的数值使植物摇晃更明显。
+option.WAVING_RAIN_STRENGTH.comment    = 控制雨天时植物摇晃的强度.更高的数值使植物摇晃更明显.
 option.SLANTED_RAIN                    = 风吹斜的雨
-option.SLANTED_RAIN.comment            = 倾斜的雨粒子。使雨天更具氛围。
+option.SLANTED_RAIN.comment            = 倾斜的雨粒子.使雨天更具氛围.
 option.RAIN_OPACITY                    = 雨水不透明度
-option.RAIN_OPACITY.comment            = 调节雨水粒子的不透明度。
+option.RAIN_OPACITY.comment            = 调节雨水粒子的不透明度.
 option.SEA_LEVEL                       = 海平面
-option.SEA_LEVEL.comment               = 海平面或地面的 Y 轴坐标。\n\n-60.0: 1.18+ 的超平坦。\n4.0: 1.18- 的超平坦。\n63.0: 普通世界。
+option.SEA_LEVEL.comment               = 海平面或地面的 Y 轴坐标.\n\n-60.0: 1.18+ 的超平坦.\n4.0: 1.18- 的超平坦.\n63.0: 普通世界.
 option.SNOW_OPACITY                    = 雪不透明度
-option.SNOW_OPACITY.comment            = 调节雪粒子的不透明度。
+option.SNOW_OPACITY.comment            = 调节雪粒子的不透明度.
 option.EDGE_HIGHLIGHT                  = 边缘高亮
-option.EDGE_HIGHLIGHT.comment          = 受《我的世界：地下城》启发的方块边缘高亮效果。
+option.EDGE_HIGHLIGHT.comment          = 受《我的世界：地下城》启发的方块边缘高亮效果.
 option.EDGE_HIGHLIGHT_SCALE            = 边缘高亮尺寸
-option.EDGE_HIGHLIGHT_SCALE.comment    = 控制边缘高亮的宽度尺寸，请根据所用资源包的分辨率来进行匹配调节。
+option.EDGE_HIGHLIGHT_SCALE.comment    = 控制边缘高亮的宽度尺寸，请根据所用资源包的分辨率来进行匹配调节.
 option.MOON_PHASE_AFFECTS_BRIGHTNESS   = 月相影响照明
-option.MOON_PHASE_AFFECTS_BRIGHTNESS.comment = 夜晚时间段的亮度受月相变化影响。
+option.MOON_PHASE_AFFECTS_BRIGHTNESS.comment = 夜晚时间段的亮度受月相变化影响.
 option.DESERT_SANDSTORM                = 沙漠群系沙尘暴
-option.DESERT_SANDSTORM.comment        = 沙漠群系在雨天时候刮起的沙尘暴。
+option.DESERT_SANDSTORM.comment        = 沙漠群系在雨天时候刮起的沙尘暴.
 option.END_GLOW                        = 末地辉光雾
-option.END_GLOW.comment                = 在末地维度摇曳的辉光效果。需要启用体积光。
+option.END_GLOW.comment                = 在末地维度摇曳的辉光效果.需要启用体积光.
 option.END_GLOW_INTENSITY              = 末地辉光强度
-option.END_GLOW_INTENSITY.comment      = 控制末地维度辉光效果的强度。更高的数值使辉光更明显。
+option.END_GLOW_INTENSITY.comment      = 控制末地维度辉光效果的强度.更高的数值使辉光更明显.
 
 option.WORLD_CURVATURE          = 世界曲率
 option.DISABLE_FRUSTUM_CULLING  = 禁用视锥体剔除
 option.CURVATURE_MODE           = 曲率模式
 option.CURVATURE_MODE.comment   = 平方距离 - 基于平方 XZ 距离位移 Y 位置（抛物线形状）\n基本球形 - 将表面投影到球体（产生压扁或拉长的形状）\n对数球形 - 将表面投影到球体，同时保持侧面之间的纵横比（按高度改变比例）
 option.OVERWORLD_CURVATURE_SIZE = 主世界曲率大小
+option.NETHER_CURVATURE         = 下界曲率
 option.NETHER_CURVATURE_SIZE    = 下界曲率大小
+option.END_CURVATURE            = 末地曲率
 option.END_CURVATURE_SIZE       = 末地曲率大小
 
 value.CURVATURE_MODE.CURVATURE_MODE_SQUARED_DISTANCE = 平方距离
@@ -200,14 +218,16 @@ option.WEATHER_WIND_VARIATION_SPEED        = 风度偏差变化速度
 # Lighting settings
 
 option.COLORED_LIGHTS                  = 彩色光源
-option.COLORED_LIGHTS.comment          = 使用泛洪填充算法实现可变彩色光源。需要 Iris 1.6 或更高版本
+option.COLORED_LIGHTS.comment          = 使用泛洪填充算法实现可变彩色光源.需要 Iris 1.6 或更高版本
 option.COLORED_LIGHTS_VANILLA_LIGHTMAP_CONTRIBUTION = 原版光照贴图贡献
+option.COLORED_LIGHTS_VANILLA_LIGHTMAP_CONTRIBUTION_FALLOFF = 贡献衰减
+option.COLORED_LIGHTS_VANILLA_LIGHTMAP_CONTRIBUTION_FALLOFF.comment = 控制原版光照贴图贡献的衰减方式.\n平方：光源附近更亮，衰减更快.\n线性：光照更柔和，延伸更远
+value.COLORED_LIGHTS_VANILLA_LIGHTMAP_CONTRIBUTION_FALLOFF.COLORED_LIGHTS_VANILLA_LIGHTMAP_CONTRIBUTION_FALLOFF_SQUARED = 平方
+value.COLORED_LIGHTS_VANILLA_LIGHTMAP_CONTRIBUTION_FALLOFF.COLORED_LIGHTS_VANILLA_LIGHTMAP_CONTRIBUTION_FALLOFF_LINEAR = 线性
 option.HANDHELD_LIGHTING               = 手持光源
-option.HANDHELD_LIGHTING.comment       = 手持物品在世界中投射光线。如果启用了彩色光源，手持光源也会像光源一样投射彩色光线
+option.HANDHELD_LIGHTING.comment       = 手持物品在世界中投射光线.如果启用了彩色光源，手持光源也会像光源一样投射彩色光线
 option.HANDHELD_LIGHTING_INTENSITY     = 手持光源强度
 option.HANDHELD_LIGHTING_INTENSITY.comment = 调节手持光源的亮度
-option.GTAO                            = 光影环境光遮蔽
-option.GTAO.comment                    = 基于 Ground-truth 的环境光遮蔽 (GTAO)。在角落添加柔和的阴影
 option.VANILLA_AO                      = 原版环境光遮蔽
 option.VANILLA_AO.comment              = Minecraft 内置的环境光遮蔽
 option.AO_IN_SUNLIGHT                  = 阳光下的环境光遮蔽
@@ -219,14 +239,14 @@ option.CLOUD_SHADOWS_INTENSITY.comment = 调节云影的强度
 option.CLOUD_SHADOW_RESOLUTION         = 云影分辨率
 suffix.CLOUD_SHADOW_RESOLUTION         = ²
 option.SH_SKYLIGHT                     = 球谐天空光
-option.SH_SKYLIGHT.comment             = 在主世界中使用球谐函数编码指向天空光，可提供非常自然的效果。\n这与 GTAO 效果相得益彰
+option.SH_SKYLIGHT.comment             = 在主世界中使用球谐函数编码指向天空光，可提供非常自然的效果.\n这与 GTAO 效果相得益彰
 option.SSS_SHEEN                       = 次表面散射光泽
 option.SSS_SHEEN.comment               = 植物和树叶上的高光光泽效果，有助于高草丛和其他事物更好地和草地高光效果混合
 option.SSS_INTENSITY                   = 次表面散射强度
 option.SSS_INTENSITY.comment           = 调节次表面散射 (SSS) 的亮度
 option.SSS_DENSITY                     = 次表面散射密度
 option.SHADING_STRENGTH                = 阴影强度
-option.SHADING_STRENGTH.comment        = 调节直接光照阴影的对比度。降低此选项会使背对太阳的未处于阴影遮蔽中的面更亮；增加则使其变暗
+option.SHADING_STRENGTH.comment        = 调节直接光照阴影的对比度.降低此选项会使背对太阳的未处于阴影遮蔽中的面更亮；增加则使其变暗
 
 option.SHADOW                          = 阴影贴图
 option.SHADOW_PCF                      = 阴影过滤
@@ -240,7 +260,7 @@ option.sunPathRotation                 = 日月斜角
 option.SHADOW_PENUMBRA_SCALE           = 阴影柔化
 option.SHADOW_PENUMBRA_SCALE.comment   = 调节阴影柔和程度
 option.ENTITY_SHADOWS                  = 实体阴影
-option.ENTITY_SHADOWS.comment          = 决定实体是否能投射阴影。\n在生存世界中有大量实体的农场时请禁用本选项来提升性能
+option.ENTITY_SHADOWS.comment          = 决定实体是否能投射阴影.\n在生存世界中有大量实体的农场时请禁用本选项来提升性能
 option.BLOCK_ENTITY_SHADOWS            = 方块实体阴影
 option.PIXELATED_SHADOWS               = 像素阴影
 option.PIXELATED_SHADOWS.comment       = 阴影捕捉方块纹理像素以创建像素化的阴影外观
@@ -248,8 +268,8 @@ option.PIXELATED_SHADOWS_RESOLUTION    = 像素阴影分辨率
 option.SSS_STEPS                       = 次表面散射步数
 option.SSS_STEPS.comment               = 增加以减少草丛和其他具有次表面散射(SSS)材质的噪点, 但会牺牲性能.
 
-option.SHADER_AO                       = 光影环境光遮蔽
-option.SHADER_AO.comment               = 选择环境光遮蔽的算法类型. 关 - 不计算光影的环境光遮蔽算法. SSAO - 需要的采样数不多/闪烁更少但质量较低. GTAO - 更好的视觉质量但需要更多的采样也更多闪烁. VBIL - 可见性位掩码间接光照，具有SSGI颜色，但由于屏幕空间效果的天性会引入伪影和噪点. (建议配合高动态范围+自动曝光使用以使反弹颜色明显)
+option.SHADER_AO                       = 光影间接光照
+option.SHADER_AO.comment               = 选择间接光照的算法类型. 关 - 不计算光影的间接光照算法. SSAO - 需要的采样数不多/闪烁更少但质量较低. GTAO - 更好的视觉质量但需要更多的采样也更多闪烁. VBIL - 可见性位掩码间接光照，具有环境光遮蔽和SSGI颜色，但由于屏幕空间的天性会引入伪影和噪点. 
 value.SHADER_AO.SHADER_AO_NONE         = 关
 value.SHADER_AO.SHADER_AO_SSAO         = SSAO
 value.SHADER_AO.SHADER_AO_GTAO         = GTAO
@@ -293,7 +313,6 @@ option.SKYLIGHT_I                      = 天空光强度
 option.BOUNCED_LIGHT_I                 = 阳光反射强度
 option.CAVE_LIGHTING_I                 = 洞穴亮度
 option.LIGHTNING_FLASH                 = 闪电
-option.LIGHTNING_FLASH_INTENSITY       = 闪电强度
 option.NETHER_USE_BIOME_COLOR          = 使用群系颜色
 option.NETHER_I                        = 环境光强度
 option.NETHER_S                        = 环境光饱和度
@@ -334,7 +353,7 @@ option.COLOREDLIGHT_SATURATION         = 彩色光饱和度
 option.GLOWING_FLOWERS                 = §e🌷§r 发光花朵
 option.GLOWING_ORE                     = §e⛏§r 发光矿石
 option.END_COLORED_LIGHTING            = 末地紫色光源方块
-comment.END_COLORED_LIGHTING           = 火、熔岩和火把在末地的颜色为紫色。
+comment.END_COLORED_LIGHTING           = 火、熔岩和火把在末地的颜色为紫色.
 option.SCULK_I                         = 幽匿光强度
 option.COLORED_CANDLES                 = 彩色蜡烛
 
@@ -446,13 +465,13 @@ option.SHOOTING_STARS_TRAIL_FADE.comment     = 决定流星轨迹消退的速度
 
 # Solar Flares
 option.END_SOLAR_FLARE_ENABLED               = 末地太阳耀斑
-option.END_SOLAR_FLARE_ENABLED.comment       = 启用末地维度的太阳耀斑效果。
+option.END_SOLAR_FLARE_ENABLED.comment       = 启用末地维度的太阳耀斑效果.
 option.END_SOLAR_FLARE_INTENSITY             = 太阳耀斑强度
-option.END_SOLAR_FLARE_INTENSITY.comment     = 控制末地维度太阳耀斑效果的强度。更高的数值使耀斑更明显。
+option.END_SOLAR_FLARE_INTENSITY.comment     = 控制末地维度太阳耀斑效果的强度.更高的数值使耀斑更明显.
 option.END_SOLAR_FLARE_SPEED                 = 太阳耀斑速度
-option.END_SOLAR_FLARE_SPEED.comment         = 调整末地维度太阳耀斑动画的速度。更高的数值使耀斑移动更快。
+option.END_SOLAR_FLARE_SPEED.comment         = 调整末地维度太阳耀斑动画的速度.更高的数值使耀斑移动更快.
 option.END_SOLAR_FLARE_FALLOFF               = 太阳耀斑衰减
-option.END_SOLAR_FLARE_FALLOFF.comment       = 决定末地维度太阳耀斑效果从太阳延伸时的衰减速度。更高的数值会产生更明显的衰减。
+option.END_SOLAR_FLARE_FALLOFF.comment       = 决定末地维度太阳耀斑效果从太阳延伸时的衰减速度.更高的数值会产生更明显的衰减.
 option.END_SOLAR_FLARE_COLOR_R               = 红色
 option.END_SOLAR_FLARE_COLOR_G               = 绿色
 option.END_SOLAR_FLARE_COLOR_B               = 蓝色
@@ -465,7 +484,7 @@ option.LIGHTNING_FLASH                 = 闪电闪光
 option.RAINBOWS                        = 彩虹
 option.END_SUN_EFFECT                  = 末地日轮
 option.BLUE_SKY_DARKENING              = 蓝天加深
-option.BLUE_SKY_DARKENING.comment      = 调整天空变为更深蓝色的程度，不影响整体光照和阴影。\n1.0 是默认天空颜色
+option.BLUE_SKY_DARKENING.comment      = 调整天空变为更深蓝色的程度，不影响整体光照和阴影.\n1.0 是默认天空颜色
 
 
 # Clouds
@@ -796,7 +815,49 @@ option.BLOOMY_FOG.comment              = 雾气的强烈泛光. 使得明亮事�
 option.BLOOMY_FOG_INTENSITY            = 泛光雾强度
 option.BLOOMY_FOG_INTENSITY.comment    = 调节泛光雾的强度
 option.OVERWORLD_FOG_INTENSITY         = 主世界雾气强度
-option.NETHER_FOG_INTENSITY            = 下界雾气强度
+option.NETHER_FOG_INTENSITY            = §c🔥§r 下界雾气强度
+option.NETHER_FOG_INTENSITY.comment    = 简单的远距离雾气
+option.NETHER_VOLUMETRIC_STYLE           = §c🔥§r 体积雾风格
+option.NETHER_VOLUMETRIC_STYLE.comment   = \n关闭：无体积雾\n雾：浓厚的体积雾\n烟：烟雾缭绕
+value.NETHER_VOLUMETRIC_STYLE.NETHER_VOLUMETRIC_OFF      = §c关闭
+value.NETHER_VOLUMETRIC_STYLE.NETHER_VOLUMETRIC_FOG      = 粗雾
+value.NETHER_VOLUMETRIC_STYLE.NETHER_VOLUMETRIC_SMOKE    = 细烟
+option.NETHER_VL_FOG_DENSITY          = §c🔥§r 雾气强度
+option.NETHER_VL_FOG_SPEED            = §c🔥§r 雾气风速
+option.NETHER_VL_FOG_SCALE            = §c🔥§r 雾气图案尺寸
+option.NETHER_LAVA_CRUST               = §c🔥§r 下界熔岩斑块
+option.NETHER_LAVA_CRUST.comment       = 下界熔岩表面的深色程序化斑块（无额外纹理）.关闭此选项可显示普通熔岩，不带外壳
+option.NETHER_LAVA_CRUST_ANIMATION     = §c🔥§r 熔岩斑块动画
+option.NETHER_LAVA_CRUST_ANIMATION.comment = 开启时，斑块图案会随时间流动.关闭时图案在每个方块上保持固定
+option.NETHER_LAVA_CRUST_SCALE         = §c🔥§r 熔岩斑块尺寸
+option.NETHER_LAVA_CRUST_ANIM_SPEED    = §c🔥§r 熔岩斑块运动速度
+option.NETHER_LAVA_CRUST_ANIM_SPEED.comment = 斑块图案在熔岩上漂移的速度.0表示静态地壳
+option.LAVA_FOG_INTENSITY               = §c🔥§r 熔岩雾强度
+option.LAVA_FOG_INTENSITY.comment       = 控制熔岩雾的强度.\n必须启用彩色光源和彩色光源雾气散射
+option.NETHER_BIOME_BLUE_LAVA           = §1🔥§r 群系蓝色熔岩
+option.NETHER_BIOME_BLUE_LAVA.comment  = 开启时，诡异森林、灵魂沙峡谷和玄武岩三角洲的熔岩颜色将变为青蓝色
+option.END_STORM_VOLUMETRIC_FOG         = §5🌫§r 末地风暴雾
+option.END_STORM_VOLUMETRIC_FOG.comment = 带有龙卷风的浓厚体积雾。与标准的末地雾不同；必须启用体积光照
+option.END_STORM_FOG_INTENSITY          = §5🌫§r 末地风暴雾强度
+option.END_STORM_FOG_SPEED               = §5🌫§r 末地风暴雾动画速度
+option.END_STORM_FOG_LAYER_THICKNESS     = §5🌫§r 末地风暴雾层厚度
+option.END_STORM_FOG_BUMPINESS           = §5🌫§r 末地风暴雾起伏度
+option.END_STORM_FOG_BUMPINESS.comment   = 控制动画底部/顶部波浪以及条状物、龙卷风柱和烟雾的程序化摆动
+option.END_STORM_FOG_SPACING             = §5🌫§r 末地风暴龙卷风间距
+option.END_STORM_FOG_SPACING.comment      = 网格中龙卷风柱之间的距离，数值越高龙卷风间距越远（总数量越少）
+option.END_STORM_FOG_TORNADO_COVERAGE     = §5🌫§r 末地风暴龙卷风数量
+option.END_STORM_FOG_TORNADO_COVERAGE.comment = 生成龙卷风的网格单元格占比，数值越高龙卷风越多；数量过多时可降低该值
+option.END_STORM_FOG_VIEW_DISTANCE_SCALE   = §5🌫§r 末地风暴雾视觉距离
+option.END_STORM_FOG_VIEW_DISTANCE_SCALE.comment = 雾效渲染距离的倍率（基于渲染距离），数值越高雾效可视范围越远、天空雾效更明显
+option.END_STORM_FOG_LIGHTNING_ENABLE         = §5⚡§r 末地风暴闪电
+option.END_STORM_FOG_LIGHTNING_FREQUENCY      = §5⚡§r 末地风暴闪电频率
+option.END_STORM_FOG_LIGHTNING_INTENSITY      = §5⚡§r 末地风暴闪电强度
+option.END_STORM_FOG_LIGHTNING_SPEED          = §5⚡§r 末地风暴闪电速度
+option.END_STORM_FOG_LIGHTNING_SPEED.comment  = 控制闪电闪烁频率和闪光周期（与雷云闪电速度机制一致）
+option.END_STORM_FOG_LIGHTNING_COLOR_R        = §5⚡§r 末地风暴闪电 - 红色
+option.END_STORM_FOG_LIGHTNING_COLOR_G        = §5⚡§r 末地风暴闪电 - 绿色
+option.END_STORM_FOG_LIGHTNING_COLOR_B        = §5⚡§r 末地风暴闪电 - 蓝色
+option.END_STORM_FOG_LIGHTNING_COLOR_B.comment = 风暴雾效内部的片状闪电效果，闪烁节奏和形态与雷云闪电系统同步（闪烁、多重脉冲等）
 option.CAVE_FOG_INTENSITY              = 洞穴雾气强度
 option.END_FOG_INTENSITY               = 末地雾气强度
 option.VL                              = 体积光
@@ -990,9 +1051,8 @@ option.WATER_TEXTURE.comment              = 如何使用原版水体纹理.\n\n�
 option.BIOME_WATER_COLOR                  = 基于群系的水体颜色
 option.BIOME_WATER_COLOR.comment          = 水体吸收考虑生物群系水体颜色
 option.BIOME_WATER_COLOR_INTENSITY        = 基于群系的水体颜色强度
-option.WATER_TEXTURE_HIGHLIGHT_INTENSITY  = 水体高亮强度
+option.WATER_TEXTURE_HIGHLIGHT_ABOVEGROUND_INTENSITY  = 水体高亮强度
 option.WATER_TEXTURE_HIGHLIGHT_UNDERGROUND_INTENSITY = 水体高亮强度 (地下)
-comment.WATER_TEXTURE_HIGHLIGHT_UNDERGROUND_INTENSITY = 不受水体高亮强度影响.
 option.WATER_TEXTURE_HIGHLIGHT_BIOME_COLOR = 基于群系的水体高亮
 option.WATER_TEXTURE_HIGHLIGHT_BIOME_COLOR_INTENSITY = 基于群系的水体高亮强度
 option.WATER_REFRACTION                   = 水体折射
@@ -1038,7 +1098,9 @@ suffix.WATER_WAVE_ANGLE                = °
 
 # Post-processing settings
 
-option.LENS_FLARE                      = 镜头光晕
+# Lens effects
+
+option.LENS_FLARE                      = §e🌈§r 镜头光晕
 option.LENS_FLARE_MODE                 = 镜头光晕模式
 option.LF_COLOR_R                      = 镜头光晕 - 红色
 option.LF_COLOR_G                      = 镜头光晕 - 绿色
@@ -1070,17 +1132,34 @@ option.LF_OCCLUSION_SAMPLES.comment    = 调节遮挡检测采样的数量，值
 option.LF_SUN_RADIUS_SCALE             = 遮挡检测半径
 option.LF_SUN_RADIUS_SCALE.comment     = 调节遮挡检测的半径，更大的值需要更多的采样数量以获得平滑的效果
 
+option.LENS_DIRT                       = §7🕸§r 镜头污渍
+option.LENS_DIRT_BLOOM_INTENSITY       = 泛光影响污渍强度
+option.LENS_DIRT_LENS_FLARE_INTENSITY  = 镜头光晕影响污渍强度
+
+option.WATER_ON_LENS                   = §b💧§r 镜头水滴
 option.RAIN_LENS                       = 镜头雨滴
 option.RAIN_LENS.comment               = 模拟雨天雨水滴在镜头上的效果
 option.RAIN_LENS_INTENSITY             = 雨滴强度
-option.RAINDROP_SIZE                   = 流动水滴大小
-option.STATIC_SIZE                     = 静态水滴大小
-option.RAINDROP_SPEED                  = 下落速度
+option.RAINDROP_SPEED                  = 动画速度
+option.INOUT_WATER_EFFECT              = 进出水面扭曲
+option.INOUT_WATER_EFFECT.comment      = 在水底和离开水面的画面扭曲（灵感来自Bliss光影）
 
 option.BLOOM                           = 泛光
 option.BLOOM.comment                   = 明亮区域和光源周围的柔和泛光效果
 option.BLOOM_INTENSITY                 = 泛光强度
 option.BLOOM_INTENSITY.comment         = 调节泛光效果影响最终图像的强度
+
+option.SPREADING_FROST                 = §b❄§r 冰霜扩散
+option.SPREADING_FROST.comment         = 进入寒冷群系时，冰霜扩散到屏幕四周形成冻结暗角
+option.SPREADING_FROST_INTENSITY       = 冰霜扩散强度
+option.SPREADING_FROST_FROSTYNESS      = 冰霜扩散锐利度
+option.SPREADING_FROST_SNOWING_ONLY    = 雪天限定
+option.SPREADING_FROST_VIGNETTE_SIZE   = 暗角尺寸
+option.SPREADING_FROST_CR              = 冻结色差
+option.SPREADING_FROST_CR.comment      = 启用时，让冻结颜色变为蓝色
+option.SPREADING_FROST_CR_R            = §c▍ §f红色
+option.SPREADING_FROST_CR_G            = §a▍ §f绿色
+option.SPREADING_FROST_CR_B            = §9▍ §f蓝色
 
 option.DOF                             = 景深
 option.DOF.comment                     = 镜头聚焦效果 - 模糊非聚焦区域
@@ -1093,7 +1172,7 @@ option.DOF_FOCUS.comment               = 景深对焦距离
 option.DOF_SIZE_X                      = 水平尺寸
 option.DOF_SIZE_Y                      = 垂直尺寸
 option.DOF_ANAMORPHIC                  = 变形镜头失焦模糊
-option.DOF_ANAMORPHIC.comment          = 将失焦模糊（Bokeh）的形状从圆形变为垂直的椭圆形，创造出一种独特的视觉风格。
+option.DOF_ANAMORPHIC.comment          = 将失焦模糊（Bokeh）的形状从圆形变为垂直的椭圆形，创造出一种独特的视觉风格
 option.DOF_ANAMORPHIC_RATIO            = 变形镜头失焦模糊比例
 option.DOF_CA                          = 色差
 option.DOF_CA_INTENSITY                = 色差强度
@@ -1180,7 +1259,7 @@ option.PURKINJE_SHIFT                  = 柏金赫偏移
 option.PURKINJE_SHIFT.comment          = 模拟人眼在低光照环境下的视觉; 对所有颜色去饱和并使用红色调暗化
 option.PURKINJE_SHIFT_INTENSITY        = 柏金赫偏移强度
 
-# Tonemap settings 译者注: 色调映射部分采用AI翻译, 请谅解。
+# Tonemap settings 译者注: 色调映射部分采用AI翻译, 请谅解.
 
 option.TONEMAP_HUE_FADE               = 色调淡化
 option.TONEMAP_COLORTEST              = 色调映射颜色测试
@@ -1258,7 +1337,7 @@ option.UCHIMURA_BLACK_PEDESTAL        = 黑色基座
 option.JJS_ZCAM_REC2020             = 实验性 Rec.2020
 
 option.AGX_LOOK                     = AgX 色调映射外观
-option.AGX_LOOK.comment             = \n默认: 无变化且无额外性能影响。\n金色: 添加暖色调，减少饱和度，呈现金色效果。\n鲜艳: 增强颜色和对比度，呈现生动视觉效果。\n自定义: 启用自定义偏移、斜率、强度和饱和度\n\n公式:\n§o 亮度 + 饱和度 * [(颜色 * 斜率 + 偏移)^强度 - 亮度]
+option.AGX_LOOK.comment             = \n默认: 无变化且无额外性能影响.\n金色: 添加暖色调，减少饱和度，呈现金色效果.\n鲜艳: 增强颜色和对比度，呈现生动视觉效果.\n自定义: 启用自定义偏移、斜率、强度和饱和度\n\n公式:\n§o 亮度 + 饱和度 * [(颜色 * 斜率 + 偏移)^强度 - 亮度]
 option.AGX_EOTF                     = AgX EOTF
 option.AGX_HIGHER_PRECISION         = 更高精度近似
 option.AGX_HIGHER_PRECISION.comment = 差异可能不明显

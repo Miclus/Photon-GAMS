@@ -12,11 +12,11 @@
 #include "/include/global.glsl"
 
 /* RENDERTARGETS: 8 */
-layout (location = 0) out vec3 fragment_color;
+layout(location = 0) out vec3 fragment_color;
 
 in vec2 uv;
 
-#ifndef IS_IRIS 
+#ifndef IS_IRIS
 flat in vec3 sun_dir_fixed;
 flat in vec3 moon_dir_fixed;
 flat in vec3 light_dir_fixed;
@@ -60,6 +60,7 @@ uniform float frameTimeCounter;
 uniform int isEyeInWater;
 uniform float eyeAltitude;
 uniform float rainStrength;
+uniform float wetness;
 uniform float blindness;
 uniform float darknessFactor;
 
@@ -87,14 +88,14 @@ uniform sampler3D light_sampler_a;
 uniform sampler3D light_sampler_b;
 #endif
 
-const vec3 sun_color  = vec3(0.0);
+const vec3 sun_color = vec3(0.0);
 const vec3 moon_color = vec3(0.0);
-const vec3 sky_color  = vec3(0.0);
+const vec3 sky_color = vec3(0.0);
 
-#ifndef IS_IRIS 
-    #define sun_dir sun_dir_fixed 
-    #define moon_dir moon_dir_fixed
-    #define light_dir light_dir_fixed
+#ifndef IS_IRIS
+#define sun_dir sun_dir_fixed
+#define moon_dir moon_dir_fixed
+#define light_dir light_dir_fixed
 #endif
 
 #include "/include/lighting/cloud_shadows.glsl"
@@ -105,11 +106,11 @@ void main() {
     // Cloud shadow map
 
 #ifdef CLOUD_SHADOWS
-    #ifndef BLOCKY_CLOUDS
+#ifndef BLOCKY_CLOUDS
     fragment_color.xy = render_cloud_shadow_map(uv);
-    #else
+#else
     fragment_color.xy = vec2(1.0);
-    #endif
+#endif
 #endif
 
     // Cumulus coverage map
@@ -118,4 +119,3 @@ void main() {
     fragment_color.z = render_clouds_cumulus_coverage_map(uv);
 #endif
 }
-

@@ -54,13 +54,13 @@ float get_cloud_occlusion(sampler2D colortex8) {
 }
 
 void main() {
-	uv = gl_MultiTexCoord0.xy;
+    uv = gl_MultiTexCoord0.xy;
 
 #ifdef LENS_FLARE
-  upVec = normalize(upPosition);
-  sunVec = normalize(sunPosition);
-  cloud_occlusion = get_cloud_occlusion(colortex8);
+    upVec = normalize(upPosition);
+    sunVec = normalize(sunPosition);
+    cloud_occlusion = get_cloud_occlusion(colortex8);
 #endif
 
-	gl_Position = vec4(gl_Vertex.xy * 2.0 - 1.0, 0.0, 1.0);
+    gl_Position = vec4(gl_Vertex.xy * 2.0 - 1.0, 0.0, 1.0);
 }

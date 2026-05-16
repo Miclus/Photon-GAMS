@@ -57,29 +57,39 @@ mat2x3 get_aurora_colors() {
         )
     );
 
-    #if AURORA_COLOR == -1
+#if AURORA_COLOR == -1
     const uint[] weights = uint[](
-        AURORA_COLOR_0_WEIGHT, AURORA_COLOR_1_WEIGHT, AURORA_COLOR_2_WEIGHT, AURORA_COLOR_3_WEIGHT, AURORA_COLOR_4_WEIGHT,
-        AURORA_COLOR_5_WEIGHT, AURORA_COLOR_6_WEIGHT, AURORA_COLOR_7_WEIGHT, AURORA_COLOR_8_WEIGHT, AURORA_COLOR_9_WEIGHT,
-        AURORA_COLOR_10_WEIGHT, AURORA_COLOR_11_WEIGHT
+        AURORA_COLOR_0_WEIGHT,
+        AURORA_COLOR_1_WEIGHT,
+        AURORA_COLOR_2_WEIGHT,
+        AURORA_COLOR_3_WEIGHT,
+        AURORA_COLOR_4_WEIGHT,
+        AURORA_COLOR_5_WEIGHT,
+        AURORA_COLOR_6_WEIGHT,
+        AURORA_COLOR_7_WEIGHT,
+        AURORA_COLOR_8_WEIGHT,
+        AURORA_COLOR_9_WEIGHT,
+        AURORA_COLOR_10_WEIGHT,
+        AURORA_COLOR_11_WEIGHT
     );
-    const uint total_weight = AURORA_COLOR_0_WEIGHT + AURORA_COLOR_1_WEIGHT + AURORA_COLOR_2_WEIGHT + AURORA_COLOR_3_WEIGHT + AURORA_COLOR_4_WEIGHT +
-        AURORA_COLOR_5_WEIGHT + AURORA_COLOR_6_WEIGHT + AURORA_COLOR_7_WEIGHT + AURORA_COLOR_8_WEIGHT + AURORA_COLOR_9_WEIGHT +
-        AURORA_COLOR_10_WEIGHT + AURORA_COLOR_11_WEIGHT;
+    const uint total_weight = AURORA_COLOR_0_WEIGHT + AURORA_COLOR_1_WEIGHT
+        + AURORA_COLOR_2_WEIGHT + AURORA_COLOR_3_WEIGHT + AURORA_COLOR_4_WEIGHT
+        + AURORA_COLOR_5_WEIGHT + AURORA_COLOR_6_WEIGHT + AURORA_COLOR_7_WEIGHT
+        + AURORA_COLOR_8_WEIGHT + AURORA_COLOR_9_WEIGHT + AURORA_COLOR_10_WEIGHT
+        + AURORA_COLOR_11_WEIGHT;
     mat2x3[total_weight] aurora_colors_weighted;
-    for(uint i = 0u, index = 0u; i < weights.length(); i++) {
-        for(uint j = 0u; j < weights[i]; j++, index++) {
+    for (uint i = 0u, index = 0u; i < weights.length(); i++) {
+        for (uint j = 0u; j < weights[i]; j++, index++) {
             aurora_colors_weighted[index] = aurora_colors[i];
         }
     }
 
     uint day_index = uint(worldDay);
     day_index = lowbias32(day_index) % aurora_colors_weighted.length();
-        return aurora_colors_weighted[day_index];
-    #else
-        return aurora_colors[uint(AURORA_COLOR)];
-    #endif
-
+    return aurora_colors_weighted[day_index];
+#else
+    return aurora_colors[uint(AURORA_COLOR)];
+#endif
 }
 
 // 0.0 - no aurora
@@ -87,21 +97,21 @@ mat2x3 get_aurora_colors() {
 float get_aurora_amount() {
     float night = smoothstep(0.0, 0.2, -sun_dir.y);
 
-    #if   AURORA_NORMAL == AURORA_NEVER
-        float aurora_normal = 0.0;
-    #elif AURORA_NORMAL == AURORA_RARELY
-        float aurora_normal = float(lowbias32(uint(worldDay)) % 5 == 1);
-    #elif AURORA_NORMAL == AURORA_ALWAYS
-        float aurora_normal = 1.0;
-    #endif
+#if AURORA_NORMAL == AURORA_NEVER
+    float aurora_normal = 0.0;
+#elif AURORA_NORMAL == AURORA_RARELY
+    float aurora_normal = float(lowbias32(uint(worldDay)) % 5 == 1);
+#elif AURORA_NORMAL == AURORA_ALWAYS
+    float aurora_normal = 1.0;
+#endif
 
-    #if   AURORA_SNOW == AURORA_NEVER
-        float aurora_snow = 0.0;
-    #elif AURORA_SNOW == AURORA_RARELY
-        float aurora_snow = float(lowbias32(uint(worldDay)) % 5 == 1);
-    #elif AURORA_SNOW == AURORA_ALWAYS
-        float aurora_snow = 1.0;
-    #endif
+#if AURORA_SNOW == AURORA_NEVER
+    float aurora_snow = 0.0;
+#elif AURORA_SNOW == AURORA_RARELY
+    float aurora_snow = float(lowbias32(uint(worldDay)) % 5 == 1);
+#elif AURORA_SNOW == AURORA_ALWAYS
+    float aurora_snow = 1.0;
+#endif
 
     return night * mix(aurora_normal, aurora_snow, biome_may_snow);
 }

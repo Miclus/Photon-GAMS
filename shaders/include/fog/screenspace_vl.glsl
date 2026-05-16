@@ -37,14 +37,14 @@ vec3 screenspace_vl(sampler2D depthtex0, vec2 lightPos, vec2 uv, vec3 light_colo
             float depth_lod = 1.0;
         #endif
 
-        #if defined TAA && defined TAAU
-            vec2 original_uv = sample_uv * taau_render_scale;
-            float depth_sample = texture(depthtex0, original_uv).r;
-        #else
-            float depth_sample = texture(depthtex0, sample_uv).r;
-        #endif
-            float min_depth = min(depth_sample, depth_lod);
-            float terrain_visibility = step(1.0 - eps, min_depth);
+#if defined TAA && defined TAAU
+        vec2 original_uv = sample_uv * taau_render_scale;
+        float depth_sample = texture(depthtex0, original_uv).r;
+#else
+        float depth_sample = texture(depthtex0, sample_uv).r;
+#endif
+        float min_depth = min(depth_sample, depth_lod);
+        float terrain_visibility = step(1.0 - eps, min_depth);
 
         if (sun_dir.z > 0.0) {
             accumulated_light += light_color * terrain_visibility * decay_factor * noise_coord;
@@ -56,11 +56,11 @@ vec3 screenspace_vl(sampler2D depthtex0, vec2 lightPos, vec2 uv, vec3 light_colo
     }
 
     float radial_mask = 1.0 - clamp01(dist_to_sun / SSVL_FADE_RADIUS);
-          radial_mask = pow(radial_mask, SSVL_FADE_FACTOR);
+    radial_mask = pow(radial_mask, SSVL_FADE_FACTOR);
 
 #ifdef SSVL_MOONPHASE
     if (sun_dir.z < 0.0) { // Moon
-        return accumulated_light * SSVL_INTENSITY * radial_mask * lens_flare_moon_phase_brightness;
+        return accumulated_light * SSVL_INTENSITY * radial_mask * (moon_phase_brightness * 2.0 - 1.0);
     } else { // Sun
         return accumulated_light * SSVL_INTENSITY * radial_mask;
     }

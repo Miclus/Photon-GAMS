@@ -383,9 +383,15 @@ const float limitMmax = 65.46591;
 
 // [0] = ssts_paramMin, [1] = ssts_paramMid, [2] = ssts_paramMax
 const mat3 ssts_params = mat3(
-    1.962695e-8, 1e-6, 1e-6,
-    0.1077237, 4.8, 4.8,
-    29.16786, 100.0, 100.0
+    1.962695e-8,
+    1e-6,
+    1e-6,
+    0.1077237,
+    4.8,
+    4.8,
+    29.16786,
+    100.0,
+    100.0
 );
 
 const vec3 gamutCuspTable[] = vec3[360](
@@ -750,9 +756,5 @@ const vec3 gamutCuspTable[] = vec3[360](
     vec3(65.50566, 53.58108, 53.58108),
     vec3(65.28857, 53.56748, 53.56748)
 );
-
-
-
-
 
 #endif // ZCAM_DRT_TABLE

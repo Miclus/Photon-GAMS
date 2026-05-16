@@ -3,7 +3,7 @@
 
   Photon Shader by SixthSurge
 
-  program/c20_motion_blur:
+  program/c16_motion_blur:
   Apply motion blur
 
 --------------------------------------------------------------------------------
@@ -50,35 +50,37 @@ uniform vec2 taa_offset;
 #define MOTION_BLUR_SAMPLES 20
 
 void main() {
-	ivec2 texel      = ivec2(gl_FragCoord.xy);
-	ivec2 view_texel = ivec2(gl_FragCoord.xy * taau_render_scale);
+    ivec2 texel     = ivec2(gl_FragCoord.xy);
+    ivec2 view_texel = ivec2(gl_FragCoord.xy * taau_render_scale);
+    float depth     = texelFetch(depthtex0, view_texel, 0).x;
 
-	float depth = texelFetch(depthtex0, view_texel, 0).x;
+    vec3 center_color = texelFetch(colortex0, texel, 0).rgb;
 
-	if (depth < hand_depth) {
-		scene_color = texelFetch(colortex0, texel, 0).rgb;
-		return;
-	}
+    if (depth < hand_depth) {
+        scene_color = center_color;
+        return;
+    }
 
-	vec2 velocity = uv - reproject(vec3(uv, depth)).xy;
+    vec2 velocity = uv - reproject(vec3(uv, depth)).xy;
 
-	vec2 pos = uv;
-	vec2 increment = (0.5 * MOTION_BLUR_INTENSITY / float(MOTION_BLUR_SAMPLES)) * velocity;
+    // Clamp velocity magnitude and fade at screen edges
+    float vel_mag = length(velocity);
+    velocity *= min(vel_mag, 0.02) / max(vel_mag, 1e-6);
 
-	vec3 color_sum = vec3(0.0);
-	float weight_sum = 0.0;
+    vec2 increment = velocity * (0.5 * MOTION_BLUR_INTENSITY / float(MOTION_BLUR_SAMPLES));
+    vec2 pos       = uv - increment * (float(MOTION_BLUR_SAMPLES) * 0.5);
+    vec3 color_sum = vec3(0.0);
 
-	for (uint i = 0u; i < MOTION_BLUR_SAMPLES; ++i, pos += increment) {
-		ivec2 tap      = ivec2(pos * view_res);
-		ivec2 view_tap = ivec2(pos * view_res * taau_render_scale);
+    for (uint i = 0u; i < MOTION_BLUR_SAMPLES; ++i) {
+        vec2 clamped   = clamp(pos, 0.0, 1.0);
+        ivec2 tap      = ivec2(clamped * view_res);
+        ivec2 depth_tap = ivec2(clamped * view_res * taau_render_scale);
 
-		vec3 color = texelFetch(colortex0, tap, 0).rgb;
-		float depth = texelFetch(depthtex0, view_tap, 0).x;
-		float weight = (clamp01(pos) == pos && depth > hand_depth) ? 1.0 : 0.0;
+        bool valid = all(equal(clamped, pos)) && texelFetch(depthtex0, depth_tap, 0).x > hand_depth;
 
-		color_sum += color * weight;
-		weight_sum += weight;
-	}
+        color_sum += valid ? texelFetch(colortex0, tap, 0).rgb : center_color;
+        pos += increment;
+    }
 
-	scene_color = color_sum * rcp(weight_sum);
+    scene_color = color_sum / float(MOTION_BLUR_SAMPLES);
 }

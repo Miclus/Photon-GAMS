@@ -101,24 +101,24 @@ float get_cloud_occlusion(sampler2D colortex8) {
 }
 
 void main() {
-	uv = gl_MultiTexCoord0.xy;
+    uv = gl_MultiTexCoord0.xy;
 
-	int lighting_color_x = SKY_MAP_LIGHT_X;
+    int lighting_color_x = SKY_MAP_LIGHT_X;
 	light_color   = texelFetch(colortex4, ivec2(lighting_color_x, 0), 0).rgb;
 #if defined WORLD_OVERWORLD && defined SH_SKYLIGHT
-	ambient_color = texelFetch(colortex9, ivec2(9, 0), 0).rgb;
+    ambient_color = texelFetch(colortex9, ivec2(9, 0), 0).rgb;
 #else
-	ambient_color = texelFetch(colortex4, ivec2(lighting_color_x, 1), 0).rgb;
+    ambient_color = texelFetch(colortex4, ivec2(lighting_color_x, 1), 0).rgb;
 #endif
 
 #if defined WORLD_OVERWORLD
-	fog_params = get_fog_parameters(get_weather());
+    fog_params = get_fog_parameters(get_weather());
 #endif
 
 #ifdef SCREENSPACE_VL
     cloud_occlusion = get_cloud_occlusion(colortex8);
 #endif
 
-	vec2 vertex_pos = gl_Vertex.xy;
-	gl_Position = vec4(vertex_pos * 2.0 - 1.0, 0.0, 1.0);
+    vec2 vertex_pos = gl_Vertex.xy;
+    gl_Position = vec4(vertex_pos * 2.0 - 1.0, 0.0, 1.0);
 }

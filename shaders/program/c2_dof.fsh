@@ -98,7 +98,7 @@ void main() {
 
 	vec2 m = vec2(1.0 - 2.0 * view_pixel_size * rcp(taau_render_scale));
 	for (int i = 0; i < DOF_SAMPLES; ++i) {
-		vec2 offset = vogel_disc_sample(i, DOF_SAMPLES, theta) * CoC * ((1.0 - step(1.0 - eps, depth)) * 0.6 + 0.4);
+		vec2 offset = vogel_disc_sample(i, DOF_SAMPLES, theta) * CoC;
 	    #ifdef DOF_ANAMORPHIC
             offset.y *= DOF_ANAMORPHIC_RATIO;
 	    #endif

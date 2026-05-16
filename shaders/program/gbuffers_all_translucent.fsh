@@ -134,8 +134,8 @@ uniform float time_noon;
 uniform float time_sunset;
 uniform float time_midnight;
 
-#if defined PROGRAM_GBUFFERS_ENTITIES_TRANSLUCENT || \
-    defined PROGRAM_GBUFFERS_LIGHTNING
+#if defined PROGRAM_GBUFFERS_ENTITIES_TRANSLUCENT \
+    || defined PROGRAM_GBUFFERS_LIGHTNING
 uniform int entityId;
 uniform vec4 entityColor;
 #endif
@@ -152,7 +152,8 @@ vec3 light_color, ambient_color;
 	#undef SHADOW_COLOR
 #endif
 
-#if defined PROGRAM_GBUFFERS_TEXTURED || defined PROGRAM_GBUFFERS_PARTICLES_TRANSLUCENT
+#if defined PROGRAM_GBUFFERS_TEXTURED \
+    || defined PROGRAM_GBUFFERS_PARTICLES_TRANSLUCENT
 	#define NO_NORMAL
 #endif
 
@@ -178,32 +179,29 @@ vec3 light_color, ambient_color;
 #include "/include/lighting/cloud_shadows.glsl"
 #endif
 
-#if defined (PHYSICS_MOD_OCEAN) && defined (PHYSICS_OCEAN)
+#if defined(PHYSICS_MOD_OCEAN) && defined(PHYSICS_OCEAN)
 #include "/include/misc/oceans.glsl"
 #endif
 
 const float lod_bias = log2(taau_render_scale);
 
-#if   TEXTURE_FORMAT == TEXTURE_FORMAT_LAB
+#if TEXTURE_FORMAT == TEXTURE_FORMAT_LAB
 void decode_normal_map(vec3 normal_map, out vec3 normal, out float ao) {
 	normal.xy = normal_map.xy * 2.0 - 1.0;
-	normal.z  = sqrt(clamp01(1.0 - dot(normal.xy, normal.xy)));
-	ao        = normal_map.z;
+    normal.z = sqrt(clamp01(1.0 - dot(normal.xy, normal.xy)));
+    ao = normal_map.z;
 }
 #elif TEXTURE_FORMAT == TEXTURE_FORMAT_OLD
 void decode_normal_map(vec3 normal_map, out vec3 normal, out float ao) {
-	normal  = normal_map * 2.0 - 1.0;
-	ao      = length(normal);
+    normal = normal_map * 2.0 - 1.0;
+    ao = length(normal);
 	normal *= rcp(ao);
 }
 #endif
 
 #if defined PROGRAM_GBUFFERS_WATER
-Material get_water_material(
-	vec3 direction_world,
-	vec3 normal,
-	float layer_dist
-) {
+Material
+get_water_material(vec3 direction_world, vec3 normal, float layer_dist) {
 	Material material = water_material;
 
 	// Water texture
@@ -212,21 +210,37 @@ Material get_water_material(
 		vec4 base_color = vec4(0.0);
 	#elif WATER_TEXTURE == WATER_TEXTURE_HIGHLIGHT || WATER_TEXTURE == WATER_TEXTURE_HIGHLIGHT_UNDERGROUND
 		vec4 base_color = texture(gtexture, uv, lod_bias);
+
+		// Raw highlight shape, before any intensity scaling
 		#ifdef WATER_TEXTURE_HIGHLIGHT_BIOME_COLOR
-		float texture_highlight = (0.5 * sqr(linear_step(0.63, 1.0, base_color.r)) * WATER_TEXTURE_HIGHLIGHT_INTENSITY + 0.03 * base_color.r * WATER_TEXTURE_HIGHLIGHT_BIOME_COLOR_INTENSITY);
+		float raw_highlight = 0.5 * sqr(linear_step(0.63, 1.0, base_color.r))
+							+ 0.03 * base_color.r * WATER_TEXTURE_HIGHLIGHT_BIOME_COLOR_INTENSITY;
 		#else
-		float texture_highlight = (0.5 * sqr(linear_step(0.63, 1.0, base_color.r)) * WATER_TEXTURE_HIGHLIGHT_INTENSITY + 0.015 * base_color.r);
+		float raw_highlight = 0.5 * sqr(linear_step(0.63, 1.0, base_color.r))
+							+ 0.015 * base_color.r;
 		#endif
+
+		float texture_highlight;
+
 		#if defined WORLD_OVERWORLD || defined WORLD_END
+			// 0.0 = fully underground, 1.0 = fully aboveground
+			float transition_offset = -0.067;
+			float surface_blend = smoothstep(0.0 + transition_offset, 0.7 + transition_offset, light_levels.y);
+
 			#if WATER_TEXTURE == WATER_TEXTURE_HIGHLIGHT
-				// Optifine ambiguous fix with float() type forced for smoothstep() arguments
-				texture_highlight -= (texture_highlight) * smoothstep(float(0), float(0.8), float(0.90 - cube(light_levels.y)));
-				// Optifine ambiguous fix with float() type forced for smoothstep() arguments
-				texture_highlight += (0.5 * sqr(linear_step(0.63, 1.0, base_color.r)) + 0.02 * base_color.r - 0.01 * base_color.r * smoothstep(float(0), float(0.8), float(0.90 - cube(light_levels.y)))) * smoothstep(float(0), (0.8), float(0.95 - cube(light_levels.y))) * WATER_TEXTURE_HIGHLIGHT_UNDERGROUND_INTENSITY;
+				// Seamlessly blend between the two independently controlled intensities
+				texture_highlight = raw_highlight * mix(
+					WATER_TEXTURE_HIGHLIGHT_UNDERGROUND_INTENSITY,
+					WATER_TEXTURE_HIGHLIGHT_ABOVEGROUND_INTENSITY,
+					surface_blend
+				);
 			#elif WATER_TEXTURE == WATER_TEXTURE_HIGHLIGHT_UNDERGROUND
-				// Optifine ambiguous fix with float() type forced for smoothstep() arguments
-				texture_highlight *= smoothstep(float(0), float(0.8), float(0.95 - cube(light_levels.y))) * WATER_TEXTURE_HIGHLIGHT_UNDERGROUND_INTENSITY * (1 / WATER_TEXTURE_HIGHLIGHT_INTENSITY);
+				// Underground only — fades to zero at the surface
+				texture_highlight = raw_highlight * WATER_TEXTURE_HIGHLIGHT_UNDERGROUND_INTENSITY
+								* (1.0 - surface_blend);
 			#endif
+		#else
+			texture_highlight = raw_highlight * WATER_TEXTURE_HIGHLIGHT_ABOVEGROUND_INTENSITY;
 		#endif
 
 		#ifdef WATER_TEXTURE_HIGHLIGHT_BIOME_COLOR
@@ -240,33 +254,42 @@ Material get_water_material(
 		vec4 base_color = texture(gtexture, uv, lod_bias) * tint;
 		material.albedo = srgb_eotf_inv(base_color.rgb * base_color.a) * rec709_to_working_color;
 	#endif
-
-	#if defined WATER_TEXTURE_HIGHLIGHT_BIOME_COLOR && (WATER_TEXTURE == WATER_TEXTURE_HIGHLIGHT_UNDERGROUND)
-		//Optifine #if fix using a variable to store light_levels.y value
-		float opti_light_levels = light_levels.y;
-		#if opti_light_levels > 0
-			texture_highlight = 0;
-		#endif
-	#endif
+	
 #if defined PROGRAM_GBUFFERS_ENTITIES_TRANSLUCENT
- 		if (material_mask == 80u) base_color = vec4(1.0);
+    if (material_mask == 80u) {
+        base_color = vec4(1.0);
+    }
  #endif
 	// Water absorption
 
-	#if defined (PHYSICS_MOD_OCEAN) && defined (PHYSICS_OCEAN)
-		if(physics_iterationsNormal >= 1.0) {
-			vec3 biome_water_color = srgb_eotf_inv(tint.rgb) * rec709_to_working_color * BIOME_WATER_COLOR_INTENSITY;
+#if defined(PHYSICS_MOD_OCEAN) && defined(PHYSICS_OCEAN)
+    if (physics_iterationsNormal >= 1.0) {
+        vec3 biome_water_color = srgb_eotf_inv(tint.rgb)
+            * rec709_to_working_color * BIOME_WATER_COLOR_INTENSITY;
 			vec3 absorption_coeff = biome_water_coeff(biome_water_color);
 			// Initialize wave
-			wave = physics_wavePixel(physics_localPosition.xz, physics_localWaviness, physics_iterationsNormal, physics_gameTime);
-			vec3 foam_color = (1.0 - absorption_coeff);// (1.0 - vec3(WATER_ABSORPTION_R, WATER_ABSORPTION_G, WATER_ABSORPTION_B))
-			// foam_color = mix(foam_color, vec3(1.0), rainStrength);//mix(material.albedo, material.albedo + vec3(0.75), wave.foam);
-			// material.albedo = mix(material.albedo, foam_color, wave.foam);
-			material.albedo += mix(foam_color, vec3(1.0), max0(physics_foamOpacity - 1.0)) * wave.foam * physics_foamOpacity;
+        wave = physics_wavePixel(
+            physics_localPosition.xz,
+            physics_localWaviness,
+            physics_iterationsNormal,
+            physics_gameTime
+        );
+        vec3 foam_color
+            = (1.0
+               - absorption_coeff); // (1.0 - vec3(WATER_ABSORPTION_R,
+                                    // WATER_ABSORPTION_G, WATER_ABSORPTION_B))
+        // foam_color = mix(foam_color, vec3(1.0),
+        // rainStrength);//mix(material.albedo, material.albedo + vec3(0.75),
+        // wave.foam); material.albedo = mix(material.albedo, foam_color,
+        // wave.foam);
+        material.albedo
+            += mix(foam_color, vec3(1.0), max0(physics_foamOpacity - 1.0))
+            * wave.foam * physics_foamOpacity;
 			material.roughness += wave.foam;
-			// material.albedo += mix(foam_color, vec3(1.0), rainStrength) * wave.foam;
-			// material.albedo += vec3(sqrt(physics_localWaviness), sqr(physics_localWaviness), 0.0);
-			// material.albedo += vec3(cube(physics_localWaviness), 0.0, 0.0);
+        // material.albedo += mix(foam_color, vec3(1.0), rainStrength) *
+        // wave.foam; material.albedo += vec3(sqrt(physics_localWaviness),
+        // sqr(physics_localWaviness), 0.0); material.albedo +=
+        // vec3(cube(physics_localWaviness), 0.0, 0.0);
 		}
 	#endif
 
@@ -275,18 +298,39 @@ Material get_water_material(
 	#ifdef WATER_EDGE_HIGHLIGHT
 		float dist = layer_dist * max(abs(direction_world.y), eps);
 
-		#if WATER_TEXTURE == WATER_TEXTURE_HIGHLIGHT || WATER_TEXTURE == WATER_TEXTURE_HIGHLIGHT_UNDERGROUND
-			float edge_highlight = cube(max0(1.0 - 2.0 * dist)) * (1.0 + 8.0 * texture_highlight);
+#if WATER_TEXTURE == WATER_TEXTURE_HIGHLIGHT \
+    || WATER_TEXTURE == WATER_TEXTURE_HIGHLIGHT_UNDERGROUND
+    float edge_highlight
+        = cube(max0(1.0 - 2.0 * dist)) * (1.0 + 8.0 * texture_highlight);
 		#else
 			float edge_highlight = cube(max0(1.0 - 2.0 * dist));
 		#endif
-			edge_highlight *= WATER_EDGE_HIGHLIGHT_INTENSITY * max0(normal.y) * (1.0 - 0.5 * sqr(light_levels.y));
+    edge_highlight *= WATER_EDGE_HIGHLIGHT_INTENSITY * max0(normal.y)
+        * (1.0 - 0.5 * sqr(light_levels.y));
 			
 		#ifdef WATER_TEXTURE_HIGHLIGHT_BIOME_COLOR
-			material.albedo += 0.1 * edge_highlight / mix(1.0, max(dot(ambient_color, luminance_weights_rec2020), 0.5), light_levels.y) * pow(normalize(srgb_eotf_inv(tint.rgb) * rec709_to_working_color), vec3(WATER_TEXTURE_HIGHLIGHT_BIOME_COLOR_INTENSITY) * (1.3 + (1-pow(WATER_TEXTURE_HIGHLIGHT_BIOME_COLOR_INTENSITY, 3.0))));
-			material.albedo += 0.1 * edge_highlight / mix(1.0, max(dot(ambient_color, luminance_weights_rec2020), 0.5), light_levels.y) * tint.rgb;
+    material.albedo += 0.1 * edge_highlight
+        / mix(1.0,
+              max(dot(ambient_color, luminance_weights_rec2020), 0.5),
+              light_levels.y)
+        * pow(normalize(srgb_eotf_inv(tint.rgb) * rec709_to_working_color),
+              vec3(WATER_TEXTURE_HIGHLIGHT_BIOME_COLOR_INTENSITY)
+                  * (1.3
+                     + (1
+                        - pow(
+                            WATER_TEXTURE_HIGHLIGHT_BIOME_COLOR_INTENSITY,
+                            3.0
+                        ))));
+    material.albedo += 0.1 * edge_highlight
+        / mix(1.0,
+              max(dot(ambient_color, luminance_weights_rec2020), 0.5),
+              light_levels.y)
+        * tint.rgb;
 		#else
-			material.albedo += 0.1 * edge_highlight / mix(1.0, max(dot(ambient_color, luminance_weights_rec2020), 0.5), light_levels.y);
+    material.albedo += 0.1 * edge_highlight
+        / mix(1.0,
+              max(dot(ambient_color, luminance_weights_rec2020), 0.5),
+              light_levels.y);
 		#endif
 		
 		material.albedo  = clamp01(material.albedo);
@@ -295,8 +339,16 @@ Material get_water_material(
 	return material;
 }
 
-vec4 water_absorption_approx(vec4 color, float sss_depth, float layer_dist, float LoV, float NoV, float cloud_shadows) {
-	vec3 biome_water_color = srgb_eotf_inv(tint.rgb) * rec709_to_working_color * BIOME_WATER_COLOR_INTENSITY;
+vec4 water_absorption_approx(
+    vec4 color,
+    float sss_depth,
+    float layer_dist,
+    float LoV,
+    float NoV,
+    float cloud_shadows
+) {
+    vec3 biome_water_color = srgb_eotf_inv(tint.rgb) * rec709_to_working_color
+        * BIOME_WATER_COLOR_INTENSITY;
 	vec3 absorption_coeff = biome_water_coeff(biome_water_color);
 	float dist = layer_dist * float(isEyeInWater != 1 || NoV >= 0.0);
 
@@ -314,13 +366,15 @@ vec4 water_absorption_approx(vec4 color, float sss_depth, float layer_dist, floa
 		  brightness_control *= max(light_levels.x, light_levels.y);
 
 	return vec4(
-		color.rgb + water_fog[0] * (1.0 + 6.0 * sqr(water_fog[1])) * brightness_control,
+        color.rgb
+            + water_fog[0] * (1.0 + 6.0 * sqr(water_fog[1]))
+                * brightness_control,
 		1.0 - water_fog[1].x
 	);
 }
 
-// Parallax nether portal effect inspired by Complementary Reimagined Shaders by EminGT
-// Thanks to Emin for letting me use his idea!
+// Parallax nether portal effect inspired by Complementary Reimagined Shaders by
+// EminGT Thanks to Emin for letting me use his idea!
 
 vec2 get_uv_from_local_coord(vec2 local_coord) {
 	return atlas_tile_offset + atlas_tile_scale * fract(local_coord);
@@ -331,45 +385,79 @@ vec2 get_local_coord_from_uv(vec2 uv) {
 }
 
 vec4 draw_nether_portal(vec3 direction_world, float layer_dist) {
-	const int step_count          = 20;
-	const float parallax_depth    = 0.2;
-	const float portal_brightness = 4.0;
-	const float density_threshold = 0.6;
-	const float depth_step        = rcp(float(step_count));
+    const int step_count = 20;
+    const float parallax_depth = 0.2;
+    const float portal_brightness = 4.0;
+    const float density_threshold = 0.6;
+    const float depth_step = rcp(float(step_count));
 
-	float dither = interleaved_gradient_noise(gl_FragCoord.xy, frameCounter);
+    float dither = interleaved_gradient_noise(gl_FragCoord.xy, frameCounter);
 
-	vec3 direction_tangent = -normalize(position_tangent);
-	mat2 uv_gradient = mat2(dFdx(uv), dFdy(uv));
+    vec3 direction_tangent = -normalize(position_tangent);
+    mat2 uv_gradient = mat2(dFdx(uv), dFdy(uv));
 
-	vec3 ray_step = vec3(direction_tangent.xy * rcp(-direction_tangent.z) * parallax_depth, 1.0) * depth_step;
-	vec3 pos = vec3(atlas_tile_coord + ray_step.xy * dither, 0.0);
+    vec3 ray_step
+        = vec3(
+              direction_tangent.xy * rcp(-direction_tangent.z) * parallax_depth,
+              1.0
+          )
+        * depth_step;
+    vec3 pos = vec3(atlas_tile_coord + ray_step.xy * dither, 0.0);
 
-	vec4 result = vec4(0.0);
+    vec4 result = vec4(0.0);
 
-	for (uint i = 0; i < step_count; ++i) {
-		vec4 col = textureGrad(gtexture, get_uv_from_local_coord(pos.xy), uv_gradient[0], uv_gradient[1]);
+    for (uint i = 0; i < step_count; ++i) {
+        vec4 col = textureGrad(
+            gtexture,
+            get_uv_from_local_coord(pos.xy),
+            uv_gradient[0],
+            uv_gradient[1]
+        );
 
-		float density  = dot(col.rgb, luminance_weights_rec709);
-		      density  = linear_step(0.0, density_threshold, density);
-			  density  = max(density, 0.23);
-			  density *= 1.0 - depth_step * (i + dither);
+        float density = dot(col.rgb, luminance_weights_rec709);
+        density = linear_step(0.0, density_threshold, density);
+        density = max(density, 0.23);
+        density *= 1.0 - depth_step * (i + dither);
 
-		result += col * density;
+        result += col * density;
 
-		pos += ray_step;
-	}
+        pos += ray_step;
+    }
 
     // Edge highlight
     float dist = layer_dist * max_of(abs(direction_world));
     float edge_highlight = cube(max0(1.0 - 2.0 * dist));
     result *= 1.0 + 2.0 * edge_highlight;
 
-	return clamp01(result * portal_brightness * depth_step);
+    return clamp01(result * portal_brightness * depth_step);
 }
 
 #else
-vec4 draw_nether_portal(vec3 direction_world, float layer_dist) { return vec4(0.0); }
+vec4 draw_nether_portal(vec3 direction_world, float layer_dist) {
+    return vec4(0.0);
+}
+#endif
+
+#ifdef WATER_RIPPLES
+    // Water ripples
+    float get_ripple_height(vec2 coord) {
+        // 1. DOMAIN WARPING: Wiggle the coordinates to break the grid look.
+        // This makes the ripples move in organic, swirling paths.
+        vec2 warp = texture(noisetex, coord * 0.04 + frameTimeCounter * WATER_RIPPLE_SPEED * 0.5).xz * 0.15;
+        vec2 warpedCoord = coord + warp;
+
+        // Large scale
+        float n1 = texture(noisetex, warpedCoord * 0.11 + frameTimeCounter * WATER_RIPPLE_SPEED * vec2(0.6, 0.8)).y;
+        // Medium scale moving a different direction
+        float n2 = texture(noisetex, warpedCoord * 0.27 + frameTimeCounter * WATER_RIPPLE_SPEED * vec2(-0.4, -0.7)).y;
+        // detail
+        float n3 = texture(noisetex, warpedCoord * 0.61 + frameTimeCounter * WATER_RIPPLE_SPEED * vec2(0.9, -0.3)).y;
+
+        float combinedNoise = (n1 * 0.5) + (n2 * 0.3) + (n3 * 0.2);
+
+        // Increase first number for more spread out drops
+        return smoothstep(WATER_RIPPLE_SPREAD, 1.0, combinedNoise);
+    }
 #endif
 
 void main() {
@@ -378,12 +466,14 @@ void main() {
 	// Clip to TAAU viewport
 
 #if defined TAA && defined TAAU
-	if (clamp01(coord) != coord) discard;
+    if (clamp01(coord) != coord) {
+        discard;
+    }
 #endif
 
     // Get light colors
 
-    light_color = texelFetch(colortex4, ivec2(191, 0), 0).rgb;
+    light_color = texelFetch(colortex4, ivec2(SKY_MAP_LIGHT_X, 0), 0).rgb;
 #if defined WORLD_OVERWORLD && defined SH_SKYLIGHT
     ambient_color = texelFetch(colortex4, ivec2(191, 11), 0).rgb;
 #else
@@ -427,6 +517,12 @@ void main() {
 	WavePixelData wave;
 #endif
 
+#ifdef NO_NORMAL
+		// No normal vector => make one from screen-space partial derivatives
+		// Putting this before the alpha discard fixes outlines of particles and other things
+		normal = normalize(cross(dFdx(position_scene), dFdy(position_scene)));
+#endif
+
 //------------------------------------------------------------------------//
 	if (is_water) {
 #ifdef PROGRAM_GBUFFERS_WATER
@@ -467,6 +563,22 @@ void main() {
 			normal = tbn * normal_tangent;
 		}
 	#endif
+    #ifdef WATER_RIPPLES
+        // Ripple calculation
+        float ripple0 = get_ripple_height(world_pos.xz);
+        float ripple1 = get_ripple_height(world_pos.xz + vec2(1, 0.0));
+        float ripple2 = get_ripple_height(world_pos.xz + vec2(0.0, 1));
+
+        // Calculate the slo pe (normal) of the ripples
+        vec3 ripple_normal = vec3(ripple1 - ripple0, ripple2 - ripple0, 1);
+        
+        ripple_normal.xy *= (1.0 / max(WATER_RIPPLE_SIZE, 0.001)) * rainStrength;
+        
+        ripple_normal = normalize(ripple_normal).xzy; 
+
+        // Blend the ripple normal into the existing water normal
+        normal = normalize(normal + ripple_normal);
+    #endif
 #endif
 
 //------------------------------------------------------------------------//
@@ -496,7 +608,7 @@ void main() {
 
 #ifdef FANCY_NETHER_PORTAL
 		if (is_nether_portal) {
-			fragment_color = draw_nether_portal(direction_world, layer_dist);
+            fragment_color = draw_nether_portal(direction_world, layer_dist);
 		}
 #endif
 
@@ -505,19 +617,30 @@ void main() {
             mix(fragment_color.rgb, overlayColor.rgb, overlayColor.a);
 #elif defined PROGRAM_GBUFFERS_ENTITIES_TRANSLUCENT
 		// Lightning (old versions)
-		if (material_mask == MATERIAL_LIGHTNING_BOLT) fragment_color = vec4(1.0);
+        if (material_mask == MATERIAL_LIGHTNING_BOLT) {
+            fragment_color = vec4(1.0);
+        }
 
 		// Hit mob tint
-		fragment_color.rgb = mix(fragment_color.rgb, entityColor.rgb, entityColor.a);
+        fragment_color.rgb
+            = mix(fragment_color.rgb, entityColor.rgb, entityColor.a);
 #endif
 
-		if (fragment_color.a < 0.1) discard;
+        if (fragment_color.a < 0.1) {
+            discard;
+        }
 
-		material = material_from(fragment_color.rgb, material_mask, world_pos, tbn[2], adjusted_light_levels);
+        material = material_from(
+            fragment_color.rgb,
+            material_mask,
+            world_pos,
+            tbn[2],
+            adjusted_light_levels
+        );
 
 #if defined PROGRAM_GBUFFERS_LIGHTNING
 		// Lightning (since gbuffers_lightning)
-		material.albedo   = vec3(1.0);
+        material.albedo = vec3(1.0);
 		material.emission = vec3(1.0);
 #endif
 
@@ -532,7 +655,8 @@ void main() {
 		adjusted_light_levels *= mix(0.7, 1.0, material_ao);
 
 	#ifdef DIRECTIONAL_LIGHTMAPS
-		adjusted_light_levels *= get_directional_lightmaps(normal, position_scene, light_levels);
+        adjusted_light_levels
+            *= get_directional_lightmaps(normal, position_scene, light_levels);
 	#endif
 #endif
 
@@ -540,17 +664,15 @@ void main() {
 		decode_specular_map(specular_map, material);
 #endif
 
-#ifdef NO_NORMAL
-		// No normal vector => make one from screen-space partial derivatives
-		normal = normalize(cross(dFdx(position_scene), dFdy(position_scene)));
-#endif
-
 		fragment_color.a = sqrt(fragment_color.a);
 	}
 
-#if defined (PHYSICS_MOD_OCEAN) && defined (PHYSICS_OCEAN)
-	if(is_water && physics_iterationsNormal >= 1.0) {
-		normal = normalize(wave.normal /*+ mix(normal, vec3(0.0), clamp01(physics_localWaviness))*/);
+#if defined(PHYSICS_MOD_OCEAN) && defined(PHYSICS_OCEAN)
+    if (is_water && physics_iterationsNormal >= 1.0) {
+        normal = normalize(
+            wave.normal /*+ mix(normal, vec3(0.0),
+                           clamp01(physics_localWaviness))*/
+        );
 	}
 #endif
 
@@ -573,10 +695,19 @@ void main() {
 	#define cloud_shadows 1.0
 #endif
 
-#if defined SHADOW && (defined WORLD_OVERWORLD || defined WORLD_END || defined WORLD_SPACE)
+#if defined SHADOW \
+    && (defined WORLD_OVERWORLD || defined WORLD_END || defined WORLD_SPACE)
 	float sss_depth;
 	float shadow_distance_fade;
-	vec3 shadows = get_filtered_shadows(position_scene, tbn[2], adjusted_light_levels.y, cloud_shadows, material.sss_amount, shadow_distance_fade, sss_depth);
+    vec3 shadows = get_filtered_shadows(
+        position_scene,
+        tbn[2],
+        adjusted_light_levels.y,
+        cloud_shadows,
+        material.sss_amount,
+        shadow_distance_fade,
+        sss_depth
+    );
 #else
 	#define sss_depth 0.0
 	#define shadow_distance_fade 0.0
@@ -585,7 +716,8 @@ void main() {
 
 	// Diffuse lighting
 
-	fragment_color.rgb = get_diffuse_lighting(
+    fragment_color.rgb
+        = get_diffuse_lighting(
 		material,
 		position_scene,
 		normal,
@@ -604,19 +736,26 @@ void main() {
 		NoV,
 		NoH,
 		LoV
-	) * sqr(fragment_color.a);
+          )
+        * (is_water ? 1.0 : fragment_color.a);
 
 	// Specular highlight
 
-#if (defined WORLD_OVERWORLD || defined WORLD_END || defined WORLD_SPACE) && !defined NO_NORMAL
-	fragment_color.rgb += get_specular_highlight(material, NoL, NoV, NoH, LoV, LoH) * light_color * shadows * cloud_shadows;
+#if (defined WORLD_OVERWORLD || defined WORLD_END || defined WORLD_SPACE) \
+    && !defined NO_NORMAL
+    fragment_color.rgb
+        += get_specular_highlight(material, NoL, NoV, NoH, LoV, LoH)
+        * light_color * shadows * cloud_shadows;
 #endif
 
 	// Specular reflections
 
 #if defined ENVIRONMENT_REFLECTIONS || defined SKY_REFLECTIONS
 	if (material.ssr_multiplier > eps) {
-		vec3 position_screen = vec3(gl_FragCoord.xy * rcp(taau_render_scale) * view_pixel_size, gl_FragCoord.z);
+        vec3 position_screen = vec3(
+            gl_FragCoord.xy * rcp(taau_render_scale) * view_pixel_size,
+            gl_FragCoord.z
+        );
 
 		mat3 new_tbn = get_tbn_matrix(normal);
 
@@ -640,7 +779,14 @@ void main() {
 
 #if defined PROGRAM_GBUFFERS_WATER
 	if (is_water) {
-		fragment_color = water_absorption_approx(fragment_color, sss_depth, layer_dist, LoV, dot(tbn[2], direction_world), cloud_shadows);
+        fragment_color = water_absorption_approx(
+            fragment_color,
+            sss_depth,
+            layer_dist,
+            LoV,
+            dot(tbn[2], direction_world),
+            cloud_shadows
+        );
 
 	#ifdef SNELLS_WINDOW
 		if (isEyeInWater == 1) {
@@ -657,12 +803,13 @@ void main() {
 	// Fog
 
 	vec4 fog = common_fog(length(position_scene), false);
-	fragment_color.rgb  = fragment_color.rgb * fog.a + fog.rgb;
-	fragment_color.a   *= border_fog(position_scene, direction_world);
+    fragment_color.rgb = fragment_color.rgb * fog.a + fog.rgb;
+    fragment_color.a *= border_fog(position_scene, direction_world);
 
 	// Purkinje shift
 
-	fragment_color.rgb = purkinje_shift(fragment_color.rgb, adjusted_light_levels);
+    fragment_color.rgb
+        = purkinje_shift(fragment_color.rgb, adjusted_light_levels);
 
 	// Refraction data
 

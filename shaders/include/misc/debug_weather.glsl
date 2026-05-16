@@ -54,7 +54,9 @@ void debug_weather(inout vec3 color) {
 	text.char_pos.x = number_col;
 	print_float(weather.humidity);
 	print_line();
-	print((_B, _i, _o, _m, _e, _space, _t, _e, _m, _p, _e, _r, _a, _t, _u, _r, _e));
+    print(
+        (_B, _i, _o, _m, _e, _space, _t, _e, _m, _p, _e, _r, _a, _t, _u, _r, _e)
+    );
 	text.char_pos.x = number_col;
 	print_float(biome_temperature);
 	print_line();
@@ -69,31 +71,199 @@ void debug_weather(inout vec3 color) {
 	print_line();
 	print((_C, _L, _O, _U, _D, _S));
 	print_line();
-	print((_C, _u, _m, _u, _l, _u, _s, _space, _c, _o, _n, _g, _e, _s, _t, _u, _s, _space, _b, _l, _e, _n, _d));
+    print(
+        (_C,
+         _u,
+         _m,
+         _u,
+         _l,
+         _u,
+         _s,
+         _space,
+         _c,
+         _o,
+         _n,
+         _g,
+         _e,
+         _s,
+         _t,
+         _u,
+         _s,
+         _space,
+         _b,
+         _l,
+         _e,
+         _n,
+         _d)
+    );
 	text.char_pos.x = number_col;
 	print_float(clouds_params.cumulus_congestus_blend);
 	print_line();
-	print((_L, _a, _y, _e, _r, _space, _0, _space, _c, _o, _v, _e, _r, _a, _g, _e, _space, _m, _i, _n));
+    print(
+        (_L,
+         _a,
+         _y,
+         _e,
+         _r,
+         _space,
+         _0,
+         _space,
+         _c,
+         _o,
+         _v,
+         _e,
+         _r,
+         _a,
+         _g,
+         _e,
+         _space,
+         _m,
+         _i,
+         _n)
+    );
 	text.char_pos.x = number_col;
 	print_float(clouds_params.l0_coverage.x);
 	print_line();
-	print((_L, _a, _y, _e, _r, _space, _0, _space, _c, _o, _v, _e, _r, _a, _g, _e, _space, _m, _a, _x));
+    print(
+        (_L,
+         _a,
+         _y,
+         _e,
+         _r,
+         _space,
+         _0,
+         _space,
+         _c,
+         _o,
+         _v,
+         _e,
+         _r,
+         _a,
+         _g,
+         _e,
+         _space,
+         _m,
+         _a,
+         _x)
+    );
 	text.char_pos.x = number_col;
 	print_float(clouds_params.l0_coverage.y);
 	print_line();
-	print((_L, _a, _y, _e, _r, _space, _0, _space, _c, _u, _m, _u, _l, _u, _s, _minus, _s, _t, _r, _a, _t, _u, _s, _space, _b, _l, _e, _n, _d));
+    print(
+        (_L,
+         _a,
+         _y,
+         _e,
+         _r,
+         _space,
+         _0,
+         _space,
+         _c,
+         _u,
+         _m,
+         _u,
+         _l,
+         _u,
+         _s,
+         _minus,
+         _s,
+         _t,
+         _r,
+         _a,
+         _t,
+         _u,
+         _s,
+         _space,
+         _b,
+         _l,
+         _e,
+         _n,
+         _d)
+    );
 	text.char_pos.x = number_col;
 	print_float(clouds_params.l0_cumulus_stratus_blend);
 	print_line();
-	print((_L, _a, _y, _e, _r, _space, _1, _space, _c, _o, _v, _e, _r, _a, _g, _e, _space, _m, _i, _n));
+    print(
+        (_L,
+         _a,
+         _y,
+         _e,
+         _r,
+         _space,
+         _1,
+         _space,
+         _c,
+         _o,
+         _v,
+         _e,
+         _r,
+         _a,
+         _g,
+         _e,
+         _space,
+         _m,
+         _i,
+         _n)
+    );
 	text.char_pos.x = number_col;
 	print_float(clouds_params.l1_coverage.x);
 	print_line();
-	print((_L, _a, _y, _e, _r, _space, _1, _space, _c, _o, _v, _e, _r, _a, _g, _e, _space, _m, _a, _x));
+    print(
+        (_L,
+         _a,
+         _y,
+         _e,
+         _r,
+         _space,
+         _1,
+         _space,
+         _c,
+         _o,
+         _v,
+         _e,
+         _r,
+         _a,
+         _g,
+         _e,
+         _space,
+         _m,
+         _a,
+         _x)
+    );
 	text.char_pos.x = number_col;
 	print_float(clouds_params.l1_coverage.y);
 	print_line();
-	print((_L, _a, _y, _e, _r, _space, _1, _space, _c, _u, _m, _u, _l, _u, _s, _minus, _s, _t, _r, _a, _t, _u, _s, _space, _b, _l, _e, _n, _d));
+    print(
+        (_L,
+         _a,
+         _y,
+         _e,
+         _r,
+         _space,
+         _1,
+         _space,
+         _c,
+         _u,
+         _m,
+         _u,
+         _l,
+         _u,
+         _s,
+         _minus,
+         _s,
+         _t,
+         _r,
+         _a,
+         _t,
+         _u,
+         _s,
+         _space,
+         _b,
+         _l,
+         _e,
+         _n,
+         _d)
+    );
 	text.char_pos.x = number_col;
 	print_float(clouds_params.l1_cumulus_stratus_blend);
 	print_line();
@@ -101,15 +271,78 @@ void debug_weather(inout vec3 color) {
 	text.char_pos.x = number_col;
 	print_float(clouds_params.cirrus_amount);
 	print_line();
-	print((_C, _i, _r, _r, _o, _c, _u, _m, _u, _l, _u, _s, _space, _a, _m, _o, _u, _n, _t));
+    print(
+        (_C,
+         _i,
+         _r,
+         _r,
+         _o,
+         _c,
+         _u,
+         _m,
+         _u,
+         _l,
+         _u,
+         _s,
+         _space,
+         _a,
+         _m,
+         _o,
+         _u,
+         _n,
+         _t)
+    );
 	text.char_pos.x = number_col;
 	print_float(clouds_params.cirrocumulus_amount);
 	print_line();
-	print((_N, _o, _c, _t, _i, _l, _u, _c, _e, _n, _t, _space, _a, _m, _o, _u, _n, _t));
+    print(
+        (_N,
+         _o,
+         _c,
+         _t,
+         _i,
+         _l,
+         _u,
+         _c,
+         _e,
+         _n,
+         _t,
+         _space,
+         _a,
+         _m,
+         _o,
+         _u,
+         _n,
+         _t)
+    );
 	text.char_pos.x = number_col;
 	print_float(clouds_params.noctilucent_amount);
 	print_line();
-	print((_C, _r, _e, _p, _u, _s, _c, _u, _l, _a, _r, _space, _r, _a, _y, _s, _space, _a, _m, _o, _u, _n, _t));
+    print(
+        (_C,
+         _r,
+         _e,
+         _p,
+         _u,
+         _s,
+         _c,
+         _u,
+         _l,
+         _a,
+         _r,
+         _space,
+         _r,
+         _a,
+         _y,
+         _s,
+         _space,
+         _a,
+         _m,
+         _o,
+         _u,
+         _n,
+         _t)
+    );
 	text.char_pos.x = number_col;
 	print_float(clouds_params.crepuscular_rays_amount);
 	print_line();
@@ -117,7 +350,27 @@ void debug_weather(inout vec3 color) {
 	print_line();
 	print((_G, _A, _M, _S));
 	print_line();
-	print((_C, _u, _m, _u, _l, _o, _n, _i, _m, _b, _u, _s, _space, _a, _m, _o, _u, _n, _t));
+    print(
+        (_C,
+         _u,
+         _m,
+         _u,
+         _l,
+         _o,
+         _n,
+         _i,
+         _m,
+         _b,
+         _u,
+         _s,
+         _space,
+         _a,
+         _m,
+         _o,
+         _u,
+         _n,
+         _t)
+    );
 	text.char_pos.x = number_col;
 	print_float(clouds_params.cumulonimbus_amount);
 	print_line();

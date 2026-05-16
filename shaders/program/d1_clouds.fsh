@@ -11,8 +11,8 @@
 
 #include "/include/global.glsl"
 
-layout (location = 0) out vec4 clouds;
-layout (location = 1) out vec3 clouds_data;
+layout(location = 0) out vec4 clouds;
+layout(location = 1) out vec3 clouds_data;
 
 /* RENDERTARGETS: 9,10 */
 
@@ -129,38 +129,57 @@ uniform sampler3D light_sampler_b;
 #include "/include/utility/random.glsl"
 #include "/include/utility/space_conversion.glsl"
 
-const int checkerboard_area = CLOUDS_TEMPORAL_UPSCALING * CLOUDS_TEMPORAL_UPSCALING;
+const int checkerboard_area
+    = CLOUDS_TEMPORAL_UPSCALING * CLOUDS_TEMPORAL_UPSCALING;
 
 float depth_max_4x4(sampler2D depth_sampler, float taau_render_scale) {
-	vec4 depth_samples_0 = textureGather(depth_sampler, uv * taau_render_scale + vec2( 2.0 * view_pixel_size.x,  2.0 * view_pixel_size.y));
-	vec4 depth_samples_1 = textureGather(depth_sampler, uv * taau_render_scale + vec2(-2.0 * view_pixel_size.x,  2.0 * view_pixel_size.y));
-	vec4 depth_samples_2 = textureGather(depth_sampler, uv * taau_render_scale + vec2( 2.0 * view_pixel_size.x, -2.0 * view_pixel_size.y));
-	vec4 depth_samples_3 = textureGather(depth_sampler, uv * taau_render_scale + vec2(-2.0 * view_pixel_size.x, -2.0 * view_pixel_size.y));
+    vec4 depth_samples_0 = textureGather(
+        depth_sampler,
+        uv * taau_render_scale
+            + vec2(2.0 * view_pixel_size.x, 2.0 * view_pixel_size.y)
+    );
+    vec4 depth_samples_1 = textureGather(
+        depth_sampler,
+        uv * taau_render_scale
+            + vec2(-2.0 * view_pixel_size.x, 2.0 * view_pixel_size.y)
+    );
+    vec4 depth_samples_2 = textureGather(
+        depth_sampler,
+        uv * taau_render_scale
+            + vec2(2.0 * view_pixel_size.x, -2.0 * view_pixel_size.y)
+    );
+    vec4 depth_samples_3 = textureGather(
+        depth_sampler,
+        uv * taau_render_scale
+            + vec2(-2.0 * view_pixel_size.x, -2.0 * view_pixel_size.y)
+    );
 
-	return max(
-		max(max_of(depth_samples_0), max_of(depth_samples_1)),
-		max(max_of(depth_samples_2), max_of(depth_samples_3))
-	);
+    return max(
+        max(max_of(depth_samples_0), max_of(depth_samples_1)),
+        max(max_of(depth_samples_2), max_of(depth_samples_3))
+    );
 }
 
 void main() {
-	ivec2 texel = ivec2(gl_FragCoord.xy);
+    ivec2 texel = ivec2(gl_FragCoord.xy);
 
-	clouds = vec4(0.0, 0.0, 0.0, 1.0);
+    clouds = vec4(0.0, 0.0, 0.0, 1.0);
 
 #if defined WORLD_OVERWORLD
-	ivec2 checkerboard_pos = CLOUDS_TEMPORAL_UPSCALING * texel + clouds_checkerboard_offsets[frameCounter % checkerboard_area];
+    ivec2 checkerboard_pos = CLOUDS_TEMPORAL_UPSCALING * texel
+        + clouds_checkerboard_offsets[frameCounter % checkerboard_area];
 
-	vec2 new_uv = vec2(checkerboard_pos) / vec2(view_res) * rcp(float(taau_render_scale));
+    vec2 new_uv = vec2(checkerboard_pos) / vec2(view_res)
+        * rcp(float(taau_render_scale));
 
-	// Get maximum depth from area covered by this fragment
-	float depth_max = depth_max_4x4(depthtex1, taau_render_scale);
-	if (depth_max < hand_depth) {
-		depth_max = 1.0;
-	}
+    // Get maximum depth from area covered by this fragment
+    float depth_max = depth_max_4x4(depthtex1, taau_render_scale);
+    if (depth_max < hand_depth) {
+        depth_max = 1.0;
+    }
 
-	vec3 screen_pos = vec3(new_uv, depth_max);
-	vec3 view_pos = screen_to_view_space(screen_pos, false);
+    vec3 screen_pos = vec3(new_uv, depth_max);
+    vec3 view_pos = screen_to_view_space(screen_pos, false);
 
     // LoD terrain support
 #ifdef LOD_MOD_ACTIVE
@@ -169,57 +188,71 @@ void main() {
 
     if (is_lod) {
         screen_pos = vec3(new_uv, depth_lod);
-		view_pos = screen_to_view_space(screen_pos, false, true);
-	}
+        view_pos = screen_to_view_space(screen_pos, false, true);
+    }
 #else
-	const bool is_lod = false;
+    const bool is_lod = false;
 #endif
 
-	vec3 ray_origin = vec3(0.0, CLOUDS_SCALE * (eyeAltitude - SEA_LEVEL) + planet_radius, 0.0) + CLOUDS_SCALE * gbufferModelViewInverse[3].xyz;
-	vec3 ray_dir    = mat3(gbufferModelViewInverse) * normalize(view_pos);
+    vec3 ray_origin
+        = vec3(
+              0.0,
+              CLOUDS_SCALE * (eyeAltitude - SEA_LEVEL) + planet_radius,
+              0.0
+          )
+        + CLOUDS_SCALE * gbufferModelViewInverse[3].xyz;
+    vec3 ray_dir = mat3(gbufferModelViewInverse) * normalize(view_pos);
 
-	float distance_to_terrain = -1.0;
+    float distance_to_terrain = -1.0;
 
-	vec3 clear_sky = atmosphere_scattering(ray_dir, sun_color, sun_dir, moon_color, moon_dir, /* use_klein_nishina_phase */ false);
+    vec3 clear_sky = atmosphere_scattering(
+        ray_dir,
+        sun_color,
+        sun_dir,
+        moon_color,
+        moon_dir,
+        /* use_klein_nishina_phase */ false,
+        /* apply_blue_sky_darkening_grade */ false
+    );
 
-	float dither = texelFetch(noisetex, ivec2(checkerboard_pos & 511), 0).b;
-	      dither = r1(frameCounter / checkerboard_area, dither);
+    float dither = texelFetch(noisetex, ivec2(checkerboard_pos & 511), 0).b;
+    dither = r1(frameCounter / checkerboard_area, dither);
 
 #ifndef BLOCKY_CLOUDS
-	CloudsResult result = draw_clouds(
-		ray_origin,
-		ray_dir,
-		clear_sky,
-		distance_to_terrain,
-		dither
-	);
+    CloudsResult result = draw_clouds(
+        ray_origin,
+        ray_dir,
+        clear_sky,
+        distance_to_terrain,
+        dither
+    );
 
-	clouds.xyz    = result.scattering.xyz;
-	clouds.w      = result.transmittance;
-	clouds_data.x = result.apparent_distance * rcp(CLOUDS_SCALE);
-	clouds_data.y = result.scattering.w;
-	clouds_data.z = result.lightning_intensity;
+    clouds.xyz = result.scattering.xyz;
+    clouds.w = result.transmittance;
+    clouds_data.x = result.apparent_distance * rcp(CLOUDS_SCALE);
+    clouds_data.y = result.scattering.w;
+    clouds_data.z = result.lightning_intensity;
 #else
-	clouds        = vec4(0.0, 0.0, 0.0, 1.0);
-	clouds_data.x = 1e6;
-	clouds_data.y = 0.0;
+    clouds = vec4(0.0, 0.0, 0.0, 1.0);
+    clouds_data.x = 1e6;
+    clouds_data.y = 0.0;
 #endif
 
-	// Crepuscular rays
+    // Crepuscular rays
 
 #if defined CREPUSCULAR_RAYS && !defined BLOCKY_CLOUDS
-	vec4 crepuscular_rays = draw_crepuscular_rays(
-		colortex8,
-		ray_dir,
-		distance_to_terrain > 0.0,
-		dither
-	);
-	clouds *= crepuscular_rays.w;
-	clouds.rgb += crepuscular_rays.xyz;
+    vec4 crepuscular_rays = draw_crepuscular_rays(
+        colortex8,
+        ray_dir,
+        distance_to_terrain > 0.0,
+        dither
+    );
+    clouds *= crepuscular_rays.w;
+    clouds.rgb += crepuscular_rays.xyz;
 #endif
 
-	// Aurora
+    // Aurora
 
-	clouds.xyz += draw_aurora(ray_dir, dither) * clouds.w;
+    clouds.xyz += draw_aurora(ray_dir, dither) * clouds.w;
 #endif
 }

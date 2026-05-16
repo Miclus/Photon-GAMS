@@ -19,14 +19,12 @@
 //
 
 #define average 1
-#define dim     2
-#define dark    3
+#define dim 2
+#define dark 3
 
 #define Lp RGBDRT_LP // 100.0
 #define surround RGBDRT_SURROUND // dim [average dim dark]
 #define invert 0
-
-
 
 /* Custom rendering gamut for "rgbDT" display transform
     rxy 0.859 0.264
@@ -46,15 +44,12 @@ const mat3 matrix_rgbdt_desat = mat3(
     vec3(0.0212639f, 0.0715169f, 0.907219f)
 );
 
-
-
 /* ##########################################################################
     Display Rendering Transform
     ---------------------------
 */
 
 vec3 rgbdrtransform(vec3 rgb) {
-
     const mat3 in_to_xyz = rec2020_to_xyz;
     const mat3 xyz_to_in = xyz_to_rec2020;
 
@@ -74,9 +69,13 @@ vec3 rgbdrtransform(vec3 rgb) {
       */
 
     float su;
-    if (surround == average)    su = 0.9;
-    else if (surround == dim)   su = 0.95;
-    else if (surround == dark)  su = 1.0;
+    if (surround == average) {
+        su = 0.9;
+    } else if (surround == dim) {
+        su = 0.95;
+    } else if (surround == dark) {
+        su = 1.0;
+    }
 
     const int eotf = 0;
 
@@ -90,7 +89,10 @@ vec3 rgbdrtransform(vec3 rgb) {
     // Calculate tonescale parameters
     const float fl = RGBDRT_FLARE; // flare  // 0.01
     const float c0 = RGBDRT_PRE_CONTRAST; // pre-tonemap contrast  // 1.2
-    const float cs = pow(RGBDRT_CONTRAST_PIVOT, 1.0 - c0);  // pivoted contrast scale  // 0.18
+    const float cs = pow(
+        RGBDRT_CONTRAST_PIVOT,
+        1.0 - c0
+    ); // pivoted contrast scale  // 0.18
     const float c1 = RGBDRT_POST_CONTRAST; // post-tonemap contrast  // 1.1
     float p = c1 * su; // surround compensation, unconstrained
 
@@ -103,13 +105,11 @@ vec3 rgbdrtransform(vec3 rgb) {
     const float e0 = pow(2.0, ex + eb * log2(s1));
     const float s0 = pow(s1 / e0, 1.0 / c1);
 
-
-
     if (invert == 0) {
         /* Forward Display Rendering
                ----------------------------------------------------------- */
 
-        //rgb = log2lin(rgb, tf); // Assume tf = 0
+        // rgb = log2lin(rgb, tf); // Assume tf = 0
         rgb = rgb * in_to_xyz;
         rgb = rgb * inverse(matrix_rgbdt_to_xyz);
         rgb = max(vec3(0.0), rgb);
@@ -129,14 +129,18 @@ vec3 rgbdrtransform(vec3 rgb) {
         // Inverse EOTF
         rgb = clamp(rgb, 0.0, 1.0);
         float eotf_p = 2.0 + eotf * 0.2;
-        if ((eotf > 0) && (eotf < 4)) rgb = pow(rgb, vec3(1.0 / eotf_p));
+        if ((eotf > 0) && (eotf < 4)) {
+            rgb = pow(rgb, vec3(1.0 / eotf_p));
+        }
 
     } else {
         /* Inverse Display Rendering
                  ----------------------------------------------------------- */
 
         float eotf_p = 2.0 + eotf * 0.2;
-        if ((eotf > 0) && (eotf < 4)) rgb = pow(rgb, vec3(eotf_p));
+        if ((eotf > 0) && (eotf < 4)) {
+            rgb = pow(rgb, vec3(eotf_p));
+        }
 
         rgb /= ds;
         rgb = rgb * inverse(matrix_rgbdt_desat);
@@ -146,19 +150,20 @@ vec3 rgbdrtransform(vec3 rgb) {
         // Tonescale
         rgb = (rgb + sqrt(rgb * (4.0 * fl + rgb))) / 2.0;
         rgb = s0 / (pow(s1 / rgb, vec3(1.0 / p)) - 1.0);
-        rgb.x = rgb.x < 0.18 ? pow(rgb.x / cs, 1.0 / c0) : (rgb.x - 0.18) / c0 + 0.18;
-        rgb.y = rgb.y < 0.18 ? pow(rgb.y / cs, 1.0 / c0) : (rgb.y - 0.18) / c0 + 0.18;
-        rgb.z = rgb.z < 0.18 ? pow(rgb.z / cs, 1.0 / c0) : (rgb.z - 0.18) / c0 + 0.18;
+        rgb.x = rgb.x < 0.18 ? pow(rgb.x / cs, 1.0 / c0)
+                             : (rgb.x - 0.18) / c0 + 0.18;
+        rgb.y = rgb.y < 0.18 ? pow(rgb.y / cs, 1.0 / c0)
+                             : (rgb.y - 0.18) / c0 + 0.18;
+        rgb.z = rgb.z < 0.18 ? pow(rgb.z / cs, 1.0 / c0)
+                             : (rgb.z - 0.18) / c0 + 0.18;
 
         rgb = rgb * matrix_rgbdt_to_xyz;
         rgb = rgb * xyz_to_in;
-        //rgb = lin2log(rgb, tf); // Assume tf = 0
+        // rgb = lin2log(rgb, tf); // Assume tf = 0
     }
 
     return rgb;
 }
-
-
 
 #undef average
 #undef dim

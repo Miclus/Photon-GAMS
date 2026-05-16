@@ -11,12 +11,12 @@
 
 #include "/include/global.glsl"
 
-layout (location = 0) out vec3 fragment_color;
+layout(location = 0) out vec3 fragment_color;
 
 #ifdef USE_SEPARATE_ENTITY_DRAWS
 /* RENDERTARGETS: 0 */
 #else
-layout (location = 1) out vec4 colortex3_clear;
+layout(location = 1) out vec4 colortex3_clear;
 
 /* RENDERTARGETS: 0,3 */
 #endif
@@ -171,11 +171,11 @@ const bool colortex11MipmapEnabled = true;
 #include "/include/lighting/shadows/ssrt.glsl"
 #include "/include/lighting/specular_lighting.glsl"
 #include "/include/misc/lod_mod_support.glsl"
+#include "/include/misc/purkinje_shift.glsl"
+#include "/include/sky/sky.glsl"
 #include "/include/surface/edge_highlight.glsl"
 #include "/include/surface/material.glsl"
-#include "/include/misc/purkinje_shift.glsl"
 #include "/include/surface/rain_puddles.glsl"
-#include "/include/sky/sky.glsl"
 #include "/include/utility/bicubic.glsl"
 #include "/include/utility/color.glsl"
 #include "/include/utility/encoding.glsl"
@@ -202,13 +202,13 @@ void main() {
 
 	// Sample textures
 
-	float depth         = texelFetch(combined_depth_tex, texel, 0).x;
+    float depth = texelFetch(combined_depth_tex, texel, 0).x;
 	vec4 gbuffer_data_0 = texelFetch(colortex1, texel, 0);
 #if defined NORMAL_MAPPING || defined SPECULAR_MAPPING
 	vec4 gbuffer_data_1 = texelFetch(colortex2, texel, 0);
 #endif
 #if !defined USE_SEPARATE_ENTITY_DRAWS
-	vec4 overlays       = texelFetch(colortex3, texel, 0);
+    vec4 overlays = texelFetch(colortex3, texel, 0);
 #endif
 
     // Check for LoD terrain
@@ -227,10 +227,15 @@ void main() {
 	bool is_hand;
 	fix_hand_depth(depth_mc, is_hand);
 
-	vec3 position_view = screen_to_view_space(combined_projection_matrix_inverse, vec3(uv, depth), true);
+    vec3 position_view = screen_to_view_space(
+        combined_projection_matrix_inverse,
+        vec3(uv, depth),
+        true
+    );
 	vec3 position_scene = view_to_scene_space(position_view);
 	vec3 position_world = position_scene + cameraPosition;
-	vec3 direction_world = normalize(position_scene - gbufferModelViewInverse[3].xyz);
+    vec3 direction_world
+        = normalize(position_scene - gbufferModelViewInverse[3].xyz);
 
 #if defined WORLD_OVERWORLD
 	// Atmosphere
@@ -248,13 +253,14 @@ void main() {
 	// Read clouds/aurora/crepuscular rays
 
 	float clouds_apparent_distance;
-	vec4 clouds_and_aurora = read_clouds_and_aurora(uv, clouds_apparent_distance);
+    vec4 clouds_and_aurora
+        = read_clouds_and_aurora(uv, clouds_apparent_distance);
 
 	// Blocky clouds
 
 #ifdef BLOCKY_CLOUDS
 	vec3 world_start_pos = gbufferModelViewInverse[3].xyz + cameraPosition;
-	vec3 world_end_pos   = position_world;
+    vec3 world_end_pos = position_world;
 
 	float dither = texelFetch(noisetex, texel & 511, 0).b;
 	      dither = r1(frameCounter, dither);
@@ -277,18 +283,24 @@ void main() {
 		dither
 	);
 	blocky_clouds.rgb += blocky_clouds_l2.xyz * visibility;
-	blocky_clouds.a   *= mix(1.0, blocky_clouds_l2.a, visibility);
+    blocky_clouds.a *= mix(1.0, blocky_clouds_l2.a, visibility);
 #endif
 
 	float new_alpha = sqr(sqr(blocky_clouds.a));
-	blocky_clouds.rgb += atmosphere * (1.0 - new_alpha) * (blocky_clouds.a - new_alpha);
+    blocky_clouds.rgb
+        += atmosphere * (1.0 - new_alpha) * (blocky_clouds.a - new_alpha);
 	blocky_clouds.a = new_alpha;
 #endif
 #endif
 
 	if (depth == 1.0) { // Sky
 #if defined WORLD_OVERWORLD
-		fragment_color = draw_sky(direction_world, atmosphere, clouds_and_aurora, clouds_apparent_distance);
+        fragment_color = draw_sky(
+            direction_world,
+            atmosphere,
+            clouds_and_aurora,
+            clouds_apparent_distance
+        );
 #else
 		fragment_color = draw_sky(direction_world);
 #endif
@@ -310,7 +322,7 @@ void main() {
 		vec2 half_res_pos = gl_FragCoord.xy * (0.5 / taau_render_scale) - 0.5;
 
 		ivec2 i = ivec2(half_res_pos);
-		vec2  f = fract(half_res_pos);
+        vec2 f = fract(half_res_pos);
 
 		ivec2 p10 = i + ivec2(1, 0);
 		ivec2 p01 = i + ivec2(0, 1);
@@ -334,14 +346,15 @@ void main() {
 			unpack_unorm_2x8(gbuffer_data_0.w)
 		);
 
-		vec3 albedo        = vec3(data[0], data[1].x);
+        vec3 albedo = vec3(data[0], data[1].x);
 		uint material_mask = uint(255.0 * data[1].y);
-		vec3 flat_normal   = decode_unit_vector(data[2]);
-		vec2 light_levels  = data[3];
+        vec3 flat_normal = decode_unit_vector(data[2]);
+        vec2 light_levels = data[3];
 
 #if !defined USE_SEPARATE_ENTITY_DRAWS
 		uint overlay_id = uint(255.0 * overlays.a);
-		albedo = overlay_id == 0u ? albedo + overlays.rgb : albedo; // enchantment glint
+        albedo = overlay_id == 0u ? albedo + overlays.rgb
+                                  : albedo; // enchantment glint
 		albedo = overlay_id == 1u && !is_hand
 			? 2.0 * albedo * overlays.rgb
 			: albedo; // damage overlay
@@ -349,7 +362,13 @@ void main() {
 
 		// Get material and normal
 
-		Material material = material_from(albedo, material_mask, position_world, flat_normal, light_levels);
+        Material material = material_from(
+            albedo,
+            material_mask,
+            position_world,
+            flat_normal,
+            light_levels
+        );
 
 		vec3 normal = flat_normal;
         bool parallax_shadow = false;
@@ -363,7 +382,10 @@ void main() {
 	#endif
 
 	#ifdef SPECULAR_MAPPING
-		vec4 specular_map = vec4(unpack_unorm_2x8(gbuffer_data_1.z), unpack_unorm_2x8(gbuffer_data_1.w));
+            vec4 specular_map = vec4(
+                unpack_unorm_2x8(gbuffer_data_1.z),
+                unpack_unorm_2x8(gbuffer_data_1.w)
+            );
 		decode_specular_map(specular_map, material, parallax_shadow);
 	#elif defined NORMAL_MAPPING
 		parallax_shadow = gbuffer_data_1.z >= 0.5;
@@ -394,9 +416,22 @@ void main() {
 
 		// Upscale ambient occlusion
 
-		float lin_z = screen_to_view_space_depth(combined_projection_matrix_inverse, depth);
+        float lin_z = screen_to_view_space_depth(
+            combined_projection_matrix_inverse,
+            depth
+        );
 
-		#define depth_weight(reversed_depth) exp2(-10.0 * abs(screen_to_view_space_depth(combined_projection_matrix_inverse, 1.0 - reversed_depth) - lin_z))
+#define depth_weight(reversed_depth) \
+    exp2( \
+        -10.0 \
+        * abs( \
+            screen_to_view_space_depth( \
+                combined_projection_matrix_inverse, \
+                1.0 - reversed_depth \
+            ) \
+            - lin_z \
+        ) \
+    )
 		float w00 = depth_weight(ambient_depth_00) * (1.0 - f.x) * (1.0 - f.y);
 		float w10 = depth_weight(ambient_depth_10) * (f.x - f.x * f.y);
 		float w01 = depth_weight(ambient_depth_01) * (f.y - f.x * f.y);
@@ -407,11 +442,8 @@ void main() {
 		float weight_sum = w00 + w10 + w01 + w11;
 		
 		if (abs(weight_sum) > eps) {
-			ambient_upscaled
-				= ambient_00 * w00
-				+ ambient_10 * w10
-				+ ambient_01 * w01
-				+ ambient_11 * w11;
+            ambient_upscaled = ambient_00 * w00 + ambient_10 * w10
+                + ambient_01 * w01 + ambient_11 * w11;
 
 			ambient_upscaled *= rcp(weight_sum);
 		} else {
@@ -436,11 +468,14 @@ void main() {
 		ambient_sss = ambient_upscaled.y;
 
 		bent_normal.xy = ambient_upscaled.zw * 2.0 - 1.0;
-		bent_normal.z = sqrt(clamp01(1.0 - dot(bent_normal.xy, bent_normal.xy)));
+        bent_normal.z
+            = sqrt(clamp01(1.0 - dot(bent_normal.xy, bent_normal.xy)));
 		bent_normal = mat3(gbufferModelViewInverse) * bent_normal;
 
 		// Sense check bent normal
-		if (dot(bent_normal, normal) < eps) bent_normal = normal;
+        if (dot(bent_normal, normal) < eps) {
+            bent_normal = normal;
+        }
 #endif
 
 		// No AO/bent normal on hand
@@ -512,19 +547,21 @@ void main() {
 #endif
             }
 
-            shadows =
-                mix(shadow_near,
+            shadows = mix(
+                shadow_near,
                     vec3(shadow_distant),
-                    clamp01(shadow_distance_fade));
+                clamp01(shadow_distance_fade)
+            );
 
-            sss_depth =
-                mix(sss_depth_near,
+            sss_depth = mix(
+                sss_depth_near,
                     sss_depth_distant,
-                    clamp01(shadow_distance_fade));
+                clamp01(shadow_distance_fade)
+            );
 
             // Apply parallax shadow
-#if defined POM && defined POM_SHADOW && \
-    (defined SPECULAR_MAPPING || defined NORMAL_MAPPING)
+#if defined POM && defined POM_SHADOW \
+    && (defined SPECULAR_MAPPING || defined NORMAL_MAPPING)
             shadows *= float(!parallax_shadow);
 #endif
         }
@@ -572,7 +609,9 @@ void main() {
 		// Specular highlight
 
 #if defined WORLD_OVERWORLD || defined WORLD_END || defined WORLD_SPACE
-		fragment_color += get_specular_highlight(material, NoL, NoV, NoH, LoV, LoH) * light_color * shadows * cloud_shadows * ao;
+        fragment_color
+            += get_specular_highlight(material, NoL, NoV, NoH, LoV, LoH)
+            * light_color * shadows * cloud_shadows * ao;
 #endif
 
 		// Specular reflections
@@ -599,7 +638,14 @@ void main() {
 		// Edge highlight
 
 #ifdef EDGE_HIGHLIGHT
-		fragment_color *= 1.0 + 0.5 * get_edge_highlight(scene_pos, flat_normal, depth, material_mask);
+        fragment_color *= 1.0
+            + 0.5
+                * get_edge_highlight(
+                    scene_pos,
+                    flat_normal,
+                    depth,
+                    material_mask
+                );
 #endif
 
 		// Apply fog
@@ -608,16 +654,25 @@ void main() {
 
 #ifdef BORDER_FOG
 	#if defined WORLD_OVERWORLD
-		vec3 horizon_dir = normalize(vec3(direction_world.xz, min(direction_world.y, -0.1)).xzy);
+        vec3 horizon_dir = normalize(
+            vec3(direction_world.xz, min(direction_world.y, -0.1)).xzy
+        );
 		vec3 horizon_color = texture(colortex4, project_sky(horizon_dir)).rgb;
 
-		float horizon_factor = linear_step(0.1, 1.0, exp(-75.0 * sqr(sun_dir.y + 0.0496)));
+        float horizon_factor
+            = linear_step(0.1, 1.0, exp(-75.0 * sqr(sun_dir.y + 0.0496)));
 			  horizon_factor = clamp01(horizon_factor + step(0.01, rainStrength));
-			  horizon_factor = max(horizon_factor, dampen(linear_step(0.15, 0.05, direction_world.y)));
+        horizon_factor = max(
+            horizon_factor,
+            dampen(linear_step(0.15, 0.05, direction_world.y))
+        );
 
-		vec3 border_fog_color = mix(atmosphere, horizon_color, sqr(horizon_factor)) * (1.0 - biome_cave);
+        vec3 border_fog_color
+            = mix(atmosphere, horizon_color, sqr(horizon_factor))
+            * (1.0 - biome_cave);
 	#else
-		vec3 border_fog_color = texture(colortex4, project_sky(direction_world)).rgb;
+        vec3 border_fog_color
+            = texture(colortex4, project_sky(direction_world)).rgb;
 	#endif
 
 		float border_fog = border_fog(position_scene, direction_world);
@@ -633,12 +688,18 @@ void main() {
 	#ifdef BLOCKY_CLOUDS
 		fragment_color = fragment_color * blocky_clouds.w + blocky_clouds.xyz;
 	#else
-		float cloud_fade = smoothstep(-20.0, 40.0, view_distance - clouds_apparent_distance);
-		// Weaker overlay on hand and very close geometry (held items, F5 player)
+        float cloud_fade
+            = smoothstep(-20.0, 40.0, view_distance - clouds_apparent_distance);
+        // Weaker overlay on hand and very close geometry (held items, F5
+        // player)
 		cloud_fade *= mix(0.0, 1.0, smoothstep(0.0, 12.0, view_distance));
-		if (is_hand) cloud_fade *= 0.4;
+        if (is_hand) {
+            cloud_fade *= 0.4;
+        }
 		if (cloud_fade > 0.0) {
-			fragment_color = fragment_color * mix(1.0, clouds_and_aurora.w, cloud_fade) + clouds_and_aurora.xyz * cloud_fade;
+            fragment_color
+                = fragment_color * mix(1.0, clouds_and_aurora.w, cloud_fade)
+                + clouds_and_aurora.xyz * cloud_fade;
 		}
 	#endif
 
@@ -648,7 +709,10 @@ void main() {
 		fragment_color = draw_rainbows(
 			fragment_color, 
 			direction_world, 
-			min(view_distance, mix(clouds_apparent_distance, 1e6, linear_step(1.0, 0.95, clouds_and_aurora.w)))
+            min(view_distance,
+                mix(clouds_apparent_distance,
+                    1e6,
+                    linear_step(1.0, 0.95, clouds_and_aurora.w)))
 		);
 	#endif
 #endif

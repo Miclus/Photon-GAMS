@@ -107,7 +107,7 @@ uniform sampler2D colortex11;
 #endif
 
 #if defined SCREENSPACE_VL && defined SSVL_MOONPHASE
-uniform float lens_flare_moon_phase_brightness;
+uniform float moon_phase_brightness;
 #endif
 
 // ------------
@@ -120,6 +120,13 @@ uniform float lens_flare_moon_phase_brightness;
 
 #if defined WORLD_END
 #include "/include/fog/end_fog_vl.glsl"
+#ifdef END_STORM_VOLUMETRIC_FOG
+#include "/include/fog/end_storm_vl.glsl"
+#endif
+#endif
+
+#if defined WORLD_NETHER && defined NETHER_VOLUMETRIC_FOG
+#include "/include/fog/nether_volumetric_fog.glsl"
 #endif
 
 #include "/include/fog/water_fog_vl.glsl"
@@ -136,16 +143,17 @@ uniform sampler3D light_sampler_b;
 #endif
 
 #ifdef SCREENSPACE_VL
-#include "/include/utility/dithering.glsl"
 #include "/include/fog/screenspace_vl.glsl"
+#include "/include/utility/dithering.glsl"
 #endif
 
 void main() {
-	ivec2 fog_texel  = ivec2(gl_FragCoord.xy);
-	ivec2 view_texel = ivec2(gl_FragCoord.xy * taau_render_scale * rcp(VL_RENDER_SCALE));
+    ivec2 fog_texel = ivec2(gl_FragCoord.xy);
+    ivec2 view_texel
+        = ivec2(gl_FragCoord.xy * taau_render_scale * rcp(VL_RENDER_SCALE));
 
-	float depth0        = texelFetch(depthtex0, view_texel, 0).x;
-	float depth1        = texelFetch(depthtex1, view_texel, 0).x;
+    float depth0 = texelFetch(depthtex0, view_texel, 0).x;
+    float depth1 = texelFetch(depthtex1, view_texel, 0).x;
 	vec4 gbuffer_data_0 = texelFetch(colortex1, view_texel, 0);
 
 #ifdef LOD_MOD_ACTIVE
@@ -165,18 +173,22 @@ void main() {
         projection_matrix_inverse = gbufferProjectionInverse;
     }
 #else
-    #define is_lod            		  false
-    #define projection_matrix         gbufferProjection
+#define is_lod false
+#define projection_matrix gbufferProjection
     #define projection_matrix_inverse gbufferProjectionInverse
 #endif
 
 	float skylight = unpack_unorm_2x8(gbuffer_data_0.w).y;
 
-	vec3 view_pos  = screen_to_view_space(projection_matrix_inverse, vec3(uv, depth0), true);
+    vec3 view_pos = screen_to_view_space(
+        projection_matrix_inverse,
+        vec3(uv, depth0),
+        true
+    );
 	vec3 scene_pos = view_to_scene_space(view_pos);
 	vec3 world_pos = scene_pos + cameraPosition;
 
-	vec3 view_back_pos  = screen_to_view_space(vec3(uv, depth1), true);
+    vec3 view_back_pos = screen_to_view_space(vec3(uv, depth1), true);
 	vec3 scene_back_pos = view_to_scene_space(view_back_pos);
 	vec3 world_back_pos = scene_back_pos + cameraPosition;
 
@@ -184,7 +196,7 @@ void main() {
 	      dither = r1(frameCounter, dither);
 
 	vec3 world_start_pos = gbufferModelViewInverse[3].xyz + cameraPosition;
-	vec3 world_end_pos   = world_pos;
+    vec3 world_end_pos = world_pos;
 
 	// Volumetric lighting
 
@@ -192,30 +204,72 @@ void main() {
 	switch (isEyeInWater) {
 		case 0:
 			#if defined WORLD_OVERWORLD
-			mat2x3 fog = raymarch_air_fog(world_start_pos, world_end_pos, depth0 == 1.0, skylight, dither);
+    mat2x3 fog = raymarch_air_fog(
+        world_start_pos,
+        world_end_pos,
+        depth0 == 1.0,
+        skylight,
+        dither
+    );
 			#elif defined WORLD_NETHER
+    #if NETHER_VOLUMETRIC_STYLE == NETHER_VOLUMETRIC_FOG
+        mat2x3 fog = raymarch_nether_volumetric_fog(
+            world_start_pos,
+            world_end_pos,
+            dither
+        );
+    #elif NETHER_VOLUMETRIC_STYLE == NETHER_VOLUMETRIC_SMOKE
+        mat2x3 fog = raymarch_nether_volumetric_smoke(
+            world_start_pos,
+            world_end_pos,
+            dither
+        );
+    #else
 			mat2x3 fog = mat2x3(vec3(0.0), vec3(1.0));
+    #endif
 			#elif defined WORLD_END
-			mat2x3 fog = raymarch_end_fog(world_start_pos, world_end_pos, depth0 == 1.0, dither);
+    mat2x3 fog = raymarch_end_fog(
+        world_start_pos,
+        world_end_pos,
+        depth0 == 1.0,
+        dither
+    );
+#ifdef END_STORM_VOLUMETRIC_FOG
+    mat2x3 storm_fog = raymarch_end_storm_fog(
+        world_start_pos,
+        world_end_pos,
+        depth0 == 1.0,
+        dither
+    );
+    fog_scattering = fog[0] * storm_fog[1] + storm_fog[0];
+    fog_transmittance = fog[1] * storm_fog[1];
+    break;
+#endif
 			#else
 			mat2x3 fog = mat2x3(vec3(0.0), vec3(1.0));
 			#endif
 
-			fog_scattering    = fog[0];
+fog_scattering = fog[0];
 			fog_transmittance = fog[1];
 
 			break;
 
 		case 1:
-			mat2x3 water_fog = raymarch_water_fog(world_start_pos, world_end_pos, depth0 == 1.0, false, dither);
+        mat2x3 water_fog = raymarch_water_fog(
+            world_start_pos,
+            world_end_pos,
+            depth0 == 1.0,
+            false,
+            dither
+        );
 
-			fog_scattering    = water_fog[0];
+        fog_scattering = water_fog[0];
 			fog_transmittance = water_fog[1];
 
 			break;
 
 		default:
-			fog_scattering    = vec3(0.0);
+        fog_scattering = vec3(0.0);
 			fog_transmittance = vec3(1.0);
 
 			break;
@@ -233,20 +287,22 @@ void main() {
             vec2 lightPos = pos1 * 0.5 + 0.5;
 
             #ifdef TAA
-	            float dither = interleaved_gradient_noise(gl_FragCoord.xy, frameCounter);
+        float dither
+            = interleaved_gradient_noise(gl_FragCoord.xy, frameCounter);
             #else
 	            float dither = bayer32(gl_FragCoord.xy);
             #endif
     
-	            vec3 ssvl_scattering = screenspace_vl(depthtex0, lightPos, uv, light_color, dither);
+        vec3 ssvl_scattering
+            = screenspace_vl(depthtex0, lightPos, uv, light_color, dither);
 
-            fog_scattering += ssvl_scattering * (1.0 - rainStrength) * cloud_occlusion;
+            fog_scattering += ssvl_scattering * cloud_occlusion;
         }
     }
 #endif
 
 #if defined LPV_VL && defined COLORED_LIGHTS
-    fog_scattering +=
-        get_lpv_fog_scattering(world_start_pos, world_end_pos, dither);
+fog_scattering
+    += get_lpv_fog_scattering(world_start_pos, world_end_pos, dither) * (LAVA_FOG_INTENSITY / 10);
 #endif
 }

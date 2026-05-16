@@ -3,7 +3,7 @@
 
   Photon Shader by SixthSurge
 
-  program/c14_c18_bloom_upsample.fsh
+  program/c14_c18_bloom_upsample
   Progressively upsample bloom tiles
   You must define BLOOM_TILE_INDEX before including this file
 
@@ -39,11 +39,9 @@ void main() {
     ivec2 texel = ivec2(gl_FragCoord.xy);
 
     vec2 pad_amount = 3.0 * view_pixel_size * rcp(tile_scale);
-    vec2 uv_src = clamp(uv, pad_amount, 1.0 - pad_amount) * src_tile_scale
-        + src_tile_offset;
+    vec2 uv_src = clamp(uv, pad_amount, 1.0 - pad_amount) * src_tile_scale + src_tile_offset;
 
     const float src_weight = mix(0.25, 0.90, 0.5 * BLOOM_SPREAD);
     bloom_tile = texelFetch(SRC_SAMPLER, texel, 0).rgb * (1.0 - src_weight); // Destination tile.
     bloom_tile += BLOOM_UPSAMPLING_FILTER(SRC_SAMPLER, uv_src).rgb * src_weight; // Source tile.
 }
-

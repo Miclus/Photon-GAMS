@@ -12,10 +12,17 @@ screen.world                           = §a🌎§r World
 screen.lighting                        = §6☀§r Lighting
 screen.sky                             = §3🌥§r Sky
 screen.fog                             = §7🌫§r Fog
+screen.nether                          = §c🔥§r Nether
+screen.end                             = §d🌟§r End
+screen.end_world                       = §d🌟§r End Glow
+screen.end_fog                         = §d🌫§r End Fog
+screen.end_fog_advanced                = §d🌫§r End Fog Advanced
+screen.end_storm_fog                   = §d🌪§r End Storm Fog
 screen.materials                       = §e☼§r Materials & Reflections
 screen.water                           = §b🌊§r Water
 screen.post                            = §e▓§r Post-Processing
 screen.misc                            = §e⌛§r Misc
+screen.mods                            = Mod Options
 screen.weather                         = §6☀§rWeather 
 screen.box                             = Selection Box
 screen.compatibility                   = Compatibility
@@ -28,19 +35,26 @@ screen.reflections                     = Reflections
 screen.refraction                      = Refraction
 screen.light_sources                   = §6💡§r Light Sources
 screen.shadows                         = Shadows
-screen.ao                              = Ambient Occlusion
+screen.ao                              = Indirect Lighting
 screen.color_grading                   = 🌈 Color Grading
 screen.exposure                        = §b📸§r Exposure
 screen.lpv_vl                          = Colored Lights Fog Scattering
 screen.ssvl                            = §7🌫§r Screen-Space Volumetric Lighting
+screen.distant_horizons                = Distant Horizons
+screen.photonics                       = Photonics
+screen.photonics_sharp                 = Sharp Settings
+screen.photonics_restir                = ReSTIR Settings
 screen.tonemap_settings                = §a🎞§r Tonemap Settings
 
 screen.dof_settings                    = DoF Settings
 
-screen.lens_flare_settings             = Lens Flare Settings
+screen.lens_effects                    = §b📸§r Lens Effects
+screen.lens_flare_settings             = §6🌈§r Lens Flare Settings
 screen.lens_flare_color                = Flare Color
-
-screen.rain_lens_settings              = 💧 Rain Lens Settings
+screen.lens_dirt_settings              = §7🕸§r Lens Dirt Settings
+screen.water_on_lens_settings          = §b💧§r Water on Lens Settings
+screen.spreading_frost_settings        = §9❄§r Spreading Frost Settings
+screen.spreading_frost_cr_color        = Chromatic Aberration Color
 
 screen.crepuscular_rays                = Crepuscular Rays
 
@@ -91,6 +105,8 @@ screen.clouds_minecrafty               = Blocky Clouds Settings
 screen.clouds_noctilucent              = Noctilucent Clouds Settings
 
 screen.fog_advanced                    = §7🌫§r Advanced Fog Settings
+screen.nether_lava_crust               = §c🔥§r Nether Lava Crust
+screen.nether_volumetric_fog           = §c🔥§r Volumetrics
 screen.fog_rlh                         = §7🌫§r Rayleigh Coefficient
 screen.fog_mie                         = §7🌫§r Mie Coefficient
 screen.sunlight_color                  = §6☀§r Sunlight Color
@@ -100,8 +116,8 @@ screen.rain_color                      = §b⛆§r Rain Color
 screen.sunlight_morning                = Morning
 screen.sunlight_noon                   = Noon
 screen.sunlight_evening                = Evening
-screen.light_nether                    = §c🔥§r Nether
-screen.light_end                       = §d🌟§r End
+screen.light_nether                    = §c🔥§r Ambient Lighting
+screen.light_end                       = §d🌟§r End Lighting
 screen.night_vision_color              = §a👓§r Night Vision Color
 screen.fog_rlh_normal                  = §7🌫§r Normal Color
 screen.fog_rlh_rain                    = §7🌫§r Rain Color
@@ -112,6 +128,7 @@ screen.fog_rlh_jungle                  = §7🌫§r Jungle Color
 screen.fog_rlh_swamp                   = §7🌫§r Swamp Color
 screen.water_waves                     = §7🌫§r Water Waves
 screen.water_fog_coeff                 = §7🌫§r Water Fog Coefficients
+screen.water_ripples                   = §7🌫§r Water Rain Ripples
 
 screen.end_light_color                 = Light Color
 screen.end_ambient_color               = Ambient Color
@@ -192,7 +209,6 @@ option.WEATHER_WIND_VARIATION_SPEED        = Windiness Variation Speed
 
 option.COLORED_LIGHTS                  = 🌈§a💡§r Colored Lights
 option.COLORED_LIGHTS.comment          = Variable-color block lighting using flood fill algorithm. Requires Iris 1.6 or above
-option.COLORED_LIGHTS_VANILLA_LIGHTMAP_CONTRIBUTION = Vanilla Lightmap Contribution
 option.HANDHELD_LIGHTING               = 🔦 Handheld Lighting
 option.HANDHELD_LIGHTING.comment       = Handheld items cast light on the world. If coloured lighting is enabled the handheld lighting will be coloured like the lights themselves
 option.HANDHELD_LIGHTING_INTENSITY     = 🔦 Handheld Lighting Intensity
@@ -243,13 +259,15 @@ option.SSS_STEPS.comment               = Increase to reduce noise on foliage and
 
 
 option.SHADER_AO                       = Shader AO
-option.SHADER_AO.comment               = AO method used. Off - no shader AO. SSAO - lower quality but requires fewer samples/less filtering. GTAO - better quality but requires more samples/filtering
+option.SHADER_AO.comment               = AO method used. Off - no shader AO. SSAO - lower quality but requires fewer samples/less filtering. GTAO - better quality but requires more samples/filtering. VBIL - Visibility Bitmask Indirect Lighting, provides SSAO + SSGI, however may cause light leaking due to the nature of screen-space.
 value.SHADER_AO.SHADER_AO_NONE         = Off
 value.SHADER_AO.SHADER_AO_SSAO         = SSAO
 value.SHADER_AO.SHADER_AO_GTAO         = GTAO
 value.SHADER_AO.SHADER_AO_VBIL         = VBIL
 option.VANILLA_AO                      = Vanilla AO
 option.VANILLA_AO.comment              = Minecraft's built-in ambient occlusion
+option.VANILLA_AO_INTENSITY            = Vanilla AO Intensity
+option.VANILLA_AO_INTENSITY.comment    = Adjusts the intensity of minecraft's built in ambient occlusion
 option.SSAO_RADIUS                     = SSAO Radius
 option.SSAO_RADIUS.comment             = Adjusts the radius of SSAO - distance which objects can occlude each otherdistance which objects can occlude each other
 option.SSAO_STEPS                      = SSAO Steps
@@ -315,17 +333,20 @@ option.SNOW_LIGHT_I                    = ❄ Snow Intensity
 option.SANDSTORM_LIGHT_I               = §e⛆§r Sandstorm Intensity
 
 screen.colored_lights_sources          = Colored Light Sources
-option.COLORED_LIGHTS_VANILLA_LIGHTMAP_CONTRIBUTION                 = Vanilla Lightmap Contribution
-option.COLORED_LIGHTS_VANILLA_LIGHTMAP_CONTRIBUTION_FALLOFF         = Contribution Falloff
+option.COLORED_LIGHTS_VANILLA_LIGHTMAP_CONTRIBUTION = Vanilla Lightmap Contribution
+option.COLORED_LIGHTS_VANILLA_LIGHTMAP_CONTRIBUTION_FALLOFF = Contribution Falloff
 option.COLORED_LIGHTS_VANILLA_LIGHTMAP_CONTRIBUTION_FALLOFF.comment = Changes the vanilla lightmap's contribution falloff.\nSquared: Lighting is brighter at the source and diminishes quickly.\nLinear: Lighting is soft and travels further from the source
-option.VOXEL_VOLUME_SIZE                                            = Voxel Volume Size
-option.VOXEL_VOLUME_SIZE.comment                                    = Adjusts the size of the volume in which colored lighting is calculated. High performance impact, also affected by shadow distance
-suffix.VOXEL_VOLUME_SIZE                                            = m³
-option.VOXEL_VOLUME_CENTER                                          = Voxel Volume Center
-option.VOXEL_VOLUME_CENTER.comment                                  = Ahead: voxel volume is centered in front of the player, meaning that more of it is visible
+option.VOXEL_VOLUME_SIZE               = Voxel Volume Size
+option.VOXEL_VOLUME_SIZE.comment       = Adjusts the size of the volume in which colored lighting is calculated. High performance impact, also affected by shadow distance
+suffix.VOXEL_VOLUME_SIZE               = m³
+option.VOXEL_VOLUME_CENTER             = Voxel Volume Center
+option.VOXEL_VOLUME_CENTER.comment     = Ahead: voxel volume is centered in front of the player, meaning that more of it is visible
 
 value.COLORED_LIGHTS_VANILLA_LIGHTMAP_CONTRIBUTION_FALLOFF.COLORED_LIGHTS_VANILLA_LIGHTMAP_CONTRIBUTION_FALLOFF_SQUARED = Squared
-value.COLORED_LIGHTS_VANILLA_LIGHTMAP_CONTRIBUTION_FALLOFF.COLORED_LIGHTS_VANILLA_LIGHTMAP_CONTRIBUTION_FALLOFF_LINEAR  = Linear
+value.COLORED_LIGHTS_VANILLA_LIGHTMAP_CONTRIBUTION_FALLOFF.COLORED_LIGHTS_VANILLA_LIGHTMAP_CONTRIBUTION_FALLOFF_LINEAR = Linear
+
+value.VOXEL_VOLUME_CENTER.VOXEL_VOLUME_CENTER_AHEAD  = Ahead
+value.VOXEL_VOLUME_CENTER.VOXEL_VOLUME_CENTER_PLAYER = Player
 
 suffix.shadowMapResolution             = ²
 suffix.sunPathRotation                 = °
@@ -503,11 +524,9 @@ option.END_SOLAR_FLARE_COLOR_R               = §c🌟§r End Solar Flare Color 
 option.END_SOLAR_FLARE_COLOR_G               = §a🌟§r End Solar Flare Color Green
 option.END_SOLAR_FLARE_COLOR_B               = §1🌟§r End Solar Flare Color Blue
 
-option.CREPUSCULAR_RAYS                = Enabled
 option.CREPUSCULAR_RAYS_INTENSITY      = Intensity
 option.CREPUSCULAR_RAYS_STEPS_HORIZON  = Step Count - Horizon
 option.CREPUSCULAR_RAYS_STEPS_ZENITH   = Step Count - Zenith
-option.LIGHTNING_FLASH                 = Lightning Flash
 option.RAINBOWS                        = Rainbows
 option.END_SUN_EFFECT                  = End Sun Effect
 
@@ -571,6 +590,8 @@ option.CLOUDS_THUNDERHEAD_WIND_ANGLE              = Wind Angle
 suffix.CLOUDS_THUNDERHEAD_WIND_ANGLE              = °
 option.CLOUDS_THUNDERHEAD_MIN                     = Min Thunderhead Coverage
 option.CLOUDS_THUNDERHEAD_MAX                     = Max Thunderhead Coverage
+option.CLOUDS_THUNDERHEAD_STORM_FULL_COVERAGE     = Thunderhead Rain Coverage
+option.CLOUDS_THUNDERHEAD_STORM_FULL_COVERAGE.comment = When enabled, the thunderhead covers the whole sky, also makes it look more dark and gloomy best used with the thunderhead lightning flash enabled.
 option.CLOUDS_THUNDERHEAD_LIGHTNING_ENABLE          = Lightning
 option.CLOUDS_THUNDERHEAD_LIGHTNING_FREQUENCY       = Lightning Frequency
 option.CLOUDS_THUNDERHEAD_LIGHTNING_INTENSITY       = Lightning Intensity
@@ -679,11 +700,12 @@ suffix.BLOCKY_CLOUDS_WIND_SPEED          = m/s
 option.BLOCKY_CLOUDS_WIND_ANGLE          = Wind Angle
 suffix.BLOCKY_CLOUDS_WIND_ANGLE          = °
 
-option.CLOUDS_ACCUMULATION_LIMIT       = Clouds Accumulation Limit
 option.CLOUDS_TEMPORAL_UPSCALING       = Temporal Upscaling
 option.CLOUDS_AERIAL_PERSPECTIVE_BOOST = Aerial Perspective Boost
 option.CLOUDS_SCALE                    = Scale
 option.CLOUDS_SCALE.comment            = Applied as a scale factor to all clouds, to bring the clouds from a realistic size and altitude to an altitude that is accessible during gameplay. If this value is 1.0, clouds are positioned realistically, with the first layer 800 blocks up by default. If this value is higher, then clouds will appear smaller and form closer to the ground. This also affects the size of cloud shadows
+option.CLOUDS_LAYER_SHADOWING          = Clouds Layer Shadowing
+option.CLOUDS_LAYER_SHADOWING.comment  = Enables cloud-to-cloud shadowing between altocumulus, towering cumulus, and thunderhead layers
 suffix.CLOUDS_SCALE                    = ×
 value.CLOUDS_TEMPORAL_UPSCALING.1      = Off
 value.CLOUDS_TEMPORAL_UPSCALING.2      = 4×
@@ -885,9 +907,51 @@ option.BLOOMY_FOG.comment              = Intense bloom in fog. This gives the ap
 option.BLOOMY_FOG_INTENSITY            = §7🌫§r Bloomy Fog Intensity
 option.BLOOMY_FOG_INTENSITY.comment    = Adjusts the intensity of "bloomy fog"
 option.OVERWORLD_FOG_INTENSITY         = §7🌫§r Overworld Fog Intensity
-option.NETHER_FOG_INTENSITY            = §7🌫§r Nether Fog Intensity
+option.NETHER_FOG_INTENSITY            = §c🔥§r Nether Fog Intensity
+option.NETHER_FOG_INTENSITY.comment    = Simple distance fog
+option.NETHER_VOLUMETRIC_STYLE           = §c🔥§r Volumetric Style
+option.NETHER_VOLUMETRIC_STYLE.comment   = \nOff: No volumetrics\nFog: Volumetric thick fog\nSmoke: Volumetric smoke whisps
+value.NETHER_VOLUMETRIC_STYLE.NETHER_VOLUMETRIC_OFF      = §cOff
+value.NETHER_VOLUMETRIC_STYLE.NETHER_VOLUMETRIC_FOG      = Fog
+value.NETHER_VOLUMETRIC_STYLE.NETHER_VOLUMETRIC_SMOKE    = Smoke
+option.NETHER_VL_FOG_DENSITY          = §c🔥§r Smoke Density
+option.NETHER_VL_FOG_SPEED            = §c🔥§r Smoke Wind Speed
+option.NETHER_VL_FOG_SCALE            = §c🔥§r Smoke Pattern Scale
+option.NETHER_LAVA_CRUST               = §c🔥§r Nether Lava Crust
+option.NETHER_LAVA_CRUST.comment       = Dark procedural patches on lava surfaces in the Nether (no extra textures). Turn off for ordinary lava without crust.
+option.NETHER_LAVA_CRUST_ANIMATION     = §c🔥§r Animate Lava Crust
+option.NETHER_LAVA_CRUST_ANIMATION.comment = When on, the crust pattern drifts over time. When off, the pattern stays fixed on each block.
+option.NETHER_LAVA_CRUST_SCALE         = §c🔥§r Lava Crust Scale
+option.NETHER_LAVA_CRUST_ANIM_SPEED    = §c🔥§r Lava Crust Motion Speed
+option.NETHER_LAVA_CRUST_ANIM_SPEED.comment = How fast the crust pattern drifts across lava. Set to 0 for a static crust.
+option.LAVA_FOG_INTENSITY               = §c🔥§r Lava Fog Intensity
+option.LAVA_FOG_INTENSITY.comment       = Controls the intensity of lava fog. \nMust have colored lights & colored lights fog scattering enabled.
+option.NETHER_BIOME_BLUE_LAVA           = §1🔥§r Biome Blue Lava
+option.NETHER_BIOME_BLUE_LAVA.comment  = When on, lava shifts toward cyan-blue in Warped Forest, Soul Sand Valley, and Basalt Deltas.
 option.CAVE_FOG_INTENSITY              = §7🌫§r Cave Fog Intensity
-option.END_FOG_INTENSITY               = §7🌫§r End Fog Intensity
+option.END_FOG_INTENSITY               = §5🌫§r End Fog Intensity
+option.END_STORM_VOLUMETRIC_FOG         = §5🌫§r End Storm Fog
+option.END_STORM_VOLUMETRIC_FOG.comment = Thick volumetric fog with tornadoes. Separate from standard End fog; requires Volumetric Lighting.
+option.END_STORM_FOG_INTENSITY          = §5🌫§r End Storm Fog Strength
+option.END_STORM_FOG_SPEED               = §5🌫§r End Storm Fog Animation Speed
+option.END_STORM_FOG_LAYER_THICKNESS     = §5🌫§r End Storm Fog Layer Thickness
+option.END_STORM_FOG_BUMPINESS           = §5🌫§r End Storm Fog Bumpiness
+option.END_STORM_FOG_BUMPINESS.comment   = Controls the animated floor/ceiling wave plus procedural wobble on slabs, tornado shafts, and wisps..
+option.END_STORM_FOG_SPACING             = §5🌫§r End Storm Tornado Spacing
+option.END_STORM_FOG_SPACING.comment      = Distance between funnel columns on the grid. Higher values space tornadoes farther apart (fewer total).
+option.END_STORM_FOG_TORNADO_COVERAGE     = §5🌫§r End Storm Tornado Amount
+option.END_STORM_FOG_TORNADO_COVERAGE.comment = Fraction of funnel grid cells that spawn a tornado (higher = more tornadoes). Lower this if there are too many columns.
+option.END_STORM_FOG_VIEW_DISTANCE_SCALE   = §5🌫§r End Storm Fog View Distance
+option.END_STORM_FOG_VIEW_DISTANCE_SCALE.comment = Multiplies how far the storm fog ray can integrate (relative to render distance). Higher = fog visible across longer sightlines and sky views.
+option.END_STORM_FOG_LIGHTNING_ENABLE         = §5⚡§r End Storm Lightning
+option.END_STORM_FOG_LIGHTNING_FREQUENCY      = §5⚡§r End Storm Lightning Frequency
+option.END_STORM_FOG_LIGHTNING_INTENSITY      = §5⚡§r End Storm Lightning Intensity
+option.END_STORM_FOG_LIGHTNING_SPEED          = §5⚡§r End Storm Lightning Speed
+option.END_STORM_FOG_LIGHTNING_SPEED.comment  = Flicker rate and how often the 1s flash windows advance (same idea as thunderhead lightning speed).
+option.END_STORM_FOG_LIGHTNING_COLOR_R        = §5⚡§r End Storm Lightning Red
+option.END_STORM_FOG_LIGHTNING_COLOR_G        = §5⚡§r End Storm Lightning Green
+option.END_STORM_FOG_LIGHTNING_COLOR_B        = §5⚡§r End Storm Lightning Blue
+option.END_STORM_FOG_LIGHTNING_COLOR_B.comment = Sheet-style flashes inside the storm fog volume; timing and shapes match the thunderhead lightning system (flicker, double/triple pulse, etc.).
 option.VL                              = §7🌫§r Volumetric Lighting
 option.LPV_VL.comment                  = Light sources illuminate the fog. Requires Colored Lights! 
 option.VL.comment                      = Adds light shafts and variable fog density
@@ -1094,13 +1158,12 @@ option.SNELLS_WINDOW                      = Snell's Window
 option.SNELLS_WINDOW.comment              = Total internal reflection underwater
 option.SNELLS_WINDOW_INTENSITY            = Snell's Window Intensity
 option.WATER_TEXTURE                      = Water Texture
-option.WATER_TEXTURE.comment              = How to use the vanilla water texture.\n\nOff - no water texture.\nHighlights: water texture adds highlights to the water, like how it works in Bedrock RTX.\nVanilla: water texture is used like any other texture
+option.WATER_TEXTURE.comment              = \nOff: no water texture.\nHighlights: water texture adds highlights to the water, like how it works in Bedrock RTX.\nVanilla:  water texture is used like any other texture
 option.BIOME_WATER_COLOR                  = Biome-Colored Water
 option.BIOME_WATER_COLOR.comment          = Water absorption takes the biome water colour into account
 option.BIOME_WATER_COLOR_INTENSITY        = Biome-Colored Water Intensity
-option.WATER_TEXTURE_HIGHLIGHT_INTENSITY  = Water Highlights Intensity
+option.WATER_TEXTURE_HIGHLIGHT_ABOVEGROUND_INTENSITY  = Water Highlights Aboveground Intensity
 option.WATER_TEXTURE_HIGHLIGHT_UNDERGROUND_INTENSITY = Water Highlights Underground Intensity
-option.WATER_TEXTURE_HIGHLIGHT_UNDERGROUND_INTENSITY.comment = Not affected by Water Highlights Intensity.
 option.WATER_TEXTURE_HIGHLIGHT_BIOME_COLOR = Biome-Colored Water Highlights
 option.WATER_TEXTURE_HIGHLIGHT_BIOME_COLOR_INTENSITY = Biome-Colored Water Highlights Intensity
 
@@ -1129,6 +1192,11 @@ option.WATER_DISPLACEMENT.comment      = Similar to how waving leaves work, it m
 option.WATER_WAVES_HEIGHT_VARIATION    = Water Waves Height Variation
 option.WATER_WAVES_HEIGHT_VARIATION.comment   = The height of water waves varies in space
 
+option.WATER_RIPPLES                   = Rain Ripples
+option.WATER_RIPPLE_SIZE               = Ripple Size
+option.WATER_RIPPLE_SPREAD             = Ripple Spread
+option.WATER_RIPPLE_SPEED              = Ripple Speed
+
 option.WATER_ABSORPTION_R              = §c▍ §fRed Absorption
 option.WATER_ABSORPTION_G              = §a▍ §fGreen Absorption
 option.WATER_ABSORPTION_B              = §9▍ §fBlue Absorption
@@ -1141,7 +1209,9 @@ option.WATER_SCATTERING_UNDERWATER     = Scattering - Underwater
 
 # Post-processing settings
 
-option.LENS_FLARE                      = Lens Flare
+# Lens effects
+
+option.LENS_FLARE                      = §6🌈§r Lens Flare
 option.LENS_FLARE_MODE                 = Lens Flare Mode
 option.LF_COLOR_R                      = Lens Flare Color Red
 option.LF_COLOR_G                      = Lens Flare Color Green
@@ -1173,17 +1243,39 @@ option.LF_OCCLUSION_SAMPLES.comment    = Adjusts the number of occlusion check s
 option.LF_SUN_RADIUS_SCALE             = Occlusion Check Radius
 option.LF_SUN_RADIUS_SCALE.comment     = Adjusts the radius of occlusion check, larger values require more samples for a smooth effect
 
+option.LENS_DIRT                       = §7🕸§r Lens Dirt
+option.LENS_DIRT_BLOOM_INTENSITY       = Bloom affects Lens Dirt Intensity
+option.LENS_DIRT_LENS_FLARE_INTENSITY  = Lens Flare affects Lens Dirt Intensity
+
+option.WATER_ON_LENS                   = §b💧§r Water on Lens
 option.RAIN_LENS                       = Rain Lens
 option.RAIN_LENS.comment               = Simulates the effect of raindrops on lens when raining
 option.RAIN_LENS_INTENSITY             = Rain Lens Intensity
-option.RAINDROP_SIZE                   = Sliding Water Droplet Size
-option.STATIC_SIZE                     = Static Water Droplet Size
-option.RAINDROP_SPEED                  = Drop Speed
+option.RAINDROP_SPEED                  = Animation Speed
+option.INOUT_WATER_EFFECT              = I/O Water Lens Distortion
+option.INOUT_WATER_EFFECT.comment      = Underwater/Leave water lens distortion inspired by Bliss shaders
+
+option.SPREADING_FROST                 = §9❄§r Spreading Frost
+option.SPREADING_FROST.comment         = When entering cold biomes, spread frost from center of screen to form a frozen vignette
+option.SPREADING_FROST_INTENSITY       = Spreading Frost Intensity
+option.SPREADING_FROST_FROSTYNESS      = Spreading Frost Frostyness
+option.SPREADING_FROST_SNOWING_ONLY    = Only when Snowing
+option.SPREADING_FROST_VIGNETTE_SIZE   = Vignette Size
+option.SPREADING_FROST_CR              = Chromatic Aberration
+option.SPREADING_FROST_CR.comment      = When enabled, makes the frozen color shift to blue
+option.SPREADING_FROST_CR_R            = §c▍ §fRed
+option.SPREADING_FROST_CR_G            = §a▍ §fGreen
+option.SPREADING_FROST_CR_B            = §9▍ §fBlue
 
 option.BLOOM                           = Bloom
 option.BLOOM.comment                   = Soft "glow" effect around bright areas and light sources
 option.BLOOM_INTENSITY                 = Bloom Intensity
 option.BLOOM_INTENSITY.comment         = Adjusts how much the bloom affects the final image
+option.BLOOM_SPREAD                    = Bloom Spread
+option.BLOOM_SPREAD.comment            = Adjusts how much the bloom spreads out
+option.BLOOM_UPSAMPLING_FILTER         = Bloom Upsampling Filter
+value.BLOOM_UPSAMPLING_FILTER.texture  = Bilinear
+value.BLOOM_UPSAMPLING_FILTER.bicubic_filter = Bicubic
 
 option.DOF                             = Depth of Field
 option.DOF.comment                     = Camera focus effect - blurs out-of-focus areas
@@ -1268,12 +1360,12 @@ option.GRADE_VIBRANCE                  = Vibrance
 option.GRADE_GAIN                      = Gain
 option.GRADE_WHITE_BALANCE             = White Balance
 suffix.GRADE_WHITE_BALANCE             = K
-option.GRADE_ORANGE_SAT_BOOST          = §6▋ §fOrange Saturation Boost
-option.GRADE_TEAL_SAT_BOOST            = §3▋ §fTeal Saturation Boost
+option.GRADE_ORANGE_SAT_BOOST          = §6▍ §fOrange Saturation Boost
+option.GRADE_TEAL_SAT_BOOST            = §3▍ §fTeal Saturation Boost
 option.GRADE_GREEN_SAT_BOOST           = §a▍ §fGreen Saturation Boost
 option.GRADE_GREEN_HUE_SHIFT           = §a▍ §fGreen Hue Shift
-option.GRADE_CYAN_HUE_SHIFT            = §b▋ §Cyan Hue Shift
-option.GRADE_PURPLE_HUE_SHIFT          = §5▋ §Purple Hue Shift
+option.GRADE_CYAN_HUE_SHIFT            = §b▍ §fCyan Hue Shift
+option.GRADE_PURPLE_HUE_SHIFT          = §5▍ §fPurple Hue Shift
 suffix.GRADE_WHITE_BALANCE             = K
 suffix.GRADE_GREEN_HUE_SHIFT           = °
 suffix.GRADE_CYAN_HUE_SHIFT            = °
@@ -1592,6 +1684,37 @@ value.DISTANCE_VIEW_METHOD.DISTANCE_VIEW_DEPTH    = Depth
 
 # Box
 
+# Photonics
+
+option.PHOTONICS_ENABLED              = Use Photonics
+option.PHOTONICS_LIGHTING_MODE        = Lighting Mode
+option.PHOTONICS_LIGHTING_MODE.comment = The lighting algorithm Photonics uses for lighting.\n\nSharp - A very simple lighting algorithm with no noise, but a limited number of lights (Max Samples)\nReSTIR - Uses ReSTIR for lighting, supports an unlimited (Max Lights) number of lights, but may be noisy in certain areas.
+value.PHOTONICS_LIGHTING_MODE.SIMPLE  = Sharp
+value.PHOTONICS_LIGHTING_MODE.RESTIR  = ReSTIR
+option.PHOTONICS_ALPHA_MODE           = Transparency Mode
+option.PHOTONICS_ALPHA_MODE.comment   = Changes how Photonics deals with transparent voxels. \n\nOpaque - Treats transparent voxels as opaque\nPer Block - Uses the first transparent voxel, then skips the rest of the block\nPer Voxel - Uses every transparent voxel in a block (HEAVY PERFORMANCE IMPACT)
+value.PHOTONICS_ALPHA_MODE.NONE       = Opaque
+value.PHOTONICS_ALPHA_MODE.BLOCK      = Per Block
+value.PHOTONICS_ALPHA_MODE.VOXEL      = Per Voxel
+option.PHOTONICS_MAX_LIGHTS           = Max Lights
+option.PHOTONICS_MAX_LIGHTS.comment   = The max number of traced lights that can be loaded
+option.PHOTONICS_GLINT_STRENGTH       = Enchantment Glint Strength
+option.PHOTONICS_GLINT_STRENGTH.comment = The strength of enchanted items in handheld lighting
+value.PHOTONICS_GLINT_STRENGTH.0      = Off
+option.PHOTONICS_TWO_HANDHELD_RAYS    = Separate Handheld Rays
+option.PHOTONICS_TWO_HANDHELD_RAYS.comment = Whether both handheld lights should cast shadows. When disabled only one shadow will be cast
+option.PHOTONICS_SHARP_MAX_SAMPLES    = Max Samples
+option.PHOTONICS_RESTIR_INITIAL_SAMPLES   = Initial Samples
+option.PHOTONICS_RESTIR_SPR_SAMPLES       = Spatial Reuse Samples
+value.PHOTONICS_RESTIR_SPR_SAMPLES.0      = Off
+option.PHOTONICS_RESTIR_SPR_RADIUS        = Spatial Reuse Radius
+option.PHOTONICS_RESTIR_ACCUMULATION      = Accumulation Frames
+option.PHOTONICS_RESTIR_ACCUMULATION.comment = The max number of frames ReSTIR uses for accumulation. Lower values will cause lighting to be more responsive, at the cost of more noise.
+option.PHOTONICS_RESTIR_DENOISER_PASSES   = Denoiser Passes
+option.PHOTONICS_RESTIR_SOFT_SHADOWS      = Soft Shadows
+option.PHOTONICS_RESTIR_COMBINED_GI       = Include Skylight GI
+option.PHOTONICS_RESTIR_COMBINED_GI.comment = Whether Gi should be ran through ReSTIR's denoiser instead of its usual path. \nResults in much sharper Gi, at the cost of performance.
+
 option.BOX_MODE                 = Box Mode
 option.BOX_MODE.comment         = Selection Outline Box Mode\n\nNone: Default\nColor: User Color\nRainbow: Fancy RGB Effect
 value.BOX_MODE.BOX_MODE_NONE    = None
@@ -1610,31 +1733,16 @@ option.PHYSICS_MOD_OCEAN           = Physics Mod Ocean
 option.NOISE_ON_DH_TERRAIN         = Noise on DH terrain
 option.NOISE_ON_DH_TERRAIN.comment = High-frequency noise on Distant Horizons terrain
 
- 
- s c r e e n . b l a c k _ h o l e = B l a c k   H o l e 
- 
- s c r e e n . b l a c k _ h o l e _ c o l o r = A c c r e t i o n   D i s k   C o l o r 
- 
- o p t i o n . B L A C K _ H O L E _ E N A B L E D = E n a b l e   B l a c k   H o l e 
- 
- o p t i o n . B L A C K _ H O L E _ R A D I U S = E v e n t   H o r i z o n   R a d i u s 
- 
- o p t i o n . B L A C K _ H O L E _ D I S K _ S I Z E = A c c r e t i o n   D i s k   S i z e 
- 
- o p t i o n . B L A C K _ H O L E _ D I S K _ B R I G H T N E S S = D i s k   B r i g h t n e s s 
- 
- o p t i o n . B L A C K _ H O L E _ L E N S I N G = L e n s i n g   S t r e n g t h 
- 
- o p t i o n . B L A C K _ H O L E _ R O T A T I O N _ S P E E D = R o t a t i o n   S p e e d 
- 
- o p t i o n . B L A C K _ H O L E _ A Z I M U T H = A z i m u t h   ( H o r i z o n t a l ) 
- 
- o p t i o n . B L A C K _ H O L E _ A L T I T U D E = A l t i t u d e   ( V e r t i c a l ) 
- 
- o p t i o n . B L A C K _ H O L E _ D I S K _ C O L O R _ R = D i s k   R e d 
- 
- o p t i o n . B L A C K _ H O L E _ D I S K _ C O L O R _ G = D i s k   G r e e n 
- 
- o p t i o n . B L A C K _ H O L E _ D I S K _ C O L O R _ B = D i s k   B l u e 
- 
- 
+screen.black_hole                      = Black Hole
+screen.black_hole_color                = Accretion Disk Color
+option.BLACK_HOLE_ENABLED              = Enable Black Hole
+option.BLACK_HOLE_RADIUS               = Event Horizon Radius
+option.BLACK_HOLE_DISK_SIZE            = Accretion Disk Size
+option.BLACK_HOLE_DISK_BRIGHTNESS      = Disk Brightness
+option.BLACK_HOLE_LENSING              = Lensing Strength
+option.BLACK_HOLE_ROTATION_SPEED       = Rotation Speed
+option.BLACK_HOLE_AZIMUTH              = Azimuth (Horizontal)
+option.BLACK_HOLE_ALTITUDE             = Altitude (Vertical)
+option.BLACK_HOLE_DISK_COLOR_R         = Disk Red
+option.BLACK_HOLE_DISK_COLOR_G         = Disk Green
+option.BLACK_HOLE_DISK_COLOR_B         = Disk Blue

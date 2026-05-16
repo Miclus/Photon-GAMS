@@ -7,70 +7,87 @@
 #include "/include/utility/phase_functions.glsl"
 
 vec3 aurora_color(vec3 pos, float altitude_fraction) {
-	return mix(aurora_colors[0], aurora_colors[1], clamp01(dampen(altitude_fraction))); }
+    return mix(
+        aurora_colors[0],
+        aurora_colors[1],
+        clamp01(dampen(altitude_fraction))
+    );
+}
 
 #if AURORA_TYPE == AURORA_PHOTON
 
 float aurora_shape(vec3 pos, float altitude_fraction) {
-	const vec2 wind_0     = 0.001 * vec2(0.7, 0.1);
-	const vec2 wind_1     = 0.0013 * vec2(-0.1, -0.7);
-	float frequency = 0.00003 * mix(AURORA_FREQUENCY, AURORA_FREQUENCY_SNOW, biome_may_snow);
-	float time = frameTimeCounter * mix(AURORA_SPEED, AURORA_SPEED_SNOW, biome_may_snow);
+    const vec2 wind_0 = 0.001 * vec2(0.7, 0.1);
+    const vec2 wind_1 = 0.0013 * vec2(-0.1, -0.7);
+    float frequency = 0.00003
+        * mix(AURORA_FREQUENCY, AURORA_FREQUENCY_SNOW, biome_may_snow);
+    float time = frameTimeCounter
+        * mix(AURORA_SPEED, AURORA_SPEED_SNOW, biome_may_snow);
 
-	float height_fade = cube(1.0 - altitude_fraction) * linear_step(0.0, 0.025, altitude_fraction);
+    float height_fade = cube(1.0 - altitude_fraction)
+        * linear_step(0.0, 0.025, altitude_fraction);
 
-	float worley_0 = texture(noisetex, pos.xz * frequency + wind_0 * time).y;
-	float worley_1 = texture(noisetex, pos.xz * frequency + wind_1 * time).y;
+    float worley_0 = texture(noisetex, pos.xz * frequency + wind_0 * time).y;
+    float worley_1 = texture(noisetex, pos.xz * frequency + wind_1 * time).y;
 
-	return linear_step(1.0, 2.0, worley_0 + worley_1) * height_fade;
+    return linear_step(1.0, 2.0, worley_0 + worley_1) * height_fade;
 }
 
 vec3 draw_aurora(vec3 ray_dir, float dither) {
-	const uint step_count      = 64u;
-	const float rcp_steps      = rcp(float(step_count));
-	const float volume_bottom  = 1000.0;
-	const float volume_top     = 3000.0;
-	const float volume_radius  = 20000.0;
+    const uint step_count = 64u;
+    const float rcp_steps = rcp(float(step_count));
+    const float volume_bottom = 1000.0;
+    const float volume_top = 3000.0;
+    const float volume_radius = 20000.0;
 
-	if (aurora_amount < 0.01) return vec3(0.0);
+    if (aurora_amount < 0.01) {
+        return vec3(0.0);
+    }
 
-	// Calculate distance to enter and exit the volume
+    // Calculate distance to enter and exit the volume
 
-	float rcp_dir_y = rcp(ray_dir.y);
-	float distance_to_lower_plane = volume_bottom * rcp_dir_y;
-	float distance_to_upper_plane = volume_top    * rcp_dir_y;
-	float distance_to_cylinder    = volume_radius * rcp_length(ray_dir.xz);
+    float rcp_dir_y = rcp(ray_dir.y);
+    float distance_to_lower_plane = volume_bottom * rcp_dir_y;
+    float distance_to_upper_plane = volume_top * rcp_dir_y;
+    float distance_to_cylinder = volume_radius * rcp_length(ray_dir.xz);
 
-	float distance_to_volume_start = distance_to_lower_plane;
-	float distance_to_volume_end   = min(distance_to_cylinder, distance_to_upper_plane);
+    float distance_to_volume_start = distance_to_lower_plane;
+    float distance_to_volume_end
+        = min(distance_to_cylinder, distance_to_upper_plane);
 
-	// Make sure that the volume is intersected
-	if (distance_to_volume_start > distance_to_volume_end) return vec3(0.0);
+    // Make sure that the volume is intersected
+    if (distance_to_volume_start > distance_to_volume_end) {
+        return vec3(0.0);
+    }
 
-	// Raymarching setup
+    // Raymarching setup
 
-	float ray_length  = max0(distance_to_volume_end - distance_to_volume_start);
-	float step_length = ray_length * rcp_steps;
+    float ray_length = max0(distance_to_volume_end - distance_to_volume_start);
+    float step_length = ray_length * rcp_steps;
 
-	vec3 ray_pos  = ray_dir * (distance_to_volume_start + step_length * dither);
-	vec3 ray_step = ray_dir * step_length;
+    vec3 ray_pos = ray_dir * (distance_to_volume_start + step_length * dither);
+    vec3 ray_step = ray_dir * step_length;
 
-	vec3 emission = vec3(0.0);
+    vec3 emission = vec3(0.0);
 
-	// Raymarching loop
+    // Raymarching loop
 
-	for (uint i = 0u; i < step_count; ++i, ray_pos += ray_step) {
-		float altitude_fraction = linear_step(volume_bottom, volume_top, ray_pos.y);
-		float shape = aurora_shape(ray_pos, altitude_fraction);
-		vec3 color  = aurora_color(ray_pos, altitude_fraction);
+    for (uint i = 0u; i < step_count; ++i, ray_pos += ray_step) {
+        float altitude_fraction
+            = linear_step(volume_bottom, volume_top, ray_pos.y);
+        float shape = aurora_shape(ray_pos, altitude_fraction);
+        vec3 color = aurora_color(ray_pos, altitude_fraction);
 
-		float d = length(ray_pos.xz);
-		float distance_fade = (1.0 - cube(d * rcp(volume_radius))) * (1.0 - exp2(-0.001 * d));
+        float d = length(ray_pos.xz);
+        float distance_fade
+            = (1.0 - cube(d * rcp(volume_radius))) * (1.0 - exp2(-0.001 * d));
 
-		emission += color * (shape * distance_fade * step_length);
-	}
+        emission += color * (shape * distance_fade * step_length);
+    }
 
-	return (0.001 * mix(AURORA_BRIGHTNESS, AURORA_BRIGHTNESS_SNOW, biome_may_snow)) * emission * aurora_amount;
+    return (0.001
+            * mix(AURORA_BRIGHTNESS, AURORA_BRIGHTNESS_SNOW, biome_may_snow))
+        * emission * aurora_amount;
 }
 
 #elif AURORA_TYPE == AURORA_NIMITZ
@@ -78,90 +95,104 @@ vec3 draw_aurora(vec3 ray_dir, float dither) {
 // Aurora from shadertoy by nimitz https://www.shadertoy.com/view/XtGGRt
 
 mat2 mm2(float a) {
-	float c = cos(a), s = sin(a);
-	return mat2(c,s,-s,c);
+    float c = cos(a), s = sin(a);
+    return mat2(c, s, -s, c);
 }
+
 const mat2 m2 = mat2(0.95534, 0.29552, -0.29552, 0.95534);
-float tri(float x) {
-	return clamp(abs(fract(x) - 0.5), 0.01, 0.49);
-}
-vec2 tri2(vec2 p) {
-	return vec2(tri(p.x)+tri(p.y),tri(p.y+tri(p.x)));
-}
+
+float tri(float x) { return clamp(abs(fract(x) - 0.5), 0.01, 0.49); }
+
+vec2 tri2(vec2 p) { return vec2(tri(p.x) + tri(p.y), tri(p.y + tri(p.x))); }
 
 float triNoise2d(vec2 pos, float speed) {
-	float z = 1.8;
-	float z2 = 2.5;
-	float rz = 0.0;
-	pos *= mm2(pos.x * 0.06);
-	vec2 bp = pos;
-	for (float i = 0.0; i < 5.0; i++ ) {
-		vec2 dg = tri2(bp * 1.85) * 0.75;
-		dg *= mm2(world_age * 0.02 * pi * speed);
-		pos -= dg / z2;
+    float z = 1.8;
+    float z2 = 2.5;
+    float rz = 0.0;
+    pos *= mm2(pos.x * 0.06);
+    vec2 bp = pos;
+    for (float i = 0.0; i < 5.0; i++) {
+        vec2 dg = tri2(bp * 1.85) * 0.75;
+        dg *= mm2(world_age * 0.02 * pi * speed);
+        pos -= dg / z2;
 
-		bp *= 1.3;
-		z2 *= 0.45;
-		z *= 0.42;
-		pos *= 1.21 + (rz - 1.0) * 0.02;
+        bp *= 1.3;
+        z2 *= 0.45;
+        z *= 0.42;
+        pos *= 1.21 + (rz - 1.0) * 0.02;
 
-		rz += tri(pos.x + tri(pos.y)) * z;
-		pos *= -m2;
-	}
-	return clamp(1.0 / pow(rz * 29.0, 1.3), 0.0, 0.55);
+        rz += tri(pos.x + tri(pos.y)) * z;
+        pos *= -m2;
+    }
+    return clamp(1.0 / pow(rz * 29.0, 1.3), 0.0, 0.55);
 }
 
 float hash21(vec2 n) {
-	return fract(sin(dot(n, vec2(12.9898, 4.1414))) * 43758.5453);
+    return fract(sin(dot(n, vec2(12.9898, 4.1414))) * 43758.5453);
 }
 
 vec4 aurora(vec3 dir, float dither) {
-	const int step_count = 64;
+    const int step_count = 64;
 
-	float brightness = mix(AURORA_BRIGHTNESS, AURORA_BRIGHTNESS_SNOW, biome_may_snow);
-	float frequency  = mix(AURORA_FREQUENCY, AURORA_FREQUENCY_SNOW, biome_may_snow);
-	float speed      = mix(AURORA_SPEED, AURORA_SPEED_SNOW, biome_may_snow);
+    float brightness
+        = mix(AURORA_BRIGHTNESS, AURORA_BRIGHTNESS_SNOW, biome_may_snow);
+    float frequency
+        = mix(AURORA_FREQUENCY, AURORA_FREQUENCY_SNOW, biome_may_snow);
+    float speed = mix(AURORA_SPEED, AURORA_SPEED_SNOW, biome_may_snow);
 
-	vec4 outColor = vec4(0.0);
-	vec4 avgColor = vec4(0.0);
+    vec4 outColor = vec4(0.0);
+    vec4 avgColor = vec4(0.0);
 
-	for (int i = 0; i < step_count; ++i) {
-		float amp_fraction = float(i) / float(step_count - 1);
-		//float jitter = 0.012 * hash21(gl_FragCoord.xy) * smoothstep(0.0, 15.0, float(i));
-		float jitter = 0.012 * dither * clamp01(smoothstep(0.0, 15.0, float(i)));
-		float height = ((0.8 + pow(amp_fraction * 24, 1.4) * 0.004)) / (dir.y * 2.0 + 0.4);
-		height -= jitter;
+    for (int i = 0; i < step_count; ++i) {
+        float amp_fraction = float(i) / float(step_count - 1);
+        // float jitter = 0.012 * hash21(gl_FragCoord.xy) *
+        // smoothstep(0.0, 15.0, float(i));
+        float jitter
+            = 0.012 * dither * clamp01(smoothstep(0.0, 15.0, float(i)));
+        float height = ((0.8 + pow(amp_fraction * 24, 1.4) * 0.004))
+            / (dir.y * 2.0 + 0.4);
+        height -= jitter;
 
-		vec2 coord = (height * dir).zx;
-		float pattern = triNoise2d(coord * frequency, speed);
-		vec4 interColor = vec4(0.0, 0.0, 0.0, pattern);
+        vec2 coord = (height * dir).zx;
+        float pattern = triNoise2d(coord * frequency, speed);
+        vec4 interColor = vec4(0.0, 0.0, 0.0, pattern);
 
-		interColor.rgb = pattern * mix(aurora_colors[0], aurora_colors[1], smoothstep(0.0, 1.0, amp_fraction)); //mix(aurora_colors[0], aurora_colors[1], smoothstep(0.0, 1.0, sqr(amp_fraction)));
-		//interColor.rgb = pattern * aurora_color(vec3(0), smoothstep(0.0, 1.0, amp_fraction));
-		//interColor.rgb = pattern * (sin(1.0 - vec3(2.15, -0.5, 1.2) + (amp_fraction * 49) * 0.043) * 0.5 + 0.5);
-		avgColor =  mix(avgColor, interColor, 0.5);
-		outColor += avgColor * exp2(-(amp_fraction * 24) * 0.065 - 2.5) * smoothstep(0.0, 5.0, (amp_fraction * 24)) * (rcp(step_count) * 24);
-	}
+        interColor.rgb = pattern
+            * mix(
+                             aurora_colors[0],
+                             aurora_colors[1],
+                             smoothstep(0.0, 1.0, amp_fraction)
+            ); // mix(aurora_colors[0], aurora_colors[1], smoothstep(0.0, 1.0,
+               // sqr(amp_fraction)));
+        // interColor.rgb = pattern * aurora_color(vec3(0), smoothstep(0.0, 1.0,
+        // amp_fraction)); interColor.rgb = pattern * (sin(1.0 - vec3(2.15,
+        // -0.5, 1.2) + (amp_fraction * 49) * 0.043) * 0.5 + 0.5);
+        avgColor = mix(avgColor, interColor, 0.5);
+        outColor += avgColor * exp2(-(amp_fraction * 24) * 0.065 - 2.5)
+            * smoothstep(0.0, 5.0, (amp_fraction * 24))
+            * (rcp(step_count) * 24);
+    }
 
-	outColor *= clamp01(dir.y * 15.0 + 0.4);
+    outColor *= clamp01(dir.y * 15.0 + 0.4);
 
-	return outColor * brightness;
+    return outColor * brightness;
 }
 
 vec3 draw_aurora(vec3 ray_dir, float dither) {
-	if (aurora_amount < 0.01) return vec3(0.0);
-	//ray_dir *= dither;
+    if (aurora_amount < 0.01) {
+        return vec3(0.0);
+    }
+    // ray_dir *= dither;
 
-	vec3 color = vec3(0.0);
-	float fade = smoothstep(0.0, 0.1, abs(ray_dir.y));
+    vec3 color = vec3(0.0);
+    float fade = smoothstep(0.0, 0.1, abs(ray_dir.y));
 
-	if (ray_dir.y > 0.0) {
-		vec4 aur = smoothstep(0.0, 1.5, aurora(ray_dir, dither)) * fade;
-		color = color * (1.0 - aur.a) + aur.rgb;
-	}
+    if (ray_dir.y > 0.0) {
+        vec4 aur = smoothstep(0.0, 1.5, aurora(ray_dir, dither)) * fade;
+        color = color * (1.0 - aur.a) + aur.rgb;
+    }
 
-	return color * aurora_amount;
-
+    return color * aurora_amount;
 }
 
 #endif // AURORA_TYPE

@@ -15,14 +15,34 @@
 * sw-52 (More Tonemap Operators and settings, Fog settings, DOF settings)
 * Miclus (Some screen-space effects, Visibility Bitmask Indirect Lighting, Transfer to voxy support, Translate zh_CN)
 
+### Downloads
+* [Latest commit](https://github.com/Miclus/Photon-GAMS/archive/refs/heads/main.zip)
+
 ## Features
 
 * Better Hardcoded Emission
 * More customization options
 * More settings for Colored Light, Water, Sky, Fog
-* Better supprort for mods
+* Better support for mods
 * More Tonemap Operators
 * Visibility Bitmask Indirect Lighting (High quality SSAO + SSGI at extremely low cost)
+* More Cloud Types
+* More Nether/End Effects
+
+## Compatibility
+### GPU vendors
+* Nvidia 
+* AMD 
+* Intel 
+* **_NOT_** Apple Metal
+  * You may be able to get the shader pack to work by disabling some settings: try _SH Skylight_ and _Colored Shadows_.
+### Shader loaders
+* Iris - version 1.5 and above
+* OptiFine - on Minecraft 1.16.5 and above
+### Special mod support
+* [Distant Horizons](https://www.curseforge.com/minecraft/mc-mods/distant-horizons)
+* [Voxy](https://modrinth.com/mod/voxy)
+* [Photonics](https://modrinth.com/mod/photonics)
 
 ## Community
 

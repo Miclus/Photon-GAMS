@@ -3,13 +3,24 @@
 
 // From shadertoy by tiusic -  https://www.shadertoy.com/view/fdtGDN
 
-vec3 mid3_(vec3 v) { return v.y < v.z ? vec3(0, v.y, 0) : v.x < v.z ? vec3(0, 0, v.z) : vec3(v.x, 0, 0); }
-vec3 mid3(vec3 v)  { return v.x < v.y ? mid3_(v) : mid3_(v.yxz).yxz; }
-vec3 max3v(vec3 v) { return v.x < v.y ? (v.y < v.z ? vec3(0, 0, v.z) : vec3(0, v.y, 0)) : (v.x < v.z ? vec3(0, 0, v.z) : vec3(v.x, 0, 0)); }
-float max3(vec3 v) { return max(max(v.x, v.y), v.z); }
-vec3 lerp(vec3 a, vec3 b, float t) { return (1. - t) * a + t * b; }
-vec3 qerp(vec3 a, vec3 b, float t) { return sqrt(1. - t * t) * a + t * b; }
+vec3 mid3_(vec3 v) {
+    return v.y < v.z ? vec3(0, v.y, 0)
+        : v.x < v.z  ? vec3(0, 0, v.z)
+                     : vec3(v.x, 0, 0);
+}
 
+vec3 mid3(vec3 v) { return v.x < v.y ? mid3_(v) : mid3_(v.yxz).yxz; }
+
+vec3 max3v(vec3 v) {
+    return v.x < v.y ? (v.y < v.z ? vec3(0, 0, v.z) : vec3(0, v.y, 0))
+                     : (v.x < v.z ? vec3(0, 0, v.z) : vec3(v.x, 0, 0));
+}
+
+float max3(vec3 v) { return max(max(v.x, v.y), v.z); }
+
+vec3 lerp(vec3 a, vec3 b, float t) { return (1. - t) * a + t * b; }
+
+vec3 qerp(vec3 a, vec3 b, float t) { return sqrt(1. - t * t) * a + t * b; }
 
 float tri(float x) {
     x = mod(2. * x, 2.);
@@ -17,7 +28,7 @@ float tri(float x) {
 }
 
 vec3 hue(float h) {
-    return clamp01(vec3(tri(h+0.5), tri(h+1./6.), tri(h-1./6.)));
+    return clamp01(vec3(tri(h + 0.5), tri(h + 1. / 6.), tri(h - 1. / 6.)));
 }
 
 vec3 baseColor(vec2 uv, float t) {
@@ -45,13 +56,19 @@ float qq(float q, float p) { return pow(p, 4. * q * (q - 1.0)); }
 vec3 hdrr(vec3 c) {
     float l = min(c.g, c.b);
     float m = (c.r - l);
-    if (m < eps) return c;
+    if (m < eps) {
+        return c;
+    }
 
     float k = (max(c.g, c.b) - l) / m;
-    vec3 d = c + (1. - k) * vec3(0, 1.1 * max(c.r - 0.7, 0.), max(c.r - 1.2, 0.));
+    vec3 d
+        = c + (1. - k) * vec3(0, 1.1 * max(c.r - 0.7, 0.), max(c.r - 1.2, 0.));
 
-    if (c.g > c.b) d.b += k * max(c.g - 0.8, 0.);
-    else           d.g += k * max(c.b - 0.8, 0.);
+    if (c.g > c.b) {
+        d.b += k * max(c.g - 0.8, 0.);
+    } else {
+        d.g += k * max(c.b - 0.8, 0.);
+    }
 
     float j = 0.5 + 0.5 * (c.g > c.b ? k : -k);
     float g = clamp(log(m / l), 0., 1.);
