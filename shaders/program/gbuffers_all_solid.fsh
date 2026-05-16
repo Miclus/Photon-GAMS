@@ -29,7 +29,6 @@ layout(
 #endif
 
 in vec2 uv;
-in vec2 light_levels;
 in vec3 scene_pos;
 in vec4 tint;
 
@@ -43,12 +42,22 @@ flat in vec2 atlas_tile_offset;
 flat in vec2 atlas_tile_scale;
 #endif
 
+#ifdef COLORWHEEL
+vec2 light_levels;
+float vanilla_ao;
+#else
+in vec2 light_levels;
 #if defined PROGRAM_GBUFFERS_TERRAIN
 in float vanilla_ao;
+#endif
 #endif
 
 #if defined PROGRAM_GBUFFERS_ENTITIES || defined PROGRAM_GBUFFERS_HAND
 in vec2 uv_local;
+#endif
+
+#if defined PROGRAM_GBUFFERS_VOXELS
+in vec3 block_normal;
 #endif
 
 // ------------
@@ -86,6 +95,8 @@ uniform vec2 taa_offset;
 
 uniform vec3 light_dir;
 
+uniform float alphaTestRef = 0.1;
+
 #if defined PROGRAM_GBUFFERS_ENTITIES
 uniform int entityId;
 uniform vec4 entityColor;
@@ -110,6 +121,10 @@ uniform vec4 entityColor;
 #include "/include/utility/fast_math.glsl"
 #include "/include/utility/random.glsl"
 #include "/include/utility/space_conversion.glsl"
+
+#if defined PROGRAM_GBUFFERS_VOXELS
+#include "/photonics/photonics.glsl"
+#endif
 
 #if defined PROGRAM_GBUFFERS_TERRAIN && defined POM
 #define read_tex(x) textureGrad(x, parallax_uv, uv_gradient[0], uv_gradient[1])
@@ -136,8 +151,8 @@ vec3 draw_end_portal() {
     const int layer_count = 8; // Number of layers
     const float depth_scale = 0.33; // Apparent distance between layers
     const float depth_fade = 0.5; // How quickly the layers fade to black
-    const float threshold =
-        0.99; // Threshold for the "stars". Lower values mean more stars appear
+    const float threshold = 0.99; // Threshold for the "stars". Lower values
+                                  // mean more stars appear
     const float twinkle_speed = 0.4; // How fast the stars appear to twinkle
     const float twinkle_amount = 0.04; // How many twinkling stars appear
     const vec3 color0 = pow(vec3(0.80, 0.90, 0.99), vec3(2.2));
@@ -176,8 +191,8 @@ vec3 draw_end_portal() {
 
         // Make layers drift over time
         float angle = i * golden_angle;
-        vec2 drift =
-            0.033 * vec2(cos(angle), sin(angle)) * frameTimeCounter * r1(i);
+        vec2 drift
+            = 0.033 * vec2(cos(angle), sin(angle)) * frameTimeCounter * r1(i);
 
         // Snap tangent_pos to a grid and calculate a seed for the RNG
         ivec2 grid_pos = ivec2((tangent_pos + drift) * 32.0 + layer_offset);
@@ -188,9 +203,9 @@ vec3 draw_end_portal() {
 
         // Twinkling animation
         float twinkle_offset = tau * random.w;
-        random.x *= 1.0 -
-            twinkle_amount *
-                cos(frameTimeCounter * twinkle_speed + twinkle_offset);
+        random.x *= 1.0
+            - twinkle_amount
+                * cos(frameTimeCounter * twinkle_speed + twinkle_offset);
 
         // Stomp all values below threshold to zero
         float intensity = pow8(linear_step(threshold, 1.0, random.x));
@@ -202,12 +217,12 @@ vec3 draw_end_portal() {
         // Fade away with depth
         float fade = exp2(-depth_fade * float(i));
 
-        result += color * intensity *
-            exp2(-3.0 * (1.0 - fade) * (1.0 - color)) * fade;
+        result += color * intensity * exp2(-3.0 * (1.0 - fade) * (1.0 - color))
+            * fade;
 
         // Step along the view ray
-        tangent_pos +=
-            tangent_dir * depth_scale * gbufferProjection[1][1] * rcp(1.37);
+        tangent_pos
+            += tangent_dir * depth_scale * gbufferProjection[1][1] * rcp(1.37);
 
         if (random.x > threshold) {
             break;
@@ -236,14 +251,15 @@ void main() {
     bool parallax_shadow = false;
     float dither = interleaved_gradient_noise(gl_FragCoord.xy, frameCounter);
 
+#ifndef PROGRAM_GBUFFERS_VOXELS
 #if defined PROGRAM_GBUFFERS_TERRAIN && defined POM
     float view_distance = length(tangent_pos);
 
-    bool has_pom =
-        view_distance < POM_DISTANCE; // Only calculate POM for close terrain
-    has_pom = has_pom &&
-        material_mask !=
-            MATERIAL_LAVA; // Do not calculate POM for water or lava
+    bool has_pom
+        = view_distance < POM_DISTANCE; // Only calculate POM for close terrain
+    has_pom = has_pom
+        && material_mask
+            != MATERIAL_LAVA; // Do not calculate POM for water or lava
 
     vec3 tangent_dir = -normalize(tangent_pos);
     mat2 uv_gradient = mat2(dFdx(uv), dFdy(uv));
@@ -282,37 +298,99 @@ void main() {
 
     //--//
 
-    vec4 base_color = read_tex(gtexture) * tint;
+    vec4 base_color;
+#if defined COLORWHEEL
+    base_color = read_tex(gtexture);
+    vec4 overlayColor;
+
+    clrwl_computeFragment(
+        base_color,
+        base_color,
+        light_levels,
+        vanilla_ao,
+        overlayColor
+    );
+    light_levels = clamp((light_levels - 1.0 / 32.0) * 32.0 / 30.0, 0.0, 1.0);
+#else
+    base_color = read_tex(gtexture) * tint;
+#endif
+
 #ifdef NORMAL_MAPPING
     vec3 normal_map = read_tex(normals).xyz;
 #endif
 #ifdef SPECULAR_MAPPING
     vec4 specular_map = read_tex(specular);
 #endif
+#else
+    vec3 screen_pos = vec3(
+        gl_FragCoord.xy * view_pixel_size * rcp(taau_render_scale),
+        gl_FragCoord.z
+    );
+
+    vec3 view_pos = screen_to_view_space(screen_pos, true);
+    vec3 scene_pos = view_to_scene_space(view_pos);
+
+    vec3 world_pos = scene_pos + cameraPosition;
+    vec3 world_dir = normalize(scene_pos - gbufferModelViewInverse[3].xyz);
+
+    RayJob ray = RayJob(
+        world_pos - world_offset - 0.001f * block_normal, // Ray origin
+        world_dir, // Ray direction
+        vec3(0),
+        vec3(0),
+        vec3(0),
+        false
+    );
+
+    ray_constraint = ivec3(ray.origin);
+    trace_ray(ray);
+
+    if (!ray.result_hit) {
+        discard;
+    }
+    if (ray.result_normal == vec3(0.0)) {
+        ray.result_normal = block_normal;
+    }
+
+    scene_pos = ray.result_position + world_offset - cameraPosition;
+    view_pos = scene_to_view_space(scene_pos);
+    screen_pos = view_to_screen_space(gbufferProjection, view_pos, true);
+
+    gl_FragDepth = screen_pos.z;
+
+    vec4 base_color = vec4(ray.result_color, 1.0f);
+    vec3 ph_normal = ray.result_normal;
+
+#if defined SPECULAR_MAPPING
+    vec4 specular_map = vec4(0.0f);
+#endif
+#endif
 
 #if defined PROGRAM_GBUFFERS_ENTITIES
     if (material_mask == MATERIAL_LIGHTNING_BOLT) {
         base_color = vec4(1.0);
     }
-    if (base_color.a < 0.1 && material_mask != MATERIAL_BOAT) {
+    if (base_color.a < alphaTestRef && material_mask != MATERIAL_BOAT) {
         discard;
         return;
     } // Save transparent quad in boats, which masks out water
 #elif !defined PROGRAM_GBUFFERS_TERRAIN_SOLID
-    if (base_color.a < 0.1) {
+    if (base_color.a < alphaTestRef) {
         discard;
         return;
     }
 #endif
 
-#if (defined PROGRAM_GBUFFERS_BLOCK || defined PROGRAM_GBUFFERS_ENTITIES || \
-     defined PROGRAM_GBUFFERS_HAND) && \
-    !(defined USE_SEPARATE_ENTITY_DRAWS && defined IS_IRIS)
+#if ( \
+    defined PROGRAM_GBUFFERS_BLOCK || defined PROGRAM_GBUFFERS_ENTITIES \
+    || defined PROGRAM_GBUFFERS_HAND \
+) && !(defined USE_SEPARATE_ENTITY_DRAWS && defined IS_IRIS)
 #ifdef DITHERED_TRANSLUCENCY_FALLBACK
     // Dithered transparency for translucent objects rendered as solid
-    float dither_pattern =
-        r1(frameCounter,
-           texelFetch(noisetex, ivec2(gl_FragCoord.xy) & 511, 0).z);
+    float dither_pattern = r1(
+        frameCounter,
+        texelFetch(noisetex, ivec2(gl_FragCoord.xy) & 511, 0).z
+    );
     if (base_color.a < dither_pattern) {
         discard;
         return;
@@ -333,12 +411,16 @@ void main() {
     const float vanilla_ao_lift = 0.0;
 #endif
 
-    base_color.rgb *= lift(vanilla_ao, vanilla_ao_lift) * vanilla_ao_strength +
-        (1.0 - vanilla_ao_strength);
+    base_color.rgb *= lift(vanilla_ao, vanilla_ao_lift) * vanilla_ao_strength
+        + (1.0 - vanilla_ao_strength);
 #endif
 
 #if defined PROGRAM_GBUFFERS_ENTITIES
     base_color.rgb = mix(base_color.rgb, entityColor.rgb, entityColor.a);
+#endif
+
+#if defined COLORWHEEL
+    base_color.rgb = mix(base_color.rgb, overlayColor.rgb, overlayColor.a);
 #endif
 
 #if defined PROGRAM_GBUFFERS_BLOCK
@@ -357,7 +439,7 @@ void main() {
 
     vec2 adjusted_light_levels = light_levels;
 
-#ifdef NORMAL_MAPPING
+#if defined NORMAL_MAPPING && !defined PROGRAM_GBUFFERS_VOXELS
     vec3 normal;
     float material_ao;
     decode_normal_map(normal_map, normal, material_ao);
@@ -371,7 +453,10 @@ void main() {
 #endif
 #endif
 
-#if defined NO_NORMAL
+#if defined PROGRAM_GBUFFERS_VOXELS
+#define flat_normal ph_normal
+#define detailed_normal ph_normal
+#elif defined NO_NORMAL
     // No normal vector => make one from screen-space partial derivatives
     vec3 particle_normal = normalize(cross(dFdx(scene_pos), dFdy(scene_pos)));
 #define flat_normal particle_normal
@@ -392,8 +477,8 @@ void main() {
         clamp01(float(material_mask) * rcp(255.0))
     );
     gbuffer_data_0.z = pack_unorm_2x8(encode_unit_vector(flat_normal));
-    gbuffer_data_0.w =
-        pack_unorm_2x8(dither_8bit(adjusted_light_levels, dither));
+    gbuffer_data_0.w
+        = pack_unorm_2x8(dither_8bit(adjusted_light_levels, dither));
 
 #ifdef NORMAL_MAPPING
     gbuffer_data_1.xy = encode_unit_vector(detailed_normal);
@@ -404,8 +489,8 @@ void main() {
     // Pack parallax shadow in alpha component of specular map
     // Specular map alpha >= 0.5 => parallax shadow
     specular_map.a *= step(specular_map.a, 0.999);
-    specular_map.a =
-        clamp01(specular_map.a * 0.5 + 0.5 * float(parallax_shadow));
+    specular_map.a
+        = clamp01(specular_map.a * 0.5 + 0.5 * float(parallax_shadow));
 #endif
 
     gbuffer_data_1.z = pack_unorm_2x8(specular_map.xy);

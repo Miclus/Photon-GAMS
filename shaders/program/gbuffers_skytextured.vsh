@@ -14,9 +14,17 @@
 out vec2 uv;
 out vec3 view_pos;
 
+#if MC_VERSION >= 260100
+out vec2 uv_mid;
+#endif
+
 flat out vec3 tint;
 flat out vec3 sun_color;
 flat out vec3 moon_color;
+
+#if MC_VERSION >= 260100
+attribute vec2 mc_midTexCoord;
+#endif
 
 // ------------
 //   Uniforms
@@ -42,17 +50,22 @@ void main() {
     sun_color = get_sun_exposure() * get_sun_tint();
     moon_color = get_moon_exposure() * get_moon_tint();
 
-    uv = mat2(gl_TextureMatrix[0]) * gl_MultiTexCoord0.xy +
-        gl_TextureMatrix[0][3].xy;
+    uv = mat2(gl_TextureMatrix[0]) * gl_MultiTexCoord0.xy
+        + gl_TextureMatrix[0][3].xy;
     tint = gl_Color.rgb;
+
+#if MC_VERSION >= 260100
+    uv_mid = mat2(gl_TextureMatrix[0]) * mc_midTexCoord
+        + gl_TextureMatrix[0][3].xy;
+#endif
 
     view_pos = transform(gl_ModelViewMatrix, gl_Vertex.xyz);
 
     vec4 clip_pos = project(gl_ProjectionMatrix, view_pos);
 
 #if defined TAA && defined TAAU
-    clip_pos.xy = clip_pos.xy * taau_render_scale +
-        clip_pos.w * (taau_render_scale - 1.0);
+    clip_pos.xy = clip_pos.xy * taau_render_scale
+        + clip_pos.w * (taau_render_scale - 1.0);
     clip_pos.xy += taa_offset * clip_pos.w;
 #elif defined TAA
     clip_pos.xy += taa_offset * clip_pos.w * 0.75;

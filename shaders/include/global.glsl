@@ -52,6 +52,12 @@
 
 #include "/settings.glsl"
 
+// Photonics shorthand, 'PHOTONICS' is always defined by Photonics when it's
+// installed
+#if defined PHOTONICS && defined PHOTONICS_ENABLED
+#define PHOTONICS_IN_USE
+#endif
+
 // Compatibility fixes
 
 #if MC_VERSION < 11700
@@ -70,9 +76,9 @@ const float pi = acos(-1.0);
 const float tau = 2.0 * pi;
 const float half_pi = 0.5 * pi;
 const float rcp_pi = 1.0 / pi;
-const float degree =
-    tau / 360.0; // Size of one degree in radians, useful because radians() is
-                 // not a constant expression on all platforms
+const float degree
+    = tau / 360.0; // Size of one degree in radians, useful because radians() is
+                   // not a constant expression on all platforms
 const float golden_ratio = 0.5 + 0.5 * sqrt(5.0);
 const float golden_angle = tau / golden_ratio / golden_ratio;
 const float hand_depth = 0.56;

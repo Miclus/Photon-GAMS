@@ -3,7 +3,7 @@
 
   Photon Shader by SixthSurge
 
-  program/c16_motion_blur:
+  program/c20_motion_blur:
   Apply motion blur
 
 --------------------------------------------------------------------------------
@@ -63,8 +63,8 @@ void main() {
     vec2 velocity = uv - reproject(vec3(uv, depth)).xy;
     ;
     vec2 pos = uv;
-    vec2 increment =
-        (0.5 * MOTION_BLUR_INTENSITY / float(MOTION_BLUR_SAMPLES)) * velocity;
+    vec2 increment
+        = (0.5 * MOTION_BLUR_INTENSITY / float(MOTION_BLUR_SAMPLES)) * velocity;
 
     vec3 color_sum = vec3(0.0);
     float weight_sum = 0.0;

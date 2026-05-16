@@ -17,9 +17,9 @@ vec3 get_voxel_volume_center(vec3 look_direction) {
     const float voxelization_fraction_behind_player = 0.15; // blocks
 
     return floor(
-        look_direction * voxel_volume_size *
-        (0.5 - voxelization_fraction_behind_player) *
-        rcp(max_of(abs(look_direction)))
+        look_direction * voxel_volume_size
+        * (0.5 - voxelization_fraction_behind_player)
+        * rcp(max_of(abs(look_direction)))
     );
 #else
     // Voxel volume is centered on the player (origin in scene space)
@@ -29,14 +29,14 @@ vec3 get_voxel_volume_center(vec3 look_direction) {
 
 vec3 scene_to_voxel_space(vec3 scene_pos) {
     vec3 to_center = get_voxel_volume_center(gbufferModelViewInverse[2].xyz);
-    return scene_pos + fract(cameraPosition) + (0.5 * vec3(voxel_volume_size)) +
-        to_center;
+    return scene_pos + fract(cameraPosition) + (0.5 * vec3(voxel_volume_size))
+        + to_center;
 }
 
 vec3 voxel_to_scene_space(vec3 voxel_pos) {
     vec3 to_center = get_voxel_volume_center(gbufferModelViewInverse[2].xyz);
-    return voxel_pos - fract(cameraPosition) - (0.5 * vec3(voxel_volume_size)) -
-        to_center;
+    return voxel_pos - fract(cameraPosition) - (0.5 * vec3(voxel_volume_size))
+        - to_center;
 }
 
 bool is_inside_voxel_volume(vec3 voxel_pos) {
@@ -46,6 +46,7 @@ bool is_inside_voxel_volume(vec3 voxel_pos) {
 
 #ifdef PROGRAM_SHADOW
 bool is_voxelized(uint block_id, bool vertex_at_grid_corner) {
+    #if !defined COLORWHEEL
     bool is_terrain = any(equal(
         ivec4(renderStage),
         ivec4(
@@ -55,6 +56,9 @@ bool is_voxelized(uint block_id, bool vertex_at_grid_corner) {
             MC_RENDER_STAGE_TERRAIN_CUTOUT_MIPPED
         )
     ));
+    #else
+    bool is_terrain = true;
+    #endif
 
     bool is_transparent_block = block_id == 1u || // Water
         block_id == 18u || // Transparent metal objects
@@ -64,8 +68,8 @@ bool is_voxelized(uint block_id, bool vertex_at_grid_corner) {
 
     bool is_light_emitting_block = 32u <= block_id && block_id < 64u;
 
-    return (vertex_at_grid_corner || is_light_emitting_block) && is_terrain &&
-        !is_transparent_block;
+    return (vertex_at_grid_corner || is_light_emitting_block) && is_terrain
+        && !is_transparent_block;
 }
 
 bvec3 disjunction(bvec3 a, bvec3 b) {
@@ -115,8 +119,8 @@ void update_voxel_map(uint block_id) {
     }
 
     // Mark transparent light sources
-    block_id =
-        (vertex_at_grid_corner) ? block_id : clamp(block_id + 128u, 0u, 255u);
+    block_id
+        = (vertex_at_grid_corner) ? block_id : clamp(block_id + 128u, 0u, 255u);
 
     if (is_voxelized && is_inside_voxel_volume(voxel_pos)) {
         imageStore(voxel_img, ivec3(voxel_pos), uvec4(block_id, 0u, 0u, 0u));

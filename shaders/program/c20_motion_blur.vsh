@@ -3,7 +3,7 @@
 
   Photon Shader by SixthSurge
 
-  program/c16_motion_blur:
+  program/c20_motion_blur:
   Apply motion blur
 
 --------------------------------------------------------------------------------

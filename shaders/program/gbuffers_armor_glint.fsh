@@ -13,7 +13,11 @@
 
 layout(location = 0) out vec4 frag_color;
 
+#if MC_VERSION > 12111
+/* RENDERTARGETS: 13 */
+#else
 /* RENDERTARGETS: 3 */
+#endif
 
 in vec2 uv;
 
@@ -38,12 +42,24 @@ void main() {
     }
 #endif
 
+#if defined COLORWHEEL
+	vec4 color = texture(gtexture, uv, lod_bias);
+	vec2 lmcoord;
+	float ao;
+	vec4 overlayColor;
+
+	clrwl_computeFragment(color, color, lmcoord, ao, overlayColor);
+	color.rgb = mix(color.rgb, overlayColor.rgb, overlayColor.a);
+    
+	vec3 armor_glint = color.rgb;
+#else
     vec3 armor_glint = texture(gtexture, uv, lod_bias).rgb;
+#endif
 
 #if defined IS_IRIS
     // New overlay handling
-    frag_color.rgb = (srgb_eotf_inv(armor_glint) * rec709_to_working_color) *
-        ENCHANTMENT_GLINT_BRIGHTNESS;
+    frag_color.rgb = (srgb_eotf_inv(armor_glint) * rec709_to_working_color)
+        * ENCHANTMENT_GLINT_BRIGHTNESS;
     frag_color.a = 0.0;
 #else
     // Old overlay handling

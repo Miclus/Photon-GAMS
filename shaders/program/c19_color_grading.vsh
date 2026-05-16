@@ -3,7 +3,7 @@
 
   Photon Shader by SixthSurge
 
-  program/c14_color_grading:
+  program/c19_color_grading:
   Apply bloom, color grading and tone mapping then convert to rec. 709
 
 --------------------------------------------------------------------------------

@@ -12,12 +12,17 @@
 #include "/include/global.glsl"
 
 out vec2 uv;
-out vec2 light_levels;
 out vec3 scene_pos;
 out vec4 tint;
 
 flat out uint material_mask;
 flat out mat3 tbn;
+
+#if defined COLORWHEEL
+vec2 light_levels;
+#else
+out vec2 light_levels;
+#endif
 
 #if defined POM
 out vec2 atlas_tile_coord;
@@ -28,10 +33,16 @@ flat out vec2 atlas_tile_scale;
 
 #if defined PROGRAM_GBUFFERS_TERRAIN
 out float vanilla_ao;
+#elif defined COLORWHEEL
+float vanilla_ao;
 #endif
 
 #if defined PROGRAM_GBUFFERS_ENTITIES || defined PROGRAM_GBUFFERS_HAND
 out vec2 uv_local;
+#endif
+
+#if defined PROGRAM_GBUFFERS_VOXELS
+out vec3 block_normal;
 #endif
 
 // --------------
@@ -83,8 +94,8 @@ uniform int blockEntityId;
 uniform int entityId;
 #endif
 
-#if (defined PROGRAM_GBUFFERS_ENTITIES || defined PROGRAM_GBUFFERS_HAND) && \
-    defined IS_IRIS
+#if (defined PROGRAM_GBUFFERS_ENTITIES || defined PROGRAM_GBUFFERS_HAND) \
+    && defined IS_IRIS
 uniform int currentRenderedItemId;
 #endif
 
@@ -93,18 +104,22 @@ uniform int currentRenderedItemId;
 #include "/include/vertex/utility.glsl"
 
 void main() {
-    uv = gl_MultiTexCoord0.xy;
+    uv = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
     light_levels = clamp01(gl_MultiTexCoord1.xy * rcp(240.0));
     tint = gl_Color;
     material_mask = get_material_mask();
     tbn = get_tbn_matrix();
 
+#if defined PROGRAM_GBUFFERS_VOXELS
+    block_normal = gl_Normal;
+#endif
+
 #if defined PROGRAM_GBUFFERS_TERRAIN
     vanilla_ao = gl_Color.a < 0.1
         ? 1.0
         : gl_Color.a; // fixes models where vanilla ao breaks (eg lecterns)
-    vanilla_ao =
-        material_mask == 5 ? 1.0 : vanilla_ao; // no vanilla ao on leaves
+    vanilla_ao
+        = material_mask == 5 ? 1.0 : vanilla_ao; // no vanilla ao on leaves
     tint.a = 1.0;
 
 #ifdef POM
@@ -116,7 +131,7 @@ void main() {
 #endif
 #endif
 
-#if defined PROGRAM_GBUFFERS_ENTITIES
+#if defined PROGRAM_GBUFFERS_ENTITIES && !defined COLORWHEEL
     // Fix fire entity not glowing with Colored Lights
     if (light_levels.x > 0.99) {
         material_mask = 40;
@@ -159,8 +174,8 @@ void main() {
     vec4 clip_pos = project(gl_ProjectionMatrix, view_pos);
 
 #if defined TAA && defined TAAU
-    clip_pos.xy = clip_pos.xy * taau_render_scale +
-        clip_pos.w * (taau_render_scale - 1.0);
+    clip_pos.xy = clip_pos.xy * taau_render_scale
+        + clip_pos.w * (taau_render_scale - 1.0);
     clip_pos.xy += taa_offset * clip_pos.w;
 #elif defined TAA
     clip_pos.xy += taa_offset * clip_pos.w * 0.66;

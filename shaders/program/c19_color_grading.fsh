@@ -3,7 +3,7 @@
 
   Photon Shader by SixthSurge
 
-  program/c14_color_grading:
+  program/c19_color_grading:
   Apply bloom, color grading and tone mapping then convert to rec. 709
 
 --------------------------------------------------------------------------------
@@ -44,53 +44,13 @@ uniform vec2 view_pixel_size;
 #include "/include/utility/bicubic.glsl"
 #include "/include/utility/color.glsl"
 
-// Bloom
+vec3 get_bloom() {
+    // Upsample last bloom tile. 
 
-vec3 get_bloom(out vec3 fog_bloom) {
-    const int tile_count = 6;
-    const float radius = 1.0;
+    vec2 pad_amount = 6.0 * view_pixel_size;
+    vec2 uv_src = clamp(uv, pad_amount, 1.0 - pad_amount) * 0.5;
 
-    vec3 tile_sum = vec3(0.0);
-
-    float weight = 1.0;
-    float weight_sum = 0.0;
-
-#if defined BLOOMY_FOG || defined BLOOMY_RAIN
-    const float fog_bloom_radius = 1.5;
-
-    fog_bloom = vec3(0.0); // large-scale bloom for bloomy fog
-    float fog_bloom_weight = 1.0;
-    float fog_bloom_weight_sum = 0.0;
-#endif
-
-    for (int i = 0; i < tile_count; ++i) {
-        float a = exp2(float(-i));
-
-        float tile_scale = 0.5 * a;
-        vec2 tile_offset = vec2(1.0 - a, float(i & 1) * (1.0 - 0.5 * a));
-
-        vec2 tile_coord = uv * tile_scale + tile_offset;
-
-        vec3 tile = texture(colortex0, tile_coord).rgb;
-
-        tile_sum += tile * weight;
-        weight_sum += weight;
-
-        weight *= radius;
-
-#if defined BLOOMY_FOG || defined BLOOMY_RAIN
-        fog_bloom += tile * fog_bloom_weight;
-
-        fog_bloom_weight_sum += fog_bloom_weight;
-        fog_bloom_weight *= fog_bloom_radius;
-#endif
-    }
-
-#if defined BLOOMY_FOG || defined BLOOMY_RAIN
-    fog_bloom /= fog_bloom_weight_sum;
-#endif
-
-    return tile_sum / weight_sum;
+    return BLOOM_UPSAMPLING_FILTER(colortex0, uv_src).rgb;
 }
 
 // Color grading
@@ -120,7 +80,7 @@ vec3 grade_input(vec3 rgb) {
     float lum = dot(rgb, luminance_weights);
     rgb = max0(mix(vec3(lum), rgb, saturation));
 
-    // White balance 
+    // White balance
 #if GRADE_WHITE_BALANCE != 6500
     rgb = rgb * rec2020_to_xyz;
     rgb = rgb * white_balance_matrix;
@@ -173,12 +133,13 @@ float vignette(vec2 uv) {
 
     float darkness_pulse = 1.0 - dampen(abs(cos(2.0 * frameTimeCounter)));
 
-    float vignette =
-        vignette_size * (uv.x * uv.y - uv.x) * (uv.x * uv.y - uv.y);
-    vignette =
-        pow(vignette,
-            vignette_intensity + 0.1 * biome_cave + 0.3 * blindness +
-                0.2 * darkness_pulse * darknessFactor);
+    float vignette
+        = vignette_size * (uv.x * uv.y - uv.x) * (uv.x * uv.y - uv.y);
+    vignette = pow(
+        vignette,
+        vignette_intensity + 0.1 * biome_cave + 0.3 * blindness
+            + 0.2 * darkness_pulse * darknessFactor
+    );
 
     return vignette;
 }
@@ -191,18 +152,18 @@ void main() {
     float exposure = texelFetch(colortex5, ivec2(0), 0).a;
 
 #ifdef BLOOM
-    vec3 fog_bloom;
-    vec3 bloom = get_bloom(fog_bloom);
+    vec3 bloom = get_bloom();
     float bloom_intensity = 0.12 * BLOOM_INTENSITY;
 
     scene_color = mix(scene_color, bloom, bloom_intensity);
 
 #ifdef BLOOMY_FOG
     float fog_transmittance = texture(colortex3, uv * taau_render_scale).x;
-    scene_color =
-        mix(fog_bloom,
-            scene_color,
-            pow(fog_transmittance, BLOOMY_FOG_INTENSITY));
+    scene_color = mix(
+        bloom,
+        scene_color,
+        pow(fog_transmittance, BLOOMY_FOG_INTENSITY)
+    );
 #endif
 #endif
 
@@ -215,8 +176,8 @@ void main() {
     scene_color = grade_input(scene_color);
 
 #ifdef TONEMAP_COMPARISON
-    scene_color =
-        uv.x < 0.5 ? tonemap_left(scene_color) : tonemap_right(scene_color);
+    scene_color
+        = uv.x < 0.5 ? tonemap_left(scene_color) : tonemap_right(scene_color);
 #else
     scene_color = tonemap(scene_color);
 #endif

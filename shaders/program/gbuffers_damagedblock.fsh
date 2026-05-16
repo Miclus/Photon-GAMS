@@ -43,13 +43,23 @@ void main() {
 #endif
 
     damage_overlay = texture(gtexture, uv, lod_bias);
+
+#if defined COLORWHEEL
+	vec2 lmcoord;
+	float ao;
+	vec4 overlayColor;
+
+	clrwl_computeFragment(damage_overlay, damage_overlay, lmcoord, ao, overlayColor);
+	damage_overlay.rgb = mix(damage_overlay.rgb, overlayColor.rgb, overlayColor.a);
+#endif
+
     if (damage_overlay.a < 0.1) {
         discard;
     }
 
 #ifdef USE_SEPARATE_ENTITY_DRAWS
-    damage_overlay.rgb =
-        0.5 * srgb_eotf_inv(2.0 * damage_overlay.rgb) * rec709_to_rec2020;
+    damage_overlay.rgb
+        = 0.5 * srgb_eotf_inv(2.0 * damage_overlay.rgb) * rec709_to_rec2020;
     damage_overlay.a = 1.0;
 #else
     // Old overlay handling

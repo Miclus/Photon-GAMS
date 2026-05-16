@@ -18,8 +18,8 @@ vec3 rayleigh_phase(float nu) {
 float henyey_greenstein_phase(float nu, float g) {
     float gg = g * g;
 
-    return (isotropic_phase - isotropic_phase * gg) /
-        pow1d5(1.0 + gg - 2.0 * g * nu);
+    return (isotropic_phase - isotropic_phase * gg)
+        / pow1d5(1.0 + gg - 2.0 * g * nu);
 }
 
 float cornette_shanks_phase(float nu, float g) {
@@ -38,7 +38,7 @@ float klein_nishina_phase(float nu, float e) {
 }
 
 float klein_nishina_phase_area(float nu, float e, float radius) {
-    float radius_eff=max(radius,eps);//Prevent divide by 0 
+    float radius_eff = max(radius, eps); // Prevent divide by 0
     float cosr = cos(radius_eff);
     float sinr = sin(radius_eff);
     // shifted cosine with clamp to avoid dark hole
@@ -49,31 +49,34 @@ float klein_nishina_phase_area(float nu, float e, float radius) {
     return e / (tau * (e - e * mu + 1.0) * log(2.0 * e + 1.0));
 }
 
-float nvidia_phase(float nu, float g, float a){
-    float gg = g*g;
-    return ((1 - gg)*(1 + a*nu*nu))/(pi * pow1d5(1+gg-(2*g*nu))*4.0*(1 + (a*(1 + 2*gg))/3.0));
+float nvidia_phase(float nu, float g, float a) {
+    float gg = g * g;
+    return ((1 - gg) * (1 + a * nu * nu))
+        / (pi * pow1d5(1 + gg - (2 * g * nu)) * 4.0
+           * (1 + (a * (1 + 2 * gg)) / 3.0));
 }
 
-float nvidia_phase_area(float nu, float g, float a,float radius){
-    float radius_eff=max(radius,eps);//Prevent divide by 0 
+float nvidia_phase_area(float nu, float g, float a, float radius) {
+    float radius_eff = max(radius, eps); // Prevent divide by 0
     float cosr = cos(radius_eff);
     float sinr = sin(radius_eff);
     float mu = nu * cosr + sqrt(max(0.0, 1.0 - nu * nu)) * sinr;
     if (nu > cosr) {
         mu = 1.0; // keep center bright
     }
-    float gg = g*g;
-    return ((1 - gg)*(1 + a*mu*mu))/(pi * pow1d5(1+gg-(2*g*mu))*4.0*(1 + (a*(1 + 2*gg))/3.0));
+    float gg = g * g;
+    return ((1 - gg) * (1 + a * mu * mu))
+        / (pi * pow1d5(1 + gg - (2 * g * mu)) * 4.0
+           * (1 + (a * (1 + 2 * gg)) / 3.0));
 }
 
-
-
-// A phase function specifically designed for leaves. k_d is the diffuse reflection, and smaller
-// values returns a brighter phase value. Thanks to Jessie for sharing this in the #snippets channel
-// of the shader_l_a_b_s discord server
+// A phase function specifically designed for leaves. k_d is the diffuse
+// reflection, and smaller values returns a brighter phase value. Thanks to
+// Jessie for sharing this in the #snippets channel of the shader_l_a_b_s
+// discord server
 float bilambertian_plate_phase(float nu, float k_d) {
-    float phase = 2.0 *
-        (-pi * nu * k_d + sqrt(clamp01(1.0 - sqr(nu))) + nu * fast_acos(-nu));
+    float phase = 2.0
+        * (-pi * nu * k_d + sqrt(clamp01(1.0 - sqr(nu))) + nu * fast_acos(-nu));
     return phase * rcp(3.0 * pi * pi);
 }
 
