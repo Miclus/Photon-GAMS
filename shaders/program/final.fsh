@@ -33,7 +33,6 @@ uniform sampler2D shadowtex0;
 #endif
 
 #ifdef RAIN_LENS
-uniform float rainStrength;
 uniform float biome_may_rain;
 uniform float eye_skylight;
 #endif
@@ -50,13 +49,17 @@ uniform float camera_water_state;
 uniform int isEyeInWater;
 #endif
 
-#if defined RAIN_LENS || defined INOUT_WATER_EFFECT || defined SPREADING_FROST
-uniform sampler2D noisetex;
-#endif
-
 #ifdef SPREADING_FROST
 uniform float biome_may_snow;
 uniform float is_snowing_biome;
+#endif
+
+#if defined RAIN_LENS || defined SPREADING_FROST_SNOWING_ONLY
+uniform float rainStrength;
+#endif
+
+#if defined RAIN_LENS || defined INOUT_WATER_EFFECT || defined SPREADING_FROST
+uniform sampler2D noisetex;
 #endif
 
 #include "/include/utility/bicubic.glsl"

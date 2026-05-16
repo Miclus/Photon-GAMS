@@ -160,8 +160,10 @@ vec4 compute_vbil(
                 if (visible_bits != 0u) {
                     float visibility
                         = float(bitCount(visible_bits)) * (1.0 / 32.0);
-                    vec3 radiance = textureLod(colortex5, ray_pos, 0.0).rgb;
-                    total_radiance += radiance * visibility;
+#ifndef PHOTONICS_IN_USE
+                        vec3 radiance = textureLod(colortex5, ray_pos, 0.0).rgb;
+                        total_radiance += radiance * visibility;
+#endif
 
                     float hit_dist = length(delta_pos_front);
                     float ao_falloff = clamp01(1.0 - hit_dist / max_ao_dist);
@@ -175,7 +177,9 @@ vec4 compute_vbil(
         float occlusion = float(bitCount(occlusion_mask)) * (1.0 / 32.0);
 
         ao += 1.0 - slice_occlusion_ao;
+#ifndef PHOTONICS_IN_USE
         gi += total_radiance;
+#endif
     }
 
     float normalization = rcp(float(VBIL_SLICES));
