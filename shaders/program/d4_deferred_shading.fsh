@@ -398,7 +398,7 @@ void main() {
 		// Rain puddles
 
 #if defined WORLD_OVERWORLD && defined RAIN_PUDDLES
-		if (wetness > eps && biome_may_rain > eps) {
+		if (wetness > eps && biome_may_rain > eps && !is_hand) {
 			bool puddle = get_rain_puddles(
 				position_world,
 				flat_normal,
