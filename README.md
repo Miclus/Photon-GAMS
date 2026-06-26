@@ -43,6 +43,7 @@
 * [Distant Horizons](https://www.curseforge.com/minecraft/mc-mods/distant-horizons)
 * [Voxy](https://modrinth.com/mod/voxy)
 * [Photonics](https://modrinth.com/mod/photonics)
+* [Colorwheel](https://modrinth.com/mod/colorwheel)
 
 ## Community
 
