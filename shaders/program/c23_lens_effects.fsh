@@ -34,10 +34,6 @@ uniform sampler2D colortex0; // Scene color
 uniform float frameTimeCounter;
 uniform float aspectRatio;
 
-#ifdef LENS_FLARE
-uniform float blindness;
-#endif
-
 #if defined LENS_FLARE && defined LENS_DIRT
 uniform sampler2D colortex17; // Lens dirt texture
 #endif
@@ -58,6 +54,8 @@ uniform vec2 view_res;
 #ifdef LENS_FLARE
 uniform sampler2D depthtex0;
 uniform sampler2D colortex11;
+uniform float blindness;
+uniform mat4 gbufferProjection;
 #endif
 
 #if defined LENS_FLARE && defined LF_MOONPHASE

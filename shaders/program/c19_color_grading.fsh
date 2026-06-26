@@ -448,7 +448,7 @@ vec3 melon_hueshift(vec3 col) {
 }
 
 vec3 tonemap_melon(vec3 rgb) {
-    rgb *= 2.1;
+    rgb *= 1.8;
 
     // remaps the colors to [0-1] range
     // tested to be as close to ACES contrast levels as possible
