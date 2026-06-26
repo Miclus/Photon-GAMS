@@ -116,14 +116,14 @@ float get_water_caustics() {
     return 1.0;
 #else
     // TBN matrix for a face pointing directly upwards
-    const mat3 tbn = mat3(1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0);
+    const mat3 tbn = mat3(-1.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, 1.0, 0.0);
 
     const bool flowing_water = false;
     const vec2 flow_dir = vec2(0.0);
 
     vec3 world_pos = scene_pos + cameraPosition;
 
-    vec2 coord = world_pos.xz;
+    vec2 coord = -world_pos.xz;
     vec3 normal
         = tbn
         * get_water_normal(

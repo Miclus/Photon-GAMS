@@ -22,12 +22,17 @@ flat out vec3 tint;
 flat out vec3 sun_color;
 flat out vec3 moon_color;
 
+#if MC_VERSION >= 260100
+attribute vec2 mc_midTexCoord;
+#endif
+
 // ------------
 //   Uniforms
 // ------------
 
 uniform float sunAngle;
 uniform float rainStrength;
+uniform int moonPhase;
 
 uniform vec2 taa_offset;
 
@@ -40,10 +45,6 @@ uniform float time_sunset;
 uniform float time_midnight;
 
 #include "/include/lighting/colors/light_color.glsl"
-
-#if MC_VERSION >= 260100
-attribute vec2 mc_midTexCoord;
-#endif
 
 void main() {
     sun_color = get_sun_exposure() * get_sun_tint();

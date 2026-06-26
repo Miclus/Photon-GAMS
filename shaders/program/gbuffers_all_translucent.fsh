@@ -628,6 +628,7 @@ void main() {
 
         if (fragment_color.a < 0.1) {
             discard;
+            return;
         }
 
         material = material_from(

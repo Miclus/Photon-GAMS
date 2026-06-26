@@ -17,11 +17,6 @@ layout(location = 0) out vec3 scene_color;
 
 in vec2 uv;
 
-#ifdef LENS_FLARE
-flat in vec3 upVec, sunVec;
-in float cloud_occlusion;
-#endif
-
 // ------------
 //   Uniforms
 // ------------
@@ -41,46 +36,11 @@ uniform float eye_skylight;
 
 uniform vec2 view_pixel_size;
 
-#ifdef LENS_FLARE
-uniform sampler2D depthtex0;
-uniform sampler2D colortex8;
-uniform sampler2D colortex11;
-uniform sampler2D noisetex;
-uniform mat4 gbufferProjection;
-uniform float rainStrength;
-uniform vec3 sunPosition;
-#endif
-
-#if defined LENS_FLARE && defined LF_MOONPHASE
-uniform float moon_phase_brightness;
-#endif
-
-#if defined LENS_FLARE && defined LOD_MOD_ACTIVE
-uniform mat4 gbufferProjectionInverse;
-uniform float near;
-#endif
-
-#ifdef LENS_DIRT
-uniform sampler2D colortex17; // lens dirt image
-#endif
-
-#if defined LENS_FLARE || defined LENS_DIRT
-uniform int isEyeInWater;
-#endif
-
 #include "/include/tonemapping/aces/aces.glsl"
 #include "/include/tonemapping/agx.glsl"
 #include "/include/tonemapping/bottosson.glsl"
 #include "/include/tonemapping/zcam_justjohn.glsl"
 // #include "/include/tonemapping/hatchling_oklab.glsl"
-
-#if defined LENS_FLARE && defined LOD_MOD_ACTIVE
-#include "/include/misc/lod_mod_support.glsl"
-#endif
-
-#ifdef LENS_FLARE
-#include "/include/post_processing/lens_effects/lens_flare.glsl"
-#endif
 
 #if (tonemap == tonemap_opendrt) \
     || (defined(TONEMAP_COMPARISON) \
@@ -488,7 +448,7 @@ vec3 melon_hueshift(vec3 col) {
 }
 
 vec3 tonemap_melon(vec3 rgb) {
-    rgb *= 1.8;
+    rgb *= 2.1;
 
     // remaps the colors to [0-1] range
     // tested to be as close to ACES contrast levels as possible
@@ -601,13 +561,6 @@ void main() {
 #ifdef BLOOM
     vec3 bloom = get_bloom();
     float bloom_intensity = 0.12 * BLOOM_INTENSITY;
-
-#ifdef LENS_DIRT
-    if (isEyeInWater == 0) {
-        vec3 lens_dirt = texture(colortex17, uv).rgb;
-        bloom *= lens_dirt * LENS_DIRT_BLOOM_INTENSITY;
-    }
-#endif
 
     scene_color = mix(scene_color, bloom, bloom_intensity);
 
@@ -744,9 +697,5 @@ void main() {
         scene_color += y[2] * working_to_display_color;
     }
 
-#endif
-
-#if defined LENS_FLARE && !defined WORLD_NETHER && !defined WORLD_MOON
-    lens_flare(scene_color);
 #endif
 }

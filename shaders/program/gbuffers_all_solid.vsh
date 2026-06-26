@@ -142,26 +142,12 @@ void main() {
     // Make enderman/nether portal particles glow
     if (gl_Color.r > gl_Color.g && gl_Color.g < 0.6 && gl_Color.b > 0.4) {
         material_mask = 47;
-    } else {
-        material_mask = 27;
     }
 #endif
 
 #if defined PROGRAM_GBUFFERS_BEACONBEAM
     // Make beacon beam glow
     material_mask = 32;
-#endif
-
-#if defined PROGRAM_GBUFFERS_ENTITIES_TRANSLUCENT
-    if (material_mask == 102) {
-        material_mask = 80;
-    }
-#endif
-
-#if defined PROGRAM_GBUFFERS_ENTITIES_TRANSLUCENT
-    if (material_mask == 80u) {
-        base_color = vec4(1.0);
-    }
 #endif
 
 #if defined PROGRAM_GBUFFERS_ENTITIES || defined PROGRAM_GBUFFERS_HAND
@@ -177,7 +163,6 @@ void main() {
     pos = pos + cameraPosition;
     pos = animate_vertex(pos, is_top_vertex, light_levels.y, material_mask);
     pos = pos - cameraPosition;
-    pos = world_curvature(pos);
 
     scene_pos = pos;
 

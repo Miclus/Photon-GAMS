@@ -32,52 +32,14 @@ uniform float frameTimeCounter;
 uniform sampler2D shadowtex0;
 #endif
 
-#ifdef RAIN_LENS
-uniform float biome_may_rain;
-uniform float eye_skylight;
-#endif
-
-#if defined RAIN_LENS || defined DISTANCE_VIEW
+#ifdef DISTANCE_VIEW
 uniform vec2 view_res;
-#endif
-
-#ifdef INOUT_WATER_EFFECT
-uniform float camera_water_state;
-#endif
-
-#if defined RAIN_LENS || defined INOUT_WATER_EFFECT
-uniform int isEyeInWater;
-#endif
-
-#ifdef SPREADING_FROST
-uniform float biome_may_snow;
-uniform float is_snowing_biome;
-#endif
-
-#if defined RAIN_LENS || defined SPREADING_FROST_SNOWING_ONLY
-uniform float rainStrength;
-#endif
-
-#if defined RAIN_LENS || defined INOUT_WATER_EFFECT || defined SPREADING_FROST
-uniform sampler2D noisetex;
 #endif
 
 #include "/include/utility/bicubic.glsl"
 #include "/include/utility/color.glsl"
 #include "/include/utility/dithering.glsl"
 #include "/include/utility/text_rendering.glsl"
-
-#ifdef RAIN_LENS
-#include "/include/post_processing/lens_effects/rain_lens.glsl"
-#endif
-
-#ifdef INOUT_WATER_EFFECT
-#include "/include/post_processing/lens_effects/inout_water_distortion.glsl"
-#endif
-
-#ifdef SPREADING_FROST
-#include "/include/post_processing/lens_effects/spreading_frost.glsl"
-#endif
 
 #ifdef DISTANCE_VIEW
 uniform sampler2D depthtex0;
@@ -324,16 +286,6 @@ void main() {
         fragment_color = display_eotf(fragment_color);
     }
 
-#ifdef INOUT_WATER_EFFECT
-	if (isEyeInWater <= 0.001) {
-		fragment_color = leave_water_distortion();
-	}
-	if (isEyeInWater >= 0.999) {
-		fragment_color = underwater_distortion();
-	}
-	fragment_color = display_eotf(fragment_color);
-#endif
-
     fragment_color = dither_8bit(fragment_color, bayer16(vec2(texel)));
 
 #if DEBUG_VIEW == DEBUG_VIEW_SAMPLER
@@ -386,18 +338,6 @@ void main() {
     if (uv.x < 0.0) {
         fragment_color = texture(shadowtex0, uv).rgb;
     }
-#endif
-
-#if defined RAIN_LENS && !defined WORLD_NETHER && !defined WORLD_END && !defined WORLD_MOON; // Add !defined for modded worlds that won't rain
-	if (isEyeInWater == 0 && rainStrength >= 0.001) {
-		fragment_color += rain_lens();
-	}
-#endif
-
-#ifdef SPREADING_FROST
-	if (biome_may_snow >= 0.001) {
-		fragment_color += spreading_frost();
-	}
 #endif
 }
 

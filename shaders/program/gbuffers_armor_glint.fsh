@@ -13,10 +13,9 @@
 
 layout(location = 0) out vec4 frag_color;
 
-#if MC_VERSION >= 12111
+#if MC_VERSION > 12111
 /* RENDERTARGETS: 13 */
 #else
-
 /* RENDERTARGETS: 3 */
 #endif
 

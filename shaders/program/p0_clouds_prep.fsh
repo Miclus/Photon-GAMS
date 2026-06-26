@@ -105,7 +105,7 @@ const vec3 sky_color = vec3(0.0);
 void main() {
     // Cloud shadow map
 
-#ifdef CLOUD_SHADOWS
+#if defined CLOUD_SHADOWS || defined LENS_FLARE || defined SCREENSPACE_VL
 #ifndef BLOCKY_CLOUDS
     fragment_color.xy = render_cloud_shadow_map(uv);
 #else

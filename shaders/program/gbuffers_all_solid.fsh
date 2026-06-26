@@ -248,8 +248,6 @@ void main() {
     bool parallax_shadow = false;
     float dither = interleaved_gradient_noise(gl_FragCoord.xy, frameCounter);
 
-    vec3 surface_scene_pos = scene_pos;
-
 #ifndef PROGRAM_GBUFFERS_VOXELS
 #if defined PROGRAM_GBUFFERS_TERRAIN && defined POM
     float view_distance = length(tangent_pos);
@@ -313,6 +311,7 @@ void main() {
 #else
     base_color = read_tex(gtexture) * tint;
 #endif
+
 #ifdef NORMAL_MAPPING
     vec3 normal_map = read_tex(normals).xyz;
 #endif
@@ -326,17 +325,17 @@ void main() {
     );
 
     vec3 view_pos = screen_to_view_space(screen_pos, true);
-    vec3 scene_pos_voxel = view_to_scene_space(view_pos);
+    vec3 scene_pos = view_to_scene_space(view_pos);
 
-    vec3 world_pos = scene_pos_voxel + cameraPosition;
-    vec3 world_dir = normalize(scene_pos_voxel - gbufferModelViewInverse[3].xyz);
+    vec3 world_pos = scene_pos + cameraPosition;
+    vec3 world_dir = normalize(scene_pos - gbufferModelViewInverse[3].xyz);
 
     RayJob ray = RayJob(
-        world_pos - world_offset - 0.001 * block_normal,
-        world_dir,
-        vec3(0.0),
-        vec3(0.0),
-        vec3(0.0),
+        world_pos - world_offset - 0.001f * block_normal, // Ray origin
+        world_dir, // Ray direction
+        vec3(0),
+        vec3(0),
+        vec3(0),
         false
     );
 
@@ -350,20 +349,18 @@ void main() {
         ray.result_normal = block_normal;
     }
 
-    scene_pos_voxel = ray.result_position + world_offset - cameraPosition;
-    view_pos = scene_to_view_space(scene_pos_voxel);
+    scene_pos = ray.result_position + world_offset - cameraPosition;
+    view_pos = scene_to_view_space(scene_pos);
     screen_pos = view_to_screen_space(gbufferProjection, view_pos, true);
 
     gl_FragDepth = screen_pos.z;
 
-    vec4 base_color = vec4(ray.result_color, 1.0);
+    vec4 base_color = vec4(ray.result_color, 1.0f);
     vec3 ph_normal = ray.result_normal;
 
-#ifdef SPECULAR_MAPPING
-    vec4 specular_map = vec4(0.0);
+#if defined SPECULAR_MAPPING
+    vec4 specular_map = vec4(0.0f);
 #endif
-
-    surface_scene_pos = scene_pos_voxel;
 #endif
 
 #if defined PROGRAM_GBUFFERS_ENTITIES
@@ -441,6 +438,35 @@ void main() {
 
     vec2 adjusted_light_levels = light_levels;
 
+// DISABLED: Armor trim emission/specular (conflicts with colorwheel)
+// The currentRenderedItemId checks cause colorwheel function injection to fail
+// TODO: Find alternative implementation or wait for compatibility fix
+/*
+#if defined PROGRAM_GBUFFERS_ENTITIES || defined PROGRAM_GBUFFERS_HAND
+    if (currentRenderedItemId == 45000) {
+        #ifdef HARDCODED_EMISSION
+            adjusted_light_levels = vec2(0.875);
+        #endif
+        #if defined HARDCODED_SPECULAR && defined SPECULAR_MAPPING
+            float luma = dot(base_color.rgb, vec3(0.299, 0.587, 0.114));
+            specular_map.r = 0.7 + 0.4 * luma;
+            specular_map.g = 1.0;
+            specular_map.b = 0.0;
+            specular_map.a = 0.0;
+        #endif
+    }
+    if (currentRenderedItemId == 45001) {
+        #if defined HARDCODED_SPECULAR && defined SPECULAR_MAPPING
+            float luma = dot(base_color.rgb, vec3(0.299, 0.587, 0.114));
+            specular_map.r = 0.6;
+            specular_map.g = 1.0;
+            specular_map.b = 0.0;
+            specular_map.a = 0.0;
+        #endif
+    }
+#endif
+*/
+
 #if defined NORMAL_MAPPING && !defined PROGRAM_GBUFFERS_VOXELS
     vec3 normal;
     float material_ao;
@@ -451,8 +477,7 @@ void main() {
     adjusted_light_levels *= mix(0.7, 1.0, material_ao);
 
 #ifdef DIRECTIONAL_LIGHTMAPS
-    adjusted_light_levels
-        *= get_directional_lightmaps(normal, surface_scene_pos, light_levels);
+    adjusted_light_levels *= get_directional_lightmaps(scene_pos, normal);
 #endif
 #endif
 
@@ -461,8 +486,7 @@ void main() {
 #define detailed_normal ph_normal
 #elif defined NO_NORMAL
     // No normal vector => make one from screen-space partial derivatives
-    vec3 particle_normal
-        = normalize(cross(dFdx(surface_scene_pos), dFdy(surface_scene_pos)));
+    vec3 particle_normal = normalize(cross(dFdx(scene_pos), dFdy(scene_pos)));
 #define flat_normal particle_normal
 #define detailed_normal particle_normal
 #else
@@ -472,39 +496,17 @@ void main() {
 
 #if defined PROGRAM_GBUFFERS_ENTITIES || defined PROGRAM_GBUFFERS_HAND
     uint new_material_mask = fix_material_mask();
-    #define material_mask new_material_mask
-    
-    // Emissive and specular armor trims
-    if (currentRenderedItemId == 45000) {
-        #ifdef HARDCODED_EMISSION
-            adjusted_light_levels = vec2(0.875);
-        #endif
-
-        #if defined HARDCODED_SPECULAR && defined SPECULAR_MAPPING
-            float luma = dot(base_color.rgb, vec3(0.299, 0.587, 0.114));
-
-            specular_map.r = 0.7 + 0.4 * luma;
-            specular_map.g = 1.0;
-            specular_map.b = 0.0;
-            specular_map.a = 0.0;
-        #endif
-    }
-    if (currentRenderedItemId == 45001) {
-        #if defined HARDCODED_SPECULAR && defined SPECULAR_MAPPING
-            float luma = dot(base_color.rgb, vec3(0.299, 0.587, 0.114));
-
-            specular_map.r = 0.6;
-            specular_map.g = 1.0;
-            specular_map.b = 0.0;
-            specular_map.a = 0.0;
-        #endif
-    }
+#define material_mask new_material_mask
 #endif
 
     gbuffer_data_0.x = pack_unorm_2x8(base_color.rg);
-    gbuffer_data_0.y = pack_unorm_2x8(base_color.b, clamp01(float(material_mask) * rcp(255.0)));
+    gbuffer_data_0.y = pack_unorm_2x8(
+        base_color.b,
+        clamp01(float(material_mask) * rcp(255.0))
+    );
     gbuffer_data_0.z = pack_unorm_2x8(encode_unit_vector(flat_normal));
-    gbuffer_data_0.w = pack_unorm_2x8(dither_8bit(adjusted_light_levels, dither));
+    gbuffer_data_0.w
+        = pack_unorm_2x8(dither_8bit(adjusted_light_levels, dither));
 
 #ifdef NORMAL_MAPPING
     gbuffer_data_1.xy = encode_unit_vector(detailed_normal);

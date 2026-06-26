@@ -13,10 +13,15 @@
 #include "/include/global.glsl"
 
 out vec2 uv;
-out vec2 light_levels;
 out vec3 position_view;
 out vec3 position_scene;
 out vec4 tint;
+
+#if defined COLORWHEEL
+vec2 light_levels;
+#else
+out vec2 light_levels;
+#endif
 
 flat out uint material_mask;
 flat out mat3 tbn;

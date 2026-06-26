@@ -1,4 +1,4 @@
-//https://www.shadertoy.com/view/XddcRr
+// https://www.shadertoy.com/view/XddcRr
 // Spreading Frost by dos
 // Inspired by https://www.shadertoy.com/view/MsySzy by shadmar
 
@@ -54,5 +54,5 @@ vec3 spreading_frost() {
         snow_factor = rainStrength;
     #endif
 
-    return (frozen - fragment_color) * (1.0 - mix_factor) * sqr(biome_may_snow) * SPREADING_FROST_INTENSITY * snow_factor;
+    return (frozen - scene_color) * (1.0 - mix_factor) * sqr(biome_may_snow) * SPREADING_FROST_INTENSITY * snow_factor;
 }
