@@ -23,9 +23,9 @@ out vec2 uv;
 
 #ifdef LENS_FLARE
 flat out vec3 sun_vec, up_vec;
-out vec2 light_pos;
-out float SoU;
-out float cloud_occlusion;
+flat out vec2 light_pos;
+flat out float SoU;
+flat out float cloud_occlusion;
 #endif
 
 float get_cloud_occlusion(sampler2D colortex8) {

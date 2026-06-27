@@ -36,6 +36,11 @@ uniform float eye_skylight;
 
 uniform vec2 view_pixel_size;
 
+#ifdef LENS_DIRT
+uniform sampler2D colortex17; // Lens dirt texture
+uniform float isEyeInWater;
+#endif
+
 #include "/include/tonemapping/aces/aces.glsl"
 #include "/include/tonemapping/agx.glsl"
 #include "/include/tonemapping/bottosson.glsl"
@@ -561,6 +566,14 @@ void main() {
 #ifdef BLOOM
     vec3 bloom = get_bloom();
     float bloom_intensity = 0.12 * BLOOM_INTENSITY;
+
+#ifdef LENS_DIRT
+    if (isEyeInWater == 0) {
+        ivec2 dirt_texel = ivec2(texel * 0.5);
+        vec3 lens_dirt = texelFetch(colortex17, dirt_texel, 0).rgb;
+        bloom *= lens_dirt * LENS_DIRT_BLOOM_INTENSITY;
+    }
+#endif
 
     scene_color = mix(scene_color, bloom, bloom_intensity);
 

@@ -45,8 +45,6 @@ vec3 spreading_frost() {
                        SPREADING_FROST_CR_B);
     #endif
 
-    frozen = display_eotf(frozen);
-
     float mix_factor = smoothstep(icespread, 1.0, sqr(vignette));
 
     float snow_factor = 1.0;
@@ -54,5 +52,5 @@ vec3 spreading_frost() {
         snow_factor = rainStrength;
     #endif
 
-    return (frozen - scene_color) * (1.0 - mix_factor) * sqr(biome_may_snow) * SPREADING_FROST_INTENSITY * snow_factor;
+    return (frozen - scene_color) * (1.0 - mix_factor) * sqr(biome_may_snow) * snow_factor * SPREADING_FROST_INTENSITY;
 }

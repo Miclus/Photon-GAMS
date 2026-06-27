@@ -20,9 +20,9 @@ in vec2 uv;
 
 #ifdef LENS_FLARE
 flat in vec3 sun_vec, up_vec;
-in vec2 light_pos;
-in float SoU;
-in float cloud_occlusion;
+flat in vec2 light_pos;
+flat in float SoU;
+flat in float cloud_occlusion;
 #endif
 
 // ------------
@@ -55,7 +55,6 @@ uniform vec2 view_res;
 uniform sampler2D depthtex0;
 uniform sampler2D colortex11;
 uniform float blindness;
-uniform mat4 gbufferProjection;
 #endif
 
 #if defined LENS_FLARE && defined LF_MOONPHASE
@@ -63,6 +62,7 @@ uniform float moon_phase_brightness;
 #endif
 
 #if defined LENS_FLARE && defined LOD_MOD_ACTIVE
+uniform mat4 gbufferProjection;
 uniform mat4 gbufferProjectionInverse;
 uniform float near;
 #endif
@@ -112,6 +112,23 @@ uniform float rainStrength;
 void main() {
     scene_color = texture(colortex0, uv).rgb;
 
+    // Enter/leave water distortion
+#ifdef INOUT_WATER_EFFECT
+	if (isEyeInWater <= 0.001) {
+		leave_water_distortion(scene_color);
+	}
+	if (isEyeInWater >= 0.999) {
+		underwater_distortion(scene_color);
+	}
+#endif
+
+    // Spreading frost
+#ifdef SPREADING_FROST
+    if (biome_may_snow >= 0.001) {
+        scene_color += spreading_frost();
+    }
+#endif
+
     // Lens flare
 #if defined LENS_FLARE && !defined WORLD_NETHER && !defined WORLD_MOON
     if (isEyeInWater == 0) {
@@ -123,23 +140,6 @@ void main() {
 #if defined RAIN_LENS && !defined WORLD_NETHER && !defined WORLD_END && !defined WORLD_MOON
     if (isEyeInWater == 0 && rainStrength >= 0.001) {
         scene_color += rain_lens();
-    }
-#endif
-
-    // Enter/leave water distortion
-#ifdef INOUT_WATER_EFFECT
-	if (isEyeInWater <= 0.001) {
-		scene_color = leave_water_distortion();
-	}
-	if (isEyeInWater >= 0.999) {
-		scene_color = underwater_distortion();
-	}
-#endif
-
-    // Spreading frost
-#ifdef SPREADING_FROST
-    if (biome_may_snow >= 0.001) {
-        scene_color += spreading_frost();
     }
 #endif
 }

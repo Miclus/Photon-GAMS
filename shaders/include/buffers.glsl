@@ -17,7 +17,7 @@ const int colortex12Format = RGBA16F;        // full res    | clouds pixel age, 
 const int colortex13Format = RGBA16F;        // full res    | rendered translucent layer (translucent -> c1)
 const int colortex14Format = RG16F;          // quarter res | ambient occlusion history data (always)
 const int colortex15Format = R32F;           // full res    | LoD combined depth buffer (d1 -> c2)
-const int colortex17Format = RGBA8;          // full res    | lens dirt
+const int colortex17Format = RGBA8;          // full res    | Lens dirt texture (c19 -> c23)
 
 const bool colortex0Clear  = true;
 const bool colortex1Clear  = false;
