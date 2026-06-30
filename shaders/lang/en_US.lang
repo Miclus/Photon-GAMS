@@ -169,6 +169,7 @@ option.SHADER_AO.comment               = AO method used. Off - no shader AO. SSA
 value.SHADER_AO.SHADER_AO_NONE         = Off
 value.SHADER_AO.SHADER_AO_SSAO         = SSAO
 value.SHADER_AO.SHADER_AO_GTAO         = GTAO
+value.SHADER_AO.SHADER_AO_VBIL       = VBIL
 option.VANILLA_AO                      = Vanilla AO
 option.VANILLA_AO.comment              = Minecraft's built-in ambient occlusion
 option.SSAO_RADIUS                     = SSAO Radius
@@ -218,6 +219,8 @@ option.BLOCKLIGHT_R                    = §c▍ §fRed
 option.BLOCKLIGHT_G                    = §a▍ §fGreen
 option.BLOCKLIGHT_B                    = §9▍ §fBlue
 option.BLOCKLIGHT_I                    = Blocklight Intensity
+option.LIGHTMAP_MIX_I                  = Lightmap Mix Intensity
+option.LIGHTMAP_MIX_I.comment          = Controls how much the vanilla lightmap (blocklight/skylight) contributes to the final lighting.\nLower values let LPV colored lights or VBIL GI dominate; higher values make vanilla lighting more visible.\nAlso affects the intensity of LPV colored lights in the final render
 
 option.COLORED_LIGHTS_VANILLA_LIGHTMAP_CONTRIBUTION                 = Vanilla Lightmap Contribution
 option.COLORED_LIGHTS_VANILLA_LIGHTMAP_CONTRIBUTION_FALLOFF         = Contribution Falloff

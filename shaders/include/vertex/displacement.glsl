@@ -43,7 +43,8 @@ float gerstner_wave(
 
     float x = w * t - k * (dot(wave_dir, coord) + noise);
 
-    return sqr(sin(x) * 0.5 + 0.5);
+    // Spring-inspired exponential waveform: sharp crests, flat troughs
+    return exp(sin(x) - 1.0);
 }
 
 float get_water_displacement(vec3 world_pos, float skylight) {

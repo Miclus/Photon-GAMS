@@ -69,7 +69,7 @@ mat2x3 raymarch_water_fog(
 
     float LoV = dot(world_dir, light_dir);
 
-    vec3 step_transmittance = exp(-extinction_coeff * step_length);
+    vec3 step_transmittance = fast_exp_neg(extinction_coeff * step_length);
 
     vec3 scattering = vec3(0.0);
     vec3 transmittance = vec3(1.0);
@@ -110,8 +110,8 @@ mat2x3 raymarch_water_fog(
 #endif
 
         vec3 light_transmittance
-            = exp(-extinction_coeff * distance_traveled) * shadow;
-        vec3 sky_transmittance = exp(-extinction_coeff * distance_traveled_sky);
+            = fast_exp_neg(extinction_coeff * distance_traveled) * shadow;
+        vec3 sky_transmittance = fast_exp_neg(extinction_coeff * distance_traveled_sky);
 
         // Caustics pattern to create underwater light shafts
         float caustics = 0.67
@@ -142,6 +142,9 @@ mat2x3 raymarch_water_fog(
         }
 
         transmittance *= step_transmittance;
+
+        // Early exit when fog is nearly opaque
+        if (dot(transmittance, vec3(1.0)) < 1e-3) break;
     }
 
     scattering

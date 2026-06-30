@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿# Profiles
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿# Profiles
 
 profile.low                            = §e低
 profile.medium                         = §a中
@@ -222,6 +222,8 @@ option.BLOCKLIGHT_R                    = 方块光 - 红色
 option.BLOCKLIGHT_G                    = 方块光 - 绿色
 option.BLOCKLIGHT_B                    = 方块光 - 蓝色
 option.BLOCKLIGHT_I                    = 方块光强度
+option.LIGHTMAP_MIX_I                  = 光照贴图混合强度
+option.LIGHTMAP_MIX_I.comment          = 控制原版光照贴图（方块光/天空光）在最终光照中的混合比例.\n降低可减弱原版光照的覆盖, 让 LPV 彩色光或 VBIL GI 主导; 升高则让原版光照更明显.\n同时影响 LPV 彩色光在最终渲染中的强度
 
 option.VOXEL_VOLUME_SIZE               = 体素化大小
 option.VOXEL_VOLUME_SIZE.comment       = 调整彩色光照计算的体积大小. 高性能影响, 同时也受阴影距离影响.

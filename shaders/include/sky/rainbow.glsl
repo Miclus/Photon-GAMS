@@ -94,7 +94,6 @@ vec3 draw_rainbows(
                      rainbow_end_distance,
                      view_distance)
         * smoothstep(0.0, 0.05, direction_world.y);
-    ;
 
     return fragment_color + rainbow_color * rainbow_fade;
 }

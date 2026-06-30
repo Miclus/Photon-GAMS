@@ -153,7 +153,7 @@ mat2x3 raymarch_end_fog(
         float density = end_fog_density(world_pos) * step_length;
 
         vec3 step_optical_depth = extinction_coeff * density;
-        vec3 step_transmittance = exp(-step_optical_depth);
+        vec3 step_transmittance = fast_exp_neg(step_optical_depth);
         vec3 step_transmitted_fraction
             = (1.0 - step_transmittance) / max(step_optical_depth, eps);
 
@@ -185,6 +185,9 @@ mat2x3 raymarch_end_fog(
 #endif
 
         transmittance *= step_transmittance;
+
+        // Early exit when fog is nearly opaque
+        if (dot(transmittance, vec3(1.0)) < 1e-3) break;
     }
 
     scattering *= scattering_coeff;

@@ -46,12 +46,20 @@ uniform vec2 view_pixel_size;
 #include "/include/utility/color.glsl"
 
 vec3 get_bloom() {
-    // Upsample last bloom tile. 
+    // Upsample last bloom tile.
 
     vec2 pad_amount = 6.0 * view_pixel_size;
     vec2 uv_src = clamp(uv, pad_amount, 1.0 - pad_amount) * 0.5;
 
     return BLOOM_UPSAMPLING_FILTER(colortex0, uv_src).rgb;
+}
+
+// Large-scale bloom for bloomy fog — samples a smaller tile for wider light spread
+// in foggy areas, mimicking bright light scattering through haze
+vec3 get_fog_bloom() {
+    vec2 pad_amount = 6.0 * view_pixel_size;
+    vec2 uv_src = clamp(uv, pad_amount, 1.0 - pad_amount) * 0.125 + vec2(0.75, 0.0);
+    return texture(colortex0, uv_src).rgb;
 }
 
 // Color grading
@@ -64,9 +72,9 @@ vec3 gain(vec3 x, float k) {
 // Color grading applied before tone mapping
 // rgb := color in acescg [0, inf]
 vec3 grade_input(vec3 rgb) {
-    float brightness = 0.83 * GRADE_BRIGHTNESS;
+    float brightness = 1.00 * GRADE_BRIGHTNESS;
     float contrast = 1.00 * GRADE_CONTRAST;
-    float saturation = 0.98 * GRADE_SATURATION;
+    float saturation = 1.00 * GRADE_SATURATION;
 
     // Brightness
     rgb *= brightness;
@@ -154,17 +162,25 @@ void main() {
 
 #ifdef BLOOM
     vec3 bloom = get_bloom();
-    float bloom_intensity = 0.12 * BLOOM_INTENSITY;
+    float bloom_intensity = 0.15 * BLOOM_INTENSITY;
 
     scene_color = mix(scene_color, bloom, bloom_intensity);
 
 #ifdef BLOOMY_FOG
-    float fog_transmittance = texture(colortex3, uv * taau_render_scale).x;
-    scene_color = mix(
-        bloom,
-        scene_color,
-        pow(fog_transmittance, BLOOMY_FOG_INTENSITY)
+    // Bloomy fog: large-scale bloom bleeds into foggy areas, stronger in darkness.
+    // colortex3 stores transmittance luminance (0 = thick fog, 1 = no fog)
+    float bloomy_fog = texture(colortex3, uv * taau_render_scale).x;
+
+    vec3 fog_bloom = get_fog_bloom();
+
+    float scene_luminance = dot(scene_color, luminance_weights);
+    float bloomy_strength = 0.5 - 0.35 * linear_step(0.05, 1.0, scene_luminance);
+    bloomy_strength = max(bloomy_strength, 0.15);
+
+    float bloomy_amount = clamp01(
+        bloomy_strength * BLOOMY_FOG_INTENSITY * (1.0 - bloomy_fog)
     );
+    scene_color = mix(scene_color, fog_bloom, bloomy_amount);
 #endif
 #endif
 

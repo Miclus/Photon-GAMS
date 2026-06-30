@@ -83,7 +83,6 @@ uniform float time_midnight;
 // ------------
 
 #define ATMOSPHERE_SCATTERING_LUT depthtex0
-#define WEATHER_AURORA
 
 #if defined WORLD_OVERWORLD
 #include "/include/lighting/colors/light_color.glsl"

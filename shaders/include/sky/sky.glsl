@@ -162,7 +162,7 @@ vec3 draw_sky(
 #if defined PROGRAM_DEFERRED4
     vec3 skytextured_output
         = texelFetch(colortex0, ivec2(gl_FragCoord.xy), 0).rgb;
-    sky += texelFetch(colortex0, ivec2(gl_FragCoord.xy), 0).rgb;
+    sky += skytextured_output;
 
 #ifdef STARS
     // Stars

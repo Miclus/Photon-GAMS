@@ -605,10 +605,12 @@ Material material_from(
 #endif
                         } else { // 39
 #ifdef HARDCODED_EMISSION
-                            // Lava
-                            material.emission = 2.0 * albedo_sqrt
-                                * (0.2 + 0.8 * isolate_hue(hsl, 30.0, 15.0))
-                                * step(0.4, hsl.y) * hsl.z;
+                            // Lava — boost redness and brightness
+                            float redness = isolate_hue(hsl, 15.0, 30.0);
+                            float hot = pow4(hsl.z) * 0.7 + 0.3 * hsl.z;
+                            material.emission = 4.0 * albedo_sqrt
+                                * (0.3 + 0.7 * redness)
+                                * smoothstep(0.2, 0.5, hsl.y) * hot;
 #endif
                         }
                     }

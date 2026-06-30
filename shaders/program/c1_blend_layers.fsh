@@ -477,6 +477,22 @@ void main() {
 
     fragment_color = fragment_color * fog_transmittance + fog_scattering;
 
+    // Distance fog supplement — simple distance-based layer using sky color
+    // Only kicks in at far distances to complement volumetric fog
+#if defined WORLD_OVERWORLD
+    if (isEyeInWater == 0) {
+        float dist_fog_transmittance
+            = exp2(-0.0008 * max0(view_distance - 192.0));
+
+        // Shift fog color toward a cleaner sky tone to avoid gray/yellow haze
+        vec3 dist_fog_color = ambient_color + light_color * 0.1;
+
+        fragment_color = fragment_color * dist_fog_transmittance
+            + dist_fog_color * 0.25 * (1.0 - dist_fog_transmittance);
+        fog_transmittance *= dist_fog_transmittance;
+    }
+#endif
+
 #ifdef BLOOMY_FOG
     bloomy_fog
         = clamp01(dot(fog_transmittance, vec3(luminance_weights_rec2020)));

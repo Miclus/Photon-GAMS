@@ -12,16 +12,19 @@
 #define solid_angle_to_cone_angle(theta) acos(1.0 - (theta) / tau)
 
 const vec3 sunlight_color
-    = vec3(1.051, 0.985, 0.940)
+    = vec3(1.026, 0.988, 1.016)
     * rec709_to_rec2020;
 
 const float sun_angular_radius = SUN_ANGULAR_RADIUS * degree;
 const float moon_angular_radius = MOON_ANGULAR_RADIUS * degree;
 
-const ivec2 transmittance_res = ivec2(/* mu */ 256, /* r */ 64);
-const ivec3 scattering_res = ivec3(/* nu */ 16, /* mu */ 64, /* mu_s */ 32);
+const ivec3 transmittance_res = ivec3(/* mu */ 256, /* r */ 64, /* turbidity */ 8);
+const ivec4 scattering_res = ivec4(/* nu */ 16, /* mu */ 64, /* mu_s */ 32, /* turbidity */ 8);
 
 const float min_mu_s = -0.35;
+
+const float min_turbidity = 0.1;
+const float max_turbidity = 8.0;
 
 // Atmosphere boundaries
 
@@ -48,16 +51,16 @@ const float air_mie_g
 
 const vec2 air_scale_heights = vec2(8.4e3, 1.25e3); // m
 
-// Coefficients for Rec. 709 primaries transformed to Rec. 2020
+// Coefficients for Rec. 709 primaries transformed to AP1
 const vec3 air_rayleigh_coefficient
     = vec3(8.059375432e-06, 1.671209429e-05, 4.080133294e-05)
-    * rec709_to_rec2020;
+    * rec709_to_ap1_unlit;
 const vec3 air_mie_coefficient
     = vec3(1.666442358e-06, 1.812685127e-06, 1.958927896e-06)
-    * rec709_to_rec2020;
+    * rec709_to_ap1_unlit;
 const vec3 air_ozone_coefficient
     = vec3(8.304280072e-07, 1.314911970e-06, 5.440679729e-08)
-    * rec709_to_rec2020;
+    * rec709_to_ap1_unlit;
 
 const mat2x3 air_scattering_coefficients
     = mat2x3(air_rayleigh_coefficient, air_mie_albedo* air_mie_coefficient);
@@ -123,7 +126,7 @@ vec3 atmosphere_post_processing(vec3 atmosphere) {
     return mix(
         vec3(dot(atmosphere, luminance_weights_rec2020)),
         atmosphere,
-        ATMOSPHERE_SATURATION_BOOST_INTENSITY * atmosphere_saturation_boost_amount
+        0.50 * atmosphere_saturation_boost_amount
     );
 }
 
@@ -158,7 +161,25 @@ vec3 atmosphere_density(float r) {
     return vec3(rayleigh_mie, ozone);
 }
 
+float get_atmosphere_turbidity_uv(float turbidity) {
+    turbidity = linear_step(min_turbidity, max_turbidity, turbidity);
+    turbidity = sqrt(turbidity);
+    turbidity = get_uv_from_unit_range(turbidity, scattering_res.w);
+    return turbidity;
+}
+
 #if defined ATMOSPHERE_SCATTERING_LUT
+vec4 texture_4d(sampler3D sampler, vec4 coord, const ivec4 res) {
+    float i, f = modf(coord.w * float(res.w) - 0.5, i);
+    coord.z += i;
+    float texel = 1.0 / float(res.w);
+
+    vec4 s0 = texture(sampler, vec3(coord.xy, coord.z * texel));
+    vec4 s1 = texture(sampler, vec3(coord.xy, coord.z * texel + texel));
+
+    return mix(s0, s1, f);
+}
+
 vec3 atmosphere_scattering_uv(float nu, float mu, float mu_s) {
     // Improved mapping for nu from Spectrum by Zombye
 
@@ -263,19 +284,21 @@ vec3 atmosphere_scattering(
     mu = max(mu, horizon_mu);
 #endif
 
-    vec3 uv = atmosphere_scattering_uv(nu, mu, mu_s);
+    vec4 coord;
+    coord.xyz = atmosphere_scattering_uv(nu, mu, mu_s);
+    coord.w   = get_atmosphere_turbidity_uv(1.0);
 
     float mie_phase = atmosphere_mie_phase(nu, use_klein_nishina_phase);
 
     vec3 scattering;
 
     // Rayleigh + multiple scattering
-    uv.x *= 0.5;
-    scattering = texture(ATMOSPHERE_SCATTERING_LUT, uv).rgb;
+    coord.x *= 0.5;
+    scattering = texture_4d(ATMOSPHERE_SCATTERING_LUT, coord, scattering_res).rgb;
 
     // Single mie scattering
-    uv.x += 0.5;
-    scattering += texture(ATMOSPHERE_SCATTERING_LUT, uv).rgb * mie_phase;
+    coord.x += 0.5;
+    scattering += texture_4d(ATMOSPHERE_SCATTERING_LUT, coord, scattering_res).rgb * mie_phase;
 
     return atmosphere_post_processing(scattering, mu, nu);
 }
@@ -436,33 +459,39 @@ vec3 atmosphere_scattering(
         scattering_res.z
     );
 
-    // Sample atmosphere LUT
+    // Sample atmosphere LUT (4D with turbidity)
 
-    vec3 uv_sc = vec3(
+    float u_turbidity = get_atmosphere_turbidity_uv(1.0);
+
+    vec4 uv_sc = vec4(
         u_nu_sun * 0.5,
         u_mu,
-        u_mu_sun
+        u_mu_sun,
+        u_turbidity
     ); // Rayleigh + multiple scattering, sunlight
-    vec3 uv_sm = vec3(
+    vec4 uv_sm = vec4(
         u_nu_sun * 0.5 + 0.5,
         u_mu,
-        u_mu_sun
+        u_mu_sun,
+        u_turbidity
     ); // Mie scattering, sunlight
-    vec3 uv_mc = vec3(
+    vec4 uv_mc = vec4(
         u_nu_moon * 0.5,
         u_mu,
-        u_mu_moon
+        u_mu_moon,
+        u_turbidity
     ); // Rayleigh + multiple scattering, moonlight
-    vec3 uv_mm = vec3(
+    vec4 uv_mm = vec4(
         u_nu_moon * 0.5 + 0.5,
         u_mu,
-        u_mu_moon
+        u_mu_moon,
+        u_turbidity
     ); // Mie scattering, moonlight
 
-    vec3 scattering_sc = texture(ATMOSPHERE_SCATTERING_LUT, uv_sc).rgb;
-    vec3 scattering_sm = texture(ATMOSPHERE_SCATTERING_LUT, uv_sm).rgb;
-    vec3 scattering_mc = texture(ATMOSPHERE_SCATTERING_LUT, uv_mc).rgb;
-    vec3 scattering_mm = texture(ATMOSPHERE_SCATTERING_LUT, uv_mm).rgb;
+    vec3 scattering_sc = texture_4d(ATMOSPHERE_SCATTERING_LUT, uv_sc, scattering_res).rgb;
+    vec3 scattering_sm = texture_4d(ATMOSPHERE_SCATTERING_LUT, uv_sm, scattering_res).rgb;
+    vec3 scattering_mc = texture_4d(ATMOSPHERE_SCATTERING_LUT, uv_mc, scattering_res).rgb;
+    vec3 scattering_mm = texture_4d(ATMOSPHERE_SCATTERING_LUT, uv_mm, scattering_res).rgb;
 
     vec3 mie_phase_sun = atmosphere_mie_phase_sun(nu_sun);
     vec3 mie_phase_moon = atmosphere_mie_phase_moon(nu_moon);

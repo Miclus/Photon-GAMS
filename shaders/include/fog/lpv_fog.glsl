@@ -151,7 +151,7 @@ vec3 get_lpv_fog_scattering(
         mat2x3 coefficients = get_lpv_fog_coefficients(dithered_position_world)
             * step_length * distance_factor; // scattering, extinction
 
-        vec3 step_transmittance = exp(-coefficients[1]);
+        vec3 step_transmittance = fast_exp_neg(coefficients[1]);
         vec3 step_transmitted_fraction
             = (1.0 - step_transmittance) / max(coefficients[1], eps);
 
@@ -159,6 +159,9 @@ vec3 get_lpv_fog_scattering(
 
         inscattered_light += light * visible_scattering * coefficients[0];
         transmittance *= step_transmittance;
+
+        // Early exit when fog is nearly opaque
+        if (dot(transmittance, vec3(1.0)) < 1e-3) break;
 
         ray_position_world += ray_direction_world * step_length;
         step_length *= step_ratio;

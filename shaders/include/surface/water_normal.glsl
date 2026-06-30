@@ -3,6 +3,11 @@
 
 #include "/include/utility/space_conversion.glsl"
 
+// SY-style wave jitter: makes wave motion irregular across the water surface
+#ifndef WATER_WAVE_JITTER
+#define WATER_WAVE_JITTER 8.0
+#endif
+
 float gerstner_wave(
     vec2 coord,
     vec2 wave_dir,
@@ -10,6 +15,7 @@ float gerstner_wave(
     float noise,
     float wavelength
 ) {
+    // Gerstner wave function from Belmu in #snippets, modified
     const float g = 9.8;
 
     float k = tau / wavelength;
@@ -17,7 +23,8 @@ float gerstner_wave(
 
     float x = w * t - k * (dot(wave_dir, coord) + noise);
 
-    return sqr(sin(x) * 0.5 + 0.5);
+    // Spring-inspired exponential waveform: sharp crests, flat troughs
+    return exp(sin(x) - 1.0);
 }
 
 void water_waves_setup(
@@ -31,11 +38,11 @@ void water_waves_setup(
     const float wave_speed_flowing = 0.7 * WATER_WAVE_SPEED_FLOWING;
     const float wave_angle = 30.0 * degree;
 
-    t = (flowing_water ? wave_speed_flowing : wave_speed_still)
-        * frameTimeCounter;
+    t = (flowing_water ? wave_speed_flowing : wave_speed_still) *
+        frameTimeCounter;
 
-    wave_dir
-        = flowing_water ? flow_dir : vec2(cos(wave_angle), sin(wave_angle));
+    wave_dir =
+        flowing_water ? flow_dir : vec2(cos(wave_angle), sin(wave_angle));
     wave_rot = flowing_water
         ? mat2(1.0)
         : mat2(
@@ -47,75 +54,90 @@ void water_waves_setup(
 }
 
 float get_water_height(vec2 coord, vec2 wave_dir, mat2 wave_rot, float t) {
+    // Parameters
+
     // Gerstner waves
     const float wave_frequency = 0.7 * WATER_WAVE_FREQUENCY;
     const float persistence = 0.5 * WATER_WAVE_PERSISTENCE;
     const float lacunarity = 1.7 * WATER_WAVE_LACUNARITY;
 
     // Noise
-    const float noise_frequency = 0.007;
+    const float noise_frequency = 0.008;
     const float noise_strength = 3.5;
 
     // Height variation
     const float height_variation_frequency = 0.001;
-    const float min_height = 0.25;
+    const float min_height = 0.4;
     const float height_variation_scale = 2.0;
     const float height_variation_offset = -0.5;
     const float height_variation_scroll_speed = 0.1;
 
-    const float amplitude_normalization_factor = (1.0 - persistence)
-        / (1.0 - pow(persistence, float(WATER_WAVE_ITERATIONS)));
+    // Reciprical of sum of amplitudes of all waves
+    // This is a geometric series with initial value of 1 and common ratio of
+    // `persistence`
+    const float amplitude_normalization_factor = (1.0 - persistence) /
+        (1.0 - pow(persistence, float(WATER_WAVE_ITERATIONS)));
 
     // Sample noise textures first (latency hiding)
 
     float[WATER_WAVE_ITERATIONS] wave_noise;
     vec2 noise_coord = (coord + vec2(0.0, 0.25 * t)) * noise_frequency;
-    for (int i = 0; i < WATER_WAVE_ITERATIONS; ++i) {
+    for (uint i = 0u; i < WATER_WAVE_ITERATIONS; ++i) {
         wave_noise[i] = texture(noisetex, noise_coord).y;
         noise_coord *= 2.5;
     }
 
-#ifdef WATER_WAVES_HEIGHT_VARIATION
-    float height_variation_noise
-        = texture(
-              noisetex,
-              (coord + vec2(0.0, height_variation_scroll_speed * t))
-                  * height_variation_frequency
+    // SY-style Perlin noise jitter: add spatially-varying time offset
+    // so that different parts of the water move at different speeds
+    float time_noise =
+        texture(
+            noisetex,
+            coord * 0.002 + vec2(0.0, 0.002 * t)
         )
-              .y;
+            .r;
+    float t_jittered = t + (time_noise - 0.5) * WATER_WAVE_JITTER;
+
+#ifdef WATER_WAVES_HEIGHT_VARIATION
+    float height_variation_noise =
+        texture(
+            noisetex,
+            (coord + vec2(0.0, height_variation_scroll_speed * t_jittered)) *
+                height_variation_frequency
+        )
+            .y;
 #endif
 
     // Calculate wave height
 
     float height = 0.0;
+    float amplitude_sum = 0.0;
 
     float wave_length = 1.0;
     float amplitude = 1.0;
     float frequency = wave_frequency;
 
-    for (int i = 0; i < WATER_WAVE_ITERATIONS; ++i) {
+    for (uint i = 0u; i < WATER_WAVE_ITERATIONS; ++i) {
         height += gerstner_wave(
                       coord * frequency,
                       wave_dir,
-                      t,
+                      t_jittered,
                       wave_noise[i] * noise_strength,
                       wave_length
-                  )
-            * amplitude;
+                  ) *
+            amplitude;
 
         amplitude *= persistence;
         frequency *= lacunarity;
-        wave_length *= 2.0;
+        wave_length *= 1.5;
 
         wave_dir *= wave_rot;
     }
 
 #ifdef WATER_WAVES_HEIGHT_VARIATION
-    height *= max(
-        min_height,
-        height_variation_noise * height_variation_scale
-            + height_variation_offset
-    );
+    height *=
+        max(min_height,
+            height_variation_noise * height_variation_scale +
+                height_variation_offset);
 #endif
 
     return height * amplitude_normalization_factor;
@@ -141,7 +163,7 @@ vec3 get_water_normal(
 
 #if defined WORLD_OVERWORLD
     float normal_influence = flowing_water
-        ? 0.15
+        ? 0.1
         : mix(0.01, 0.04 + 0.15 * rainStrength, dampen(skylight));
 #else
     float normal_influence = 0.04;
@@ -150,7 +172,7 @@ vec3 get_water_normal(
         0.0,
         0.15,
         abs(dot(flat_normal, normalize(world_pos - cameraPosition)))
-    );
+    ); // prevent noise when looking horizontally
     normal_influence *= WATER_WAVE_STRENGTH;
 
     vec3 normal = vec3(wave1 - wave0, wave2 - wave0, h);
@@ -165,43 +187,37 @@ vec2 get_water_parallax_coord(
     vec2 flow_dir,
     bool flowing_water
 ) {
-    const int sample_count = WATER_PARALLAX_SAMPLES;
-    const float parallax_amplitude = 0.35;
+    const int step_count = 4;
+    const float parallax_depth = 0.2;
 
     vec2 wave_dir;
     mat2 wave_rot;
     float t;
     water_waves_setup(flowing_water, flow_dir, wave_dir, wave_rot, t);
 
-    float view_slope = max(-tangent_dir.z, 0.005);
-    vec2 march_stride = tangent_dir.xy * parallax_amplitude
-        / (view_slope * float(sample_count));
+    vec2 ray_step = tangent_dir.xy * rcp(-tangent_dir.z) * parallax_depth *
+        rcp(float(step_count));
 
-    float height_field = get_water_height(coord, wave_dir, wave_rot, t);
-    float track_progress = 0.0;
-    float prior_height = height_field;
+    float depth_value = get_water_height(coord, wave_dir, wave_rot, t);
+    float depth_march = 0.0;
+    float depth_previous;
 
-    for (int iter = 0; iter < sample_count; ++iter) {
-        coord += march_stride;
-        prior_height = height_field;
-        height_field = get_water_height(coord, wave_dir, wave_rot, t);
-        track_progress += rcp(float(sample_count));
-
-        if (track_progress >= height_field) {
-            break;
-        }
+    while (depth_march < depth_value) {
+        coord += ray_step;
+        depth_previous = depth_value;
+        depth_value = get_water_height(coord, wave_dir, wave_rot, t);
+        depth_march += rcp(float(step_count));
     }
 
-    float elevation_prior = prior_height
-        - (track_progress - rcp(float(sample_count)));
-    float elevation_after = height_field - track_progress;
+    // Interpolation step
+
+    float depth_before = depth_previous - depth_march + rcp(float(step_count));
+    float depth_after = depth_value - depth_march;
 
     return mix(
         coord,
-        coord - march_stride,
-        clamp(elevation_after
-            / (elevation_after - elevation_prior + 1e-7),
-            0.0, 1.0)
+        coord - ray_step,
+        depth_after / (depth_after - depth_before)
     );
 }
 

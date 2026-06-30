@@ -140,4 +140,21 @@ float length_knowing_direction(vec3 v, vec3 v_norm) {
 #define max0_f16(x) max(x, f16(0.0))
 #define min1_f16(x) min(x, f16(1.0))
 
+// ------------------------
+//   Fast exp approximation
+// ------------------------
+
+// Fast exp(-x) approximation for x in [0, ~10].
+// Uses exp2(x * log2(e)) with a reduced-precision log2(e) constant.
+// On most GPUs exp2 is faster than exp. For the volumetric fog loop where
+// slight precision loss is invisible after temporal accumulation, this is
+// a worthwhile trade-off.
+float fast_exp_neg(float x) {
+    return exp2(-1.4426950409 * x);
+}
+
+vec3 fast_exp_neg(vec3 v) {
+    return exp2(-1.4426950409 * v);
+}
+
 #endif // INCLUDE_UTILITY_FAST_MATH

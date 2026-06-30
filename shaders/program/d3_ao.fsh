@@ -21,7 +21,6 @@ layout(location = 1) out vec2 ambient_history_data; // depth, pixel age
 
 in vec2 uv;
 
-// ------------
 //   Uniforms
 // ------------
 
@@ -29,6 +28,10 @@ uniform sampler2D noisetex;
 
 uniform sampler2D colortex1; // gbuffer 0
 uniform sampler2D colortex2; // gbuffer 1
+uniform sampler2D colortex5; // previous frame scene color (GI radiance source)
+#if defined WORLD_OVERWORLD && defined SH_SKYLIGHT
+uniform sampler2D colortex4; // sky map (sky SH stored at texels 191,2..10)
+#endif
 uniform sampler2D colortex6; // ambient lighting data
 uniform sampler2D colortex14; // ambient lighting history data
 
@@ -74,12 +77,20 @@ uniform bool world_age_changed;
 #include "/include/utility/slerp.glsl"
 #include "/include/utility/space_conversion.glsl"
 
+#if defined WORLD_OVERWORLD && defined SH_SKYLIGHT
+#include "/include/utility/spherical_harmonics.glsl"
+#endif
+
 #if SHADER_AO == SHADER_AO_SSAO
 #include "/include/lighting/ao/ssao.glsl"
 #endif
 
 #if SHADER_AO == SHADER_AO_GTAO
 #include "/include/lighting/ao/gtao.glsl"
+#endif
+
+#if SHADER_AO == SHADER_AO_VBIL
+#include "/include/lighting/ao/vbil.glsl"
 #endif
 
 const float ao_render_scale = 0.5;
@@ -152,6 +163,10 @@ void main() {
 
     dither = r2(frameCounter, dither);
 
+    // Extract skylight from gbuffer for VBIL GI
+    vec2 light_levels = unpack_unorm_2x8(gbuffer_data.w);
+    float skylight = light_levels.y;
+
     // Calculate AO
 
     vec2 ao;
@@ -173,6 +188,45 @@ void main() {
         is_lod,
         bent_normal
     );
+#elif SHADER_AO == SHADER_AO_VBIL
+    // VBIL needs 4 dither values:
+    //   .x = slice angle rotation (ign, per-frame)
+    //   .y = (unused, kept for parity)
+    //   .z = ray start offset (from r2)
+    //   .w = sub-texel sector boundary dither (from r2)
+    float vbil_ign = interleaved_gradient_noise(gl_FragCoord.xy, frameCounter);
+    vec4 vbil_dither = vec4(vec2(vbil_ign), dither);
+    vec4 vbil_output = compute_vbil(
+        screen_pos,
+        view_pos,
+        view_normal,
+        vbil_dither,
+        is_lod,
+        colortex5
+    );
+
+#if defined WORLD_OVERWORLD && defined SH_SKYLIGHT
+    // Sky SH mixing: fold direct sky irradiance into the GI channel, modulated
+    // by the unoccluded fraction (vbil_output.x = ao = visibility). The
+    // colortex5 bounce alone can't deliver sky light.
+    // Applied BEFORE temporal accumulation so the history buffer stays consistent
+    // (no double-counting).
+    vec3 sky_sh[9];
+    sky_sh[0] = texelFetch(colortex4, ivec2(191, 2), 0).rgb;
+    sky_sh[1] = texelFetch(colortex4, ivec2(191, 3), 0).rgb;
+    sky_sh[2] = texelFetch(colortex4, ivec2(191, 4), 0).rgb;
+    sky_sh[3] = texelFetch(colortex4, ivec2(191, 5), 0).rgb;
+    sky_sh[4] = texelFetch(colortex4, ivec2(191, 6), 0).rgb;
+    sky_sh[5] = texelFetch(colortex4, ivec2(191, 7), 0).rgb;
+    sky_sh[6] = texelFetch(colortex4, ivec2(191, 8), 0).rgb;
+    sky_sh[7] = texelFetch(colortex4, ivec2(191, 9), 0).rgb;
+    sky_sh[8] = texelFetch(colortex4, ivec2(191, 10), 0).rgb;
+
+    vec3 sky_irradiance = sh_evaluate_irradiance(
+        sky_sh, world_normal, vbil_output.x
+    );
+    vbil_output.yzw += sky_irradiance * cube(skylight);
+#endif
 #endif
 
     // Temporal accumulation
@@ -180,6 +234,56 @@ void main() {
     const float max_accumulated_frames = 10.0;
     const float depth_rejection_strength = 16.0;
     const float offcenter_rejection_strength = 0.25;
+
+#if SHADER_AO == SHADER_AO_VBIL
+    // VBIL stores vec4(ao, gi) — no bent normal in colortex6
+    const float vbil_max_accumulated_frames = 8.0;
+
+    vec4 history = max0(
+        catmull_rom_filter_fast(colortex6, previous_screen_pos.xy, 0.65)
+    );
+    vec2 history_data = max0(texture(colortex14, previous_screen_pos.xy).xy);
+
+    float view_norm_vbil = rcp_length(view_pos);
+    float NoV_vbil = abs(dot(view_normal, view_pos)) * view_norm_vbil;
+
+    if (clamp01(previous_screen_pos.xy) == previous_screen_pos.xy) {
+        float history_depth = 1.0 - history_data.x;
+        float pixel_age = min(history_data.y, vbil_max_accumulated_frames);
+
+        float z0 = screen_to_view_space_depth(
+            combined_projection_matrix_inverse,
+            depth
+        );
+        float z1 = screen_to_view_space_depth(
+            combined_projection_matrix_inverse,
+            history_depth
+        );
+        float depth_weight = exp2(-abs(z0 - z1) * depth_rejection_strength * NoV_vbil * view_norm_vbil);
+
+        vec2 pixel_offset = 1.0
+            - abs(2.0 * fract(view_res * ao_render_scale * previous_screen_pos.xy) - 1.0);
+        float offcenter_rejection = sqrt(pixel_offset.x * pixel_offset.y)
+                * offcenter_rejection_strength
+            + (1.0 - offcenter_rejection_strength);
+
+        // Reprojection-velocity rejection
+        vec2 reproj_delta = abs(screen_pos.xy - previous_screen_pos.xy) * view_res;
+        float motion_weight = exp2(-max_of(reproj_delta) * 2.0);
+
+        pixel_age *= depth_weight * offcenter_rejection * motion_weight * float(history_depth != 1.0);
+        float history_weight = pixel_age / (pixel_age + 1.0);
+
+        vbil_output = mix(vbil_output, history, history_weight);
+
+        ambient = vbil_output;
+        ambient_history_data = vec2(1.0 - depth, pixel_age + 1.0);
+    } else {
+        ambient = vbil_output;
+        ambient_history_data = vec2(0.0);
+    }
+#else
+    // GTAO / SSAO: vec2(ao, ambient_sss) + bent normal in .zw
 
     vec4 history = max0(
         catmull_rom_filter_fast(colortex6, previous_screen_pos.xy, 0.65)
@@ -244,6 +348,7 @@ void main() {
         ambient = vec4(ao, bent_normal.xy * 0.5 + 0.5);
         ambient_history_data = vec2(0.0);
     }
+#endif
 
     if (is_hand) {
         ambient_history_data.x = 1.0;

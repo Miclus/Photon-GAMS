@@ -100,21 +100,7 @@ void main() {
 #endif
     barrier();
 
-// Sum samples using parallel reduction
-
-/*
-for (uint stride = sample_count / 2u; stride > 0u; stride /= 2u) {
-    if (i < stride) {
-        for (uint band = 0u; band < 9u; ++band) {
-            shared_memory[i][band] += shared_memory[i + stride][band];
-        }
-    }
-
-    barrier();
-}
-*/
-
-// Loop manually unrolled as Intel doesn't seem to like barrier() calls in loops
+// Sum samples using parallel reduction (manually unrolled for Intel compatibility)
 #define PARALLEL_REDUCTION_ITER(STRIDE) \
     if (i < (STRIDE)) { \
         for (uint band = 0u; band < 9u; ++band) { \

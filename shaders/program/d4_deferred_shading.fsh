@@ -89,7 +89,7 @@ uniform sampler2D depthtex2; // minecraft cloud texture
 uniform sampler2D shadowtex0;
 uniform sampler2DShadow shadowtex1;
 
-#ifdef SHADOW_COLOR
+#if defined SHADOW_COLOR
 uniform sampler2D shadowcolor0;
 #endif
 #endif
@@ -407,7 +407,7 @@ void main() {
 
 #if defined WORLD_OVERWORLD && defined RAIN_PUDDLES
         if (wetness > eps && biome_may_rain > eps) {
-            bool puddle = get_rain_puddles(
+            get_rain_puddles(
                 position_world,
                 flat_normal,
                 light_levels,
@@ -458,6 +458,13 @@ void main() {
             ambient_upscaled = ambient_00;
         }
 
+#if SHADER_AO == SHADER_AO_VBIL
+        // VBIL: colortex6 = vec4(ao, gi) — no bent normal or SSS packed
+        float ao = ambient_upscaled.x;
+        vec3 gi_color = ambient_upscaled.yzw;
+        float ambient_sss = 0.0;
+        vec3 bent_normal = normal;
+#else
         float ao = ambient_upscaled.x;
         float ambient_sss = ambient_upscaled.y;
 
@@ -471,11 +478,15 @@ void main() {
         if (dot(bent_normal, normal) < eps) {
             bent_normal = normal;
         }
+#endif
 
         // No AO/bent normal on hand
         if (is_hand) {
             ao = 1.0;
             bent_normal = normal;
+#if SHADER_AO == SHADER_AO_VBIL
+            gi_color = vec3(0.0);
+#endif
         }
 
         // Calculate lighting dot products
@@ -593,6 +604,11 @@ void main() {
             NoH,
             LoV
         );
+
+        // VBIL indirect bounce GI: screen-space color bleed from visible surfaces
+#if SHADER_AO == SHADER_AO_VBIL
+        fragment_color += gi_color * material.albedo * ao;
+#endif
 
         // Specular highlight
 
