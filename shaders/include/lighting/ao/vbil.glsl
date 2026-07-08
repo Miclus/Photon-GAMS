@@ -1,6 +1,6 @@
 // Modified version of GT-VBGI (diffuse) by TinyTexel on Shadertoy
 // https://www.shadertoy.com/view/lfdBWn
-// Ported from Photon-GAMS by SixthSurge
+// Ported from Photon-GAMS by SW-52, -Daytendo64-, OUdefie17, Arona74, Miclus and CChex
 
 #if !defined INCLUDE_LIGHTING_AO_VBIL
 #define INCLUDE_LIGHTING_AO_VBIL
@@ -163,9 +163,10 @@ vec4 compute_vbil(
                 if (visible_bits != 0u) {
                     float visibility
                         = float(bitCount(visible_bits)) * rcp_VBIL_HORIZON_BITS;
-
-                    vec3 radiance = textureLod(colortex5, ray_pos, 0.0).rgb;
-                    total_radiance += radiance * visibility;
+#if !defined(PHOTONICS_IN_USE) || VBIL_GI_I > 0.0
+                        vec3 radiance = textureLod(colortex5, ray_pos, 0.0).rgb;
+                        total_radiance += radiance * visibility;
+#endif
 
 #if VBIL_RADIUS > 1.0
                     float hit_dist = length(delta_pos_front);
@@ -185,7 +186,9 @@ vec4 compute_vbil(
 #else
         ao += 1.0 - occlusion;
 #endif
+#if !defined(PHOTONICS_IN_USE) || VBIL_GI_I > 0.0
         gi += total_radiance;
+#endif
     }
 
     float normalization = rcp(float(VBIL_SLICES));
