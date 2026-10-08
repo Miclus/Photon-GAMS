@@ -91,6 +91,7 @@ vec3 get_specular_highlight(
     if (sunAngle > 0.5 && moonPhase == 4) {
         return vec3(0.0);
     }
+
 #elif defined WORLD_SPACE
     const float light_radius = SUN_ANGULAR_RADIUS * 4.0 * degree;
 #else
@@ -122,7 +123,24 @@ vec3 get_specular_highlight(
     float d = distribution_ggx(NoH_squared, alpha_squared);
     float v = v2_smith_ggx(max(NoL, 1e-2), max(NoV, 1e-2), alpha_squared);
 
-    return min((NoL * d * v) * fresnel * albedo_tint, vec3(specular_max_value));
+    vec3 specular_color = min((NoL * d * v) * fresnel * albedo_tint, vec3(specular_max_value));
+    
+    float rain_fade = (material.roughness <= 0.2) 
+                      ? (1.0 - cube(rainStrength)) 
+                      : 1.0;
+
+    
+    float night_boost = 1.0;
+
+if (material.roughness >= 0.2) {
+    night_boost = mix(
+        1.0,
+        4.0,
+        smoothstep(0.45, 0.55, sunAngle)
+    );
+}
+
+return specular_color * rain_fade * night_boost;
 }
 
 // ------------------------

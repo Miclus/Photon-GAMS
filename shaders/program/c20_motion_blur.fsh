@@ -3,7 +3,7 @@
 
   Photon Shader by SixthSurge
 
-  program/c16_motion_blur:
+  program/c20_motion_blur:
   Apply motion blur
 
 --------------------------------------------------------------------------------
@@ -56,7 +56,8 @@ void main() {
 
     vec3 center_color = texelFetch(colortex0, texel, 0).rgb;
 
-    if (depth < hand_depth) {
+    // Early exit for hand or sky
+    if (depth < hand_depth || depth < 0.56) {
         scene_color = center_color;
         return;
     }

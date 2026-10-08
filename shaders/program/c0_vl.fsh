@@ -22,7 +22,8 @@ flat in vec3 ambient_color;
 flat in vec3 light_color;
 
 #ifdef SCREENSPACE_VL
-in float cloud_occlusion;
+flat in vec2 light_pos;
+flat in float cloud_occlusion;
 #endif
 
 #if defined WORLD_OVERWORLD
@@ -219,6 +220,12 @@ void main() {
             dither
         );
     #elif NETHER_VOLUMETRIC_STYLE == NETHER_VOLUMETRIC_SMOKE
+            mat2x3 fog = raymarch_nether_volumetric_fog(
+            world_start_pos,
+            world_end_pos,
+            dither
+        );
+    #elif NETHER_VOLUMETRIC_STYLE == NETHER_VOLUMETRIC_WHISPS
         mat2x3 fog = raymarch_nether_volumetric_smoke(
             world_start_pos,
             world_end_pos,
@@ -280,29 +287,18 @@ fog_scattering = fog[0];
 	}
 
 #ifdef SCREENSPACE_VL
-    if (isEyeInWater == 0 && blindness == 0.0) {
-        vec4 tpos = gbufferProjection * gbufferModelView * vec4(light_dir, 0.0);
-        if (tpos.w > 0.0) {
-            vec2 pos1 = tpos.xy / tpos.w;
-            vec2 lightPos = pos1 * 0.5 + 0.5;
+#ifdef TAA
+    dither = interleaved_gradient_noise(gl_FragCoord.xy, frameCounter);
+#else
+	dither = bayer32(gl_FragCoord.xy);
+#endif
+    vec3 ssvl_scattering = screenspace_vl(depthtex0, light_color, dither);
 
-            #ifdef TAA
-        float dither
-            = interleaved_gradient_noise(gl_FragCoord.xy, frameCounter);
-            #else
-	            float dither = bayer32(gl_FragCoord.xy);
-            #endif
-    
-        vec3 ssvl_scattering
-            = screenspace_vl(depthtex0, lightPos, uv, light_color, dither);
-
-            fog_scattering += ssvl_scattering * cloud_occlusion;
-        }
-    }
+    fog_scattering += ssvl_scattering * cloud_occlusion;
 #endif
 
 #if defined LPV_VL && defined COLORED_LIGHTS
-fog_scattering
-    += get_lpv_fog_scattering(world_start_pos, world_end_pos, dither) * (LAVA_FOG_INTENSITY / 10);
+    vec3 lava_glow = get_lpv_fog_scattering(world_start_pos, world_end_pos, dither);
+    fog_scattering += pow(lava_glow, vec3(0.75)) * (0.25);
 #endif
 }

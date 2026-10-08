@@ -404,7 +404,7 @@ void main() {
     const float vanilla_ao_strength = 0.9 * VANILLA_AO_INTENSITY;
     const float vanilla_ao_lift = 0.5 * (1-((1-VANILLA_AO_INTENSITY)*0.5));
 #else
-    const float vanilla_ao_strength = 1.0;
+    const float vanilla_ao_strength = 1.0 * VANILLA_AO_INTENSITY;
     const float vanilla_ao_lift = 0.0;
 #endif
 

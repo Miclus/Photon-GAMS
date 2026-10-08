@@ -39,7 +39,7 @@ screen.ao                              = Indirect Lighting
 screen.color_grading                   = 🌈 Color Grading
 screen.exposure                        = §b📸§r Exposure
 screen.lpv_vl                          = Colored Lights Fog Scattering
-screen.ssvl                            = §7🌫§r Screen-Space Volumetric Lighting
+screen.ssvl                            = §7🌫§r Screen-space Volumetric Lighting
 screen.distant_horizons                = Distant Horizons
 screen.photonics                       = Photonics
 screen.photonics_sharp                 = Sharp Settings
@@ -129,6 +129,7 @@ screen.fog_rlh_swamp                   = §7🌫§r Swamp Color
 screen.water_waves                     = §7🌫§r Water Waves
 screen.water_fog_coeff                 = §7🌫§r Water Fog Coefficients
 screen.water_ripples                   = §7🌫§r Water Rain Ripples
+screen.water_texture                   = §7🌫§r Water Texture
 
 screen.end_light_color                 = Light Color
 screen.end_ambient_color               = Ambient Color
@@ -136,13 +137,13 @@ screen.nether_color                    = Static Color
 
 screen.distance_view                   = Distance View
 
-option.INFO                            = Photon GAMS
+option.INFO                            = Photon GAMS v1.3b 26.10.09
 value.INFO.0                           = §eby OUdefie17
 value.INFO.1                           = §aby OUdefie17
 value.INFO.2                           = §bby OUdefie17
 value.INFO.3                           = §dby OUdefie17
 value.INFO.4                           = §6by OUdefie17
-option.INFO.comment                    = Original shader by §bSixthSurge§r, Fork Contributors §aSW-52 §c-Daytendo64- §dOUdefie17 §eArona74
+option.INFO.comment                    = Original shader by §bSixthSurge§r, Fork Contributors §aSW-52 §c-Daytendo64- §dOUdefie17 §eArona74 §5Miclus §7CChex
 
 # World settings
 
@@ -301,8 +302,13 @@ option.MOON_I                          = §7🌔§r Moonlight Intensity
 option.SKYLIGHT_I                      = 🌅 Skylight Intensity
 option.BOUNCED_LIGHT_I                 = 🌅 Bounced Sunlight Intensity
 option.CAVE_LIGHTING_I                 = 🦇 Cave Brightness
-option.LIGHTNING_FLASH                 = Lightning Flash
-option.LIGHTNING_FLASH_INTENSITY       = Lightning Flash Intensity
+option.LIGHTNING_FLASH_INTENSITY       = Flash Intensity
+option.LIGHTNING_FLASH_POINT_RAIDUS    = Flash Radius
+option.LIGHTNING_FLASH_CLOUD_RAIDUS    = Flash Cloud Radius
+option.LIGHTNING_FLASH_CLOUD_RAIDUS.comment    = This only controls the radius of the point cloud flash, not the global cloud flash.. \nNote that point cloud flash is disabled entirely if the global cloud flash value is higher than 0..
+option.LIGHTNING_FLASH_FOG_RAIDUS      = Flash Fog Radius
+option.LIGHTNING_FLASH_FOG_INTENSITY   = Flash Fog Intensity
+option.LIGHTNING_GLOBAL_CLOUD_FLASH_INTENSITY = Global Cloud Flash Intensity
 option.SKY_BLUE_DEPTH                  = Blue Sky Color
 option.SKY_BLUE_DEPTH.comment          = Adjust the intensity of the blue sky color
 option.NETHER_USE_BIOME_COLOR          = Use Biome Color
@@ -410,11 +416,12 @@ value.shadowDistance.4096.0            = 256 chunks
 # Sky settings
 screen.sun_moon                        = §6☀§r Sun & §7🌔§r Moon
 screen.stars                           = §6✨§r Stars
-screen.shooting_stars                  = 🌠 Shooting Stars
+screen.shooting_stars                  = §e🌠§r Shooting Stars
 screen.galaxy                          = §b🌌§r Galaxy
-screen.nebula                          = ☁ Nebula
-screen.aurora                          = §7🌈§r Aurora
+screen.nebula                          = §d☁§r Nebula
+screen.aurora                          = §d🌈§r Aurora
 screen.end_solar_flare                 = §d🌟§r End Solar Flare
+screen.lightning                       = §6⚡§r Lightning
 option.BLACK_NIGHT_SKY                 = Black Night Sky
 option.BLACK_NIGHT_SKY.comment         = Makes the night sky darker to create a realistic night effect, doesn't affect the overall lighting and shadows
 option.SKY_GROUND                      = Sky Ground
@@ -423,8 +430,12 @@ option.ATMOSPHERE_SATURATION_BOOST     = Atmosphere Saturation Boost
 option.ATMOSPHERE_SATURATION_BOOST.comment = Increases the saturation of the sky and sunlight color depending on the time of day
 option.ATMOSPHERE_SATURATION_BOOST_INTENSITY = Atmosphere Saturation Boost Intensity
 option.ATMOSPHERE_SATURATION_BOOST_INTENSITY.comment = Adjust the intensity of Atmosphere Saturation Boost
+option.ATMOSPHERE_RAIN_DESATURATION                   = Atmosphere Rain Desaturation
+option.ATMOSPHERE_RAIN_DESATURATION.comment           = Desaturates the atmosphere during rain, making for colder looking rain
+option.ATMOSPHERE_RAIN_DESATURATION_INTENSITY         = Desaturation Intensity
+option.ATMOSPHERE_RAIN_DESATURATION_INTENSITY.comment = Adjust the intensity of Atmosphere Rain Desaturation
+
 option.CREPUSCULAR_RAYS                = Crepuscular Rays
-option.LIGHTNING_FLASH                 = Lightning Flash
 option.BLUE_SKY_DARKENING              = Blue Sky Darkening
 option.BLUE_SKY_DARKENING.comment      = Adjust how much of the sky you want to be a deeper blue, doesn't affect the overall lighting and shadows. \n1.0 is default sky color
 
@@ -468,17 +479,17 @@ option.NEBULA_CLUSTER_COUNT            = ☁ Nebula Cluster Count
 option.NEBULA_CLUSTER_COUNT.comment    = Controls the number of nebula clusters. Higher values make the nebula appear more in the sky.
 
 # Nebula Colors
-option.NEBULA_COLOR1_R = §c☁§r Nebula Color 1 Red
-option.NEBULA_COLOR1_G = §a☁§r Nebula Color 1 Green
-option.NEBULA_COLOR1_B = §1☁§r Nebula Color 1 Blue
+option.NEBULA_COLOR_1_R = §c☁§r Nebula Color 1 Red
+option.NEBULA_COLOR_1_G = §a☁§r Nebula Color 1 Green
+option.NEBULA_COLOR_1_B = §1☁§r Nebula Color 1 Blue
 
-option.NEBULA_COLOR2_R = §c☁§r Nebula Color 2 Red
-option.NEBULA_COLOR2_G = §a☁§r Nebula Color 2 Green
-option.NEBULA_COLOR2_B = §1☁§r Nebula Color 2 Blue
+option.NEBULA_COLOR_2_R = §c☁§r Nebula Color 2 Red
+option.NEBULA_COLOR_2_G = §a☁§r Nebula Color 2 Green
+option.NEBULA_COLOR_2_B = §1☁§r Nebula Color 2 Blue
 
-option.NEBULA_COLOR3_R = §c☁§r Nebula Color 3 Red
-option.NEBULA_COLOR3_G = §a☁§r Nebula Color 3 Green
-option.NEBULA_COLOR3_B = §1☁§r Nebula Color 3 Blue
+option.NEBULA_COLOR_3_R = §c☁§r Nebula Color 3 Red
+option.NEBULA_COLOR_3_G = §a☁§r Nebula Color 3 Green
+option.NEBULA_COLOR_3_B = §1☁§r Nebula Color 3 Blue
 
 # Galaxy
 option.GALAXY                          = §b🌌§r GALAXY
@@ -705,7 +716,7 @@ option.CLOUDS_AERIAL_PERSPECTIVE_BOOST = Aerial Perspective Boost
 option.CLOUDS_SCALE                    = Scale
 option.CLOUDS_SCALE.comment            = Applied as a scale factor to all clouds, to bring the clouds from a realistic size and altitude to an altitude that is accessible during gameplay. If this value is 1.0, clouds are positioned realistically, with the first layer 800 blocks up by default. If this value is higher, then clouds will appear smaller and form closer to the ground. This also affects the size of cloud shadows
 option.CLOUDS_LAYER_SHADOWING          = Clouds Layer Shadowing
-option.CLOUDS_LAYER_SHADOWING.comment  = Enables cloud-to-cloud shadowing between altocumulus, towering cumulus, and thunderhead layers
+option.CLOUDS_LAYER_SHADOWING.comment  = High performance impact. Enables cloud-to-cloud shadowing between altocumulus, towering cumulus, and thunderhead layers
 suffix.CLOUDS_SCALE                    = ×
 value.CLOUDS_TEMPORAL_UPSCALING.1      = Off
 value.CLOUDS_TEMPORAL_UPSCALING.2      = 4×
@@ -909,11 +920,12 @@ option.BLOOMY_FOG_INTENSITY.comment    = Adjusts the intensity of "bloomy fog"
 option.OVERWORLD_FOG_INTENSITY         = §7🌫§r Overworld Fog Intensity
 option.NETHER_FOG_INTENSITY            = §c🔥§r Nether Fog Intensity
 option.NETHER_FOG_INTENSITY.comment    = Simple distance fog
+option.NETHER_INDIRECT_BRIGHTNESS        = Indirect Brightness
 option.NETHER_VOLUMETRIC_STYLE           = §c🔥§r Volumetric Style
-option.NETHER_VOLUMETRIC_STYLE.comment   = \nOff: No volumetrics\nFog: Volumetric thick fog\nSmoke: Volumetric smoke whisps
 value.NETHER_VOLUMETRIC_STYLE.NETHER_VOLUMETRIC_OFF      = §cOff
 value.NETHER_VOLUMETRIC_STYLE.NETHER_VOLUMETRIC_FOG      = Fog
 value.NETHER_VOLUMETRIC_STYLE.NETHER_VOLUMETRIC_SMOKE    = Smoke
+value.NETHER_VOLUMETRIC_STYLE.NETHER_VOLUMETRIC_WHISPS   = Whisps
 option.NETHER_VL_FOG_DENSITY          = §c🔥§r Smoke Density
 option.NETHER_VL_FOG_SPEED            = §c🔥§r Smoke Wind Speed
 option.NETHER_VL_FOG_SCALE            = §c🔥§r Smoke Pattern Scale
@@ -924,8 +936,6 @@ option.NETHER_LAVA_CRUST_ANIMATION.comment = When on, the crust pattern drifts o
 option.NETHER_LAVA_CRUST_SCALE         = §c🔥§r Lava Crust Scale
 option.NETHER_LAVA_CRUST_ANIM_SPEED    = §c🔥§r Lava Crust Motion Speed
 option.NETHER_LAVA_CRUST_ANIM_SPEED.comment = How fast the crust pattern drifts across lava. Set to 0 for a static crust.
-option.LAVA_FOG_INTENSITY               = §c🔥§r Lava Fog Intensity
-option.LAVA_FOG_INTENSITY.comment       = Controls the intensity of lava fog. \nMust have colored lights & colored lights fog scattering enabled.
 option.NETHER_BIOME_BLUE_LAVA           = §1🔥§r Biome Blue Lava
 option.NETHER_BIOME_BLUE_LAVA.comment  = When on, lava shifts toward cyan-blue in Warped Forest, Soul Sand Valley, and Basalt Deltas.
 option.CAVE_FOG_INTENSITY              = §7🌫§r Cave Fog Intensity
@@ -1162,10 +1172,11 @@ option.WATER_TEXTURE.comment              = \nOff: no water texture.\nHighlights
 option.BIOME_WATER_COLOR                  = Biome-Colored Water
 option.BIOME_WATER_COLOR.comment          = Water absorption takes the biome water colour into account
 option.BIOME_WATER_COLOR_INTENSITY        = Biome-Colored Water Intensity
-option.WATER_TEXTURE_HIGHLIGHT_ABOVEGROUND_INTENSITY  = Water Highlights Aboveground Intensity
-option.WATER_TEXTURE_HIGHLIGHT_UNDERGROUND_INTENSITY = Water Highlights Underground Intensity
-option.WATER_TEXTURE_HIGHLIGHT_BIOME_COLOR = Biome-Colored Water Highlights
-option.WATER_TEXTURE_HIGHLIGHT_BIOME_COLOR_INTENSITY = Biome-Colored Water Highlights Intensity
+option.WATER_TEXTURE_HIGHLIGHT_ABOVEGROUND_INTENSITY  = Aboveground Highlights Intensity
+option.WATER_TEXTURE_HIGHLIGHT_UNDERGROUND_INTENSITY = Underground Highlights Intensity
+option.WATER_TEXTURE_HIGHLIGHT_BIOME_COLOR = Biome-Colored Highlights
+option.WATER_TEXTURE_HIGHLIGHT_BIOME_COLOR_INTENSITY = Biome-Colored Highlights Intensity
+
 
 value.WATER_TEXTURE.WATER_TEXTURE_OFF                   = Off
 value.WATER_TEXTURE.WATER_TEXTURE_HIGHLIGHT             = Highlights
@@ -1229,13 +1240,11 @@ option.LF_CLOSERING                    = Rainbow Halo Flare
 option.LF_CLOSERING.comment            = Rainbow halo at the center of the sun/moon
 option.LF_CENTER_STRIP                 = Center Anamorphic Flare
 option.LF_CENTER_STRIP.comment         = Strip-shaped lens flare at the center of the sun/moon
-option.LF_XCROSS_STRIP                 = Center X cross Flare
+option.LF_STARBURST                    = Starburst
 option.LF_EDGE_STRIP                   = Edge Blue Anamorphic Flare
 option.LF_EDGE_STRIP.comment           = 2 Blue strip-shaped lens flares at the edge of the screen
 option.LF_GLOWDOTS                     = Glow Dots
 option.LF_GLOWDOTS.comment             = Pointy Fuzzy Glow Dots
-option.LF_OCCLUSION_DEBUG              = Show Occlusion Sample Points
-option.LF_OCCLUSION_DEBUG.comment      = Show occlusion check sample points on screen. Green is visible, red is occluded
 option.LF_CLOUD_THRESHOLD              = Cloud Occlusion Threshold
 option.LF_CLOUD_THRESHOLD.comment      = Adjusts the sensitivity of cloud occlusion. The smaller the value, the easier to be occluded
 option.LF_OCCLUSION_SAMPLES            = Occlusion Check Samples
@@ -1244,6 +1253,7 @@ option.LF_SUN_RADIUS_SCALE             = Occlusion Check Radius
 option.LF_SUN_RADIUS_SCALE.comment     = Adjusts the radius of occlusion check, larger values require more samples for a smooth effect
 
 option.LENS_DIRT                       = §7🕸§r Lens Dirt
+option.LENS_DIRT.comment               = Requires Iris version 1.10.5 or higher
 option.LENS_DIRT_BLOOM_INTENSITY       = Bloom affects Lens Dirt Intensity
 option.LENS_DIRT_LENS_FLARE_INTENSITY  = Lens Flare affects Lens Dirt Intensity
 
@@ -1714,6 +1724,15 @@ option.PHOTONICS_RESTIR_DENOISER_PASSES   = Denoiser Passes
 option.PHOTONICS_RESTIR_SOFT_SHADOWS      = Soft Shadows
 option.PHOTONICS_RESTIR_COMBINED_GI       = Include Skylight GI
 option.PHOTONICS_RESTIR_COMBINED_GI.comment = Whether Gi should be ran through ReSTIR's denoiser instead of its usual path. \nResults in much sharper Gi, at the cost of performance.
+
+option.WATER_TRAIL                     = Water Trail
+option.WATER_TRAIL.comment             = Creates continuous ripples on the water surface around the player as they walk through or near water. Works in both first and third person. Requires Iris custom uniforms
+option.WATER_TRAIL_STRENGTH            = Trail Strength
+option.WATER_TRAIL_STRENGTH.comment    = Controls the intensity of the water trail ripple effect
+option.WATER_TRAIL_MAX_DISTANCE        = Trail Max Distance
+option.WATER_TRAIL_MAX_DISTANCE.comment = Maximum distance from the player that ripples can reach
+option.WATER_TRAIL_SPEED               = Ripple Speed
+option.WATER_TRAIL_SPEED.comment       = How fast the concentric ripple waves animate outward
 
 option.BOX_MODE                 = Box Mode
 option.BOX_MODE.comment         = Selection Outline Box Mode\n\nNone: Default\nColor: User Color\nRainbow: Fancy RGB Effect

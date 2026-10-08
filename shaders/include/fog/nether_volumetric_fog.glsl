@@ -12,9 +12,16 @@ uniform vec3 fogColor;
 #endif
 
 float nether_volumetric_density(vec3 world_pos) {
-    vec3 wind = vec3(0.41, 0.07, 0.29) * NETHER_VL_FOG_SPEED * frameTimeCounter;
-    vec3 wind_slow = wind * 0.32;
-    float sc = NETHER_VL_FOG_SCALE;
+    #if NETHER_VOLUMETRIC_STYLE == NETHER_VOLUMETRIC_SMOKE
+        vec3 wind = vec3(0.31, -0.55, 0.20) * NETHER_VL_FOG_SPEED * frameTimeCounter;
+        float sc = NETHER_VL_FOG_SCALE * 0.2;
+        vec3 wind_slow = wind * 0.16;
+    #else
+        vec3 wind = vec3(0.41, 0.07, 0.29) * NETHER_VL_FOG_SPEED * frameTimeCounter;
+        float sc = NETHER_VL_FOG_SCALE;
+        vec3 wind_slow = wind * 0.32;
+    #endif
+    
     vec3 p = world_pos / (sc * 3);
 
     // Large-scale patches: slower wind so banks drift as coherent blobs
@@ -25,11 +32,20 @@ float nether_volumetric_density(vec3 world_pos) {
     patch_mask *= patch_mask;
     float patchiness = mix(0.0, 0.4, patch_mask);
 
-    float n0 = texture(colortex0, p * 0.017 + wind).x;
-    float n1 = texture(colortex0, p * 0.052 + wind * 1.31 + vec3(13.7, 4.2, 21.0)).x;
-    float n2 = texture(colortex0, p * 0.11 + wind * 0.58 + vec3(51.0, 9.0, 3.0)).x;
-
-    // Slightly tighter smoothstep + mild pow => puffier, less uniform billows
+    #if NETHER_VOLUMETRIC_STYLE == NETHER_VOLUMETRIC_SMOKE
+        // Use existing patch data to distort the coordinate space
+        vec3 warp = vec3(patch_a, patch_b, patches) * 90.0; // Adjust to control warp strength
+        vec3 warped_p = p + warp;
+        
+        // Sample detail layers using the warped coordinates
+        float n0 = texture(colortex0, warped_p * 0.017 + wind).x;
+        float n1 = texture(colortex0, warped_p * 0.052 + wind * 1.31 + vec3(13.7, 4.2, 21.0)).x;
+        float n2 = texture(colortex0, warped_p * 0.11  + wind * 0.58 + vec3(51.0, 9.0, 3.0)).x;
+    #else
+        float n0 = texture(colortex0, p * 0.017 + wind).x;
+        float n1 = texture(colortex0, p * 0.052 + wind * 1.31 + vec3(13.7, 4.2, 21.0)).x;
+        float n2 = texture(colortex0, p * 0.11 + wind * 0.58 + vec3(51.0, 9.0, 3.0)).x;
+    #endif    // Slightly tighter smoothstep + mild pow => puffier, less uniform billows
     float billows = smoothstep(0.26, 0.88, n0);
     billows = pow(billows, 1.12);
     float detail = 0.4 * n1 + 0.22 * n2;
@@ -37,8 +53,11 @@ float nether_volumetric_density(vec3 world_pos) {
     d = d * d;
     d = mix(0.07, d, 0.93);
     d *= patchiness;
-
-    return d * NETHER_VL_FOG_DENSITY * 0.24;
+    #if NETHER_VOLUMETRIC_STYLE == NETHER_VOLUMETRIC_SMOKE
+        return d * NETHER_VL_FOG_DENSITY * 0.018;
+    #else
+        return d * NETHER_VL_FOG_DENSITY * 0.24;
+    #endif
 }
 
 vec3 nether_volumetric_fog_tint() {
@@ -166,7 +185,7 @@ mat2x3 raymarch_nether_volumetric_smoke(vec3 world_start_pos, vec3 world_end_pos
         vec2  suv       = sclip.xy * 0.5 + 0.5;
 
         if (all(greaterThanEqual(suv, vec2(0.0))) && all(lessThanEqual(suv, vec2(1.0))))
-            density *= smoothstep(-0.8, 0.8, (sclip.z * 0.5 + 0.5) - texture(depthtex0, suv).r) * (NETHER_VL_FOG_DENSITY * 0.5);
+            density *= smoothstep(-0.8, 0.8, (sclip.z * 0.5 + 0.5) - texture(depthtex0, suv).r) * (NETHER_VL_FOG_DENSITY);
 
         vec3 color = col * mix(0.8, 1.2, n1);
         vl_scattering  += color * density * vl_transmittance;

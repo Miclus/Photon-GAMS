@@ -25,7 +25,7 @@ uniform sampler2D noisetex;
 
 uniform sampler2D colortex0;
 
-uniform sampler2D depthtex0;
+uniform sampler2D depthtex1;
 
 uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
@@ -51,7 +51,7 @@ uniform vec2 taa_offset;
 void main() {
 	ivec2 texel = ivec2(gl_FragCoord.xy);
 
-	float depth = texelFetch(depthtex0, texel, 0).x;
+	float depth = texelFetch(depthtex1, texel, 0).x;
 
 #ifdef LOD_MOD_ACTIVE
     float depth_lod = texelFetch(lod_depth_tex, texel, 0).x;
@@ -77,8 +77,6 @@ void main() {
 	// Calculate circle of confusion
 	float focus = DOF_FOCUS < 0.0 ? centerDepthSmooth : view_to_screen_space_depth(gbufferProjection, DOF_FOCUS);
 	vec2 CoC = min(abs(depth - focus), 0.1) * (DOF_INTENSITY * 0.2 / 1.37) * vec2(DOF_SIZE_X, aspectRatio * DOF_SIZE_Y) * gbufferProjection[1][1];
-
-	scene_color = vec3(0.0);
 
 #ifdef DOF_CA                                                                                     // TODO
     float caDist = abs(depth - view_to_screen_space_depth(gbufferProjection, 1.8)) * 2.75 - 0.1; // Magic numbers ;-;
@@ -115,4 +113,3 @@ void main() {
 	//scene_color = vec3(smoothstep(0.0, 0.2, (CoC.x + CoC.y) * 10.0));
 	scene_color *= rcp(DOF_SAMPLES);
 }
-

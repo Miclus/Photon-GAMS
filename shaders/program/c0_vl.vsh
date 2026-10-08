@@ -17,7 +17,8 @@ flat out vec3 ambient_color;
 flat out vec3 light_color;
 
 #ifdef SCREENSPACE_VL
-out float cloud_occlusion;
+flat out vec2 light_pos;
+flat out float cloud_occlusion;
 #endif
 
 #if defined WORLD_OVERWORLD
@@ -66,6 +67,13 @@ uniform float time_midnight;
 
 uniform float desert_sandstorm;
 
+#ifdef SCREENSPACE_VL
+uniform mat4 gbufferProjection;
+uniform vec3 view_light_dir;
+uniform float blindness;
+uniform int isEyeInWater;
+#endif
+
 #if defined WORLD_OVERWORLD
 #include "/include/sky/projection.glsl"
 #include "/include/weather/fog.glsl"
@@ -74,18 +82,18 @@ uniform float desert_sandstorm;
 float get_cloud_occlusion(sampler2D colortex8) {
     #if defined CLOUDS_CUMULUS || defined CLOUDS_CUMULUS_CONGESTUS || defined CLOUDS_CUMULONIMBUS || defined CLOUDS_TOWERING_CUMULUS || defined CLOUDS_THUNDERHEAD
         
-        const float OCCLUSION_SAMPLES = 32.0;
+        const float occlusion_sample = 8.0;
         float total_occlusion = 0.0;
 
-        vec2 zenith = vec2(0.5, 0.5); 
+        vec2 light_pos_on_sampler = vec2(0.5, 0.5); 
         const float sample_radius = 0.2;
 
-        for (int i = 0; i < int(OCCLUSION_SAMPLES); i++) {
-            float r = sqrt(float(i) + 0.5) / sqrt(OCCLUSION_SAMPLES);
+        for (int i = 0; i < int(occlusion_sample); i++) {
+            float r = sqrt(float(i) + 0.5) / sqrt(occlusion_sample);
             float angle = float(i) * golden_angle;
 
             vec2 offset = polar_to_cartesian2(r * sample_radius, angle);
-            vec2 checkcoord = zenith + offset;
+            vec2 checkcoord = light_pos_on_sampler + offset;
 
             if (checkcoord.x > 0.0 && checkcoord.x < 1.0 && checkcoord.y > 0.0 && checkcoord.y < 1.0) {
                 ivec2 pixel_coord = ivec2(checkcoord * 256.0);
@@ -94,9 +102,9 @@ float get_cloud_occlusion(sampler2D colortex8) {
                 total_occlusion += clamp01(cloud_occlusion_sample);
             }
         }
-        return total_occlusion / OCCLUSION_SAMPLES;
+        return total_occlusion / occlusion_sample;
     #else
-        return 0.0; 
+        return 1.0; 
     #endif
 }
 
@@ -116,6 +124,10 @@ void main() {
 #endif
 
 #ifdef SCREENSPACE_VL
+    if (isEyeInWater == 0 && blindness == 0.0) {
+        vec3 sclip = project_and_divide(gbufferProjection, view_light_dir);
+        light_pos = sclip.xy * 0.5 + 0.5;
+    }
     cloud_occlusion = get_cloud_occlusion(colortex8);
 #endif
 

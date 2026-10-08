@@ -19,9 +19,8 @@ layout(location = 0) out vec3 scene_color;
 in vec2 uv;
 
 #ifdef LENS_FLARE
-flat in vec3 sun_vec, up_vec;
+flat in vec3 light_color;
 flat in vec2 light_pos;
-flat in float SoU;
 flat in float cloud_occlusion;
 #endif
 
@@ -55,6 +54,8 @@ uniform vec2 view_res;
 uniform sampler2D depthtex0;
 uniform sampler2D colortex11;
 uniform float blindness;
+uniform vec3 view_up_dir;
+uniform vec3 view_sun_dir;
 #endif
 
 #if defined LENS_FLARE && defined LF_MOONPHASE
@@ -94,6 +95,7 @@ uniform float rainStrength;
 #endif
 
 #ifdef LENS_FLARE
+float SoU = dot(view_sun_dir, view_up_dir);
 #include "/include/post_processing/lens_effects/lens_flare.glsl"
 #endif
 

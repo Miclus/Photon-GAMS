@@ -696,6 +696,15 @@ option.ENCHANTMENT_GLINT_BRIGHTNESS    = Brillo del resplandor de encantamiento
 option.DITHERED_TRANSLUCENCY_FALLBACK  = Reserva de translucidez con dithering 
 comment.DITHERED_TRANSLUCENCY_FALLBACK = Usa translucidez con dithering para mejorar el aspecto de los objetos que deberían ser translúcidos pero no pueden serlo cuando está habilitado "separateEntityDraws". 
 
+option.WATER_TRAIL                     = Estela de agua
+option.WATER_TRAIL.comment             = Crea ondas continuas en la superficie del agua alrededor del jugador al caminar por o cerca del agua. Funciona en primera y tercera persona. Requiere uniforms personalizados de Iris
+option.WATER_TRAIL_STRENGTH            = Intensidad de la estela
+option.WATER_TRAIL_STRENGTH.comment    = Controla la intensidad del efecto de ondas de la estela
+option.WATER_TRAIL_MAX_DISTANCE        = Distancia máxima
+option.WATER_TRAIL_MAX_DISTANCE.comment = Distancia máxima desde el jugador a la que pueden llegar las ondas
+option.WATER_TRAIL_SPEED               = Velocidad de ondas
+option.WATER_TRAIL_SPEED.comment       = Velocidad a la que se animan las ondas concéntricas hacia afuera
+
 value.DEBUG_VIEW.DEBUG_VIEW_NONE       = DESACTIVADO
 value.DEBUG_VIEW.DEBUG_VIEW_SAMPLER    = Muestreador
 value.DEBUG_VIEW.DEBUG_VIEW_HISTOGRAM  = Histograma

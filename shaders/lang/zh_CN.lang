@@ -92,19 +92,24 @@ screen.aurora_c11                      = 颜色 11
 
 screen.clouds                          = 云层
 screen.crepuscular_rays                = 云隙光
-screen.stars                           = 星星
+screen.stars                           = §6✨§r 星星
 screen.clouds_cumulus                  = 积云设置
+screen.clouds_towering_cumulus         = 塔状积云设置
+screen.clouds_thunderhead              = 雷暴云设置
+screen.clouds_thunderhead_lightning    = 雷暴云闪电设置
 screen.clouds_altocumulus              = 高积云设置
 screen.clouds_cumulus_congestus        = 浓积云设置
 screen.clouds_cumulonimbus             = 积雨云设置
 screen.clouds_cirrus                   = 卷云/卷积云设置
 screen.clouds_minecrafty               = 方块云设置
 screen.clouds_noctilucent              = 夜光云设置
-screen.nebula                          = 星云
-screen.nebula_color                    = 星云颜色
-screen.nebula_color.comment            = 调整星云各部位颜色:      \n星云颜色1-3：为每层星云设置颜色.
-screen.shooting_stars                  = 流星
-screen.end_solar_flare                 = 末地太阳耀斑
+screen.nebula                          = §d☁§r 星云
+screen.galaxy                          = §b🌌§r 银河
+screen.shooting_stars                  = §e🌠§r 流星
+screen.end_solar_flare                 = §d🌟§r 末地太阳耀斑
+screen.lightning                       = §6⚡§r 闪电
+option.BLACK_NIGHT_SKY                 = 黑色夜空
+option.BLACK_NIGHT_SKY.comment         = 使夜空更黑更真实，不影响全局亮度和阴影
 screen.solar_flare_color               = 太阳耀斑颜色
 
 screen.fog_advanced                    = 高级雾气设置
@@ -131,6 +136,8 @@ screen.fog_rlh_jungle                  = 丛林群系 雾气颜色
 screen.fog_rlh_swamp                   = 沼泽群系 雾气颜色
 screen.water_waves                     = 水波
 screen.water_fog_coeff                 = 水雾系数
+screen.water_ripples                   = §7🌫§r 雨天水面涟漪
+screen.water_texture                   = §7🌫§r 水面贴图
 
 screen.weather                         = 日常天气系统
 screen.weather_d0                      = 第0天
@@ -152,13 +159,13 @@ screen.nether_color                    = 下界基础颜色
 
 screen.distance_view                   = 距离视图
 
-option.INFO                            = Photon GAMS
+option.INFO                            = Photon GAMS v1.3b 26.10.9
 value.INFO.0                           = §eby OUdefie17
 value.INFO.1                           = §aby OUdefie17
 value.INFO.2                           = §bby OUdefie17
 value.INFO.3                           = §dby OUdefie17
 value.INFO.4                           = §6by OUdefie17
-option.INFO.comment                    = 原始着色器由 §bSixthSurge§r 制作，分支贡献者 §aSW-52 §c-Daytendo64- §dOUdefie17 §eArona74
+option.INFO.comment                    = 原始着色器由 §bSixthSurge§r 制作，分支贡献者 §aSW-52 §c-Daytendo64- §dOUdefie17 §eArona74 §5Miclus §7CChex
 
 # World settings
 
@@ -313,6 +320,13 @@ option.SKYLIGHT_I                      = 天空光强度
 option.BOUNCED_LIGHT_I                 = 阳光反射强度
 option.CAVE_LIGHTING_I                 = 洞穴亮度
 option.LIGHTNING_FLASH                 = 闪电
+option.LIGHTNING_FLASH_INTENSITY       = 闪电强度
+option.LIGHTNING_FLASH_POINT_RAIDUS    = 闪电范围
+option.LIGHTNING_FLASH_CLOUD_RAIDUS    = 闪电云范围
+option.LIGHTNING_FLASH_CLOUD_RAIDUS.comment    = 只控制指向性云层闪电的范围，而不是全局云层闪电。\n如果全局云层闪电的值大于0会被禁用
+option.LIGHTNING_FLASH_FOG_RAIDUS      = 电解水雾范围
+option.LIGHTNING_FLASH_FOG_INTENSITY   = 电解水雾强度
+option.LIGHTNING_GLOBAL_CLOUD_FLASH_INTENSITY = 全局云层闪电强度
 option.NETHER_USE_BIOME_COLOR          = 使用群系颜色
 option.NETHER_I                        = 环境光强度
 option.NETHER_S                        = 环境光饱和度
@@ -387,57 +401,78 @@ value.shadowDistance.1536.0            = 96 个区块
 
 # Sky settings
 
-option.VANILLA_SUN                     = 原版太阳
-option.MOON_TYPE                       = 月亮类型
-option.SUN_ANGULAR_RADIUS              = 太阳角半径
-option.MOON_ANGULAR_RADIUS             = 月亮角半径
-option.SUN_LUMINANCE                   = 太阳光辉
+screen.sun_moon                        = §6☀§r 日 §7🌔§r 月
+
+# Sun settings
+option.VANILLA_SUN                     = §6☀§r 原版太阳
+option.SUN_LUMINANCE                   = §6☀§r 太阳光辉
+option.SUN_ANGULAR_RADIUS              = §6☀§r 太阳角半径
+option.SUN_DISK_INTENSITY              = §6☀§r 太阳强度
+
+# Moon settings
+option.MOON_TYPE                       = §7🌔§r 月亮类型
+value.MOON_TYPE.MOON_VANILLA           = 原版月亮
+value.MOON_TYPE.MOON_PHOTON            = Photon 月亮
+value.MOON_TYPE.MOON_FANCY             = 华丽月亮
+option.MOON_ANGULAR_RADIUS             = §7🌔§r 月亮角半径
+option.MOON_LUMINANCE                  = §7🌔§r 月亮光辉
+option.MOON_DISK_INTENSITY             = §7🌔§r 月亮强度
+
+# Stars settings
+option.STARS                           = §6✨§r 星星
+option.STARS.comment                   = 夜空中的星星. 较低性能影响
+option.STARS_ROTATION                  = §6✨§r 星星旋转
+option.STARS_ROTATION.comment          = 需要启用阴影贴图，旋转方式与日月相同
+option.STARS_INTENSITY                 = §6✨§r 星星强度
+option.STARS_INTENSITY.comment         = 控制夜空中星星的亮度
+option.STARS_COVERAGE                  = §6✨§r 星星覆盖率
+option.STARS_COVERAGE.comment          = 控制夜空中星星的数量
+option.STARS_SHARP                     = §6✨§r 尖锐星星
+option.STARS_SHARP.comment             = 把星星渲染为尖锐的正方形
+
+# Nebula
+option.NEBULA_ENABLED                  = ☁ 星云
+option.NEBULA_ENABLED.comment          = 启用星云效果. 星云效果在部分设备上可能出现问题，若夜空显示异常，请关闭此效果. 
+screen.nebula_color                    = 星云颜色
+screen.nebula_color.comment            = 调整星云各部位颜色:      \n星云颜色1-3：为每层星云设置颜色.
+option.NEBULA_ROTATION                 = ☁ 星云旋转
+option.NEBULA_ROTATION.comment         = 星云随日月旋转
+option.NEBULA_INTENSITY                = ☁ 星云强度
+option.NEBULA_INTENSITY.comment        = 控制星云的强度，值越高越明显
+option.NEBULA_CLUSTER_COUNT            = ☁ 星云集簇数量
+option.NEBULA_CLUSTER_COUNT.comment    = 控制星云集簇的数量，值越高夜空中星云数量越多
+
 option.SKY_GROUND                      = 地天
 option.SKY_GROUND.comment              = 地平线以下可见的行星表面
 option.ATMOSPHERE_SATURATION_BOOST     = 大气饱和度增强
 comment.ATMOSPHERE_SATURATION_BOOST    = 根据一天中的时间增加天空和阳光颜色的饱和度
 option.ATMOSPHERE_SATURATION_BOOST_INTENSITY = 大气饱和度增强强度
 comment.ATMOSPHERE_SATURATION_BOOST_INTENSITY = 调节大气饱和度增强的强度
-option.STARS                           = 星星
-option.STARS.comment                   = 夜空中的星星. 较低性能影响
-option.STARS_INTENSITY                 = 星星强度
-option.STARS_INTENSITY.comment         = 控制夜空中星星的亮度
-option.STARS_COVERAGE                  = 星星覆盖率
-option.STARS_COVERAGE.comment          = 控制夜空中星星的数量
-
-value.MOON_TYPE.MOON_VANILLA           = 原版月亮
-value.MOON_TYPE.MOON_PHOTON            = Photon 月亮
-value.MOON_TYPE.MOON_FANCY             = Fancy 月亮
-
-# Nebula
-option.NEBULA_ENABLED                  = 星云
-option.NEBULA_ENABLED.comment          = 启用星云效果. 星云效果在部分设备上可能出现问题，若夜空显示异常，请关闭此效果. 
-option.NEBULA_SCALE                    = 星云尺寸
-option.NEBULA_SCALE.comment            = 调节星云尺寸，调高数值将放大星云. 
-option.NEBULA_DENSITY                  = 星云密度
-option.NEBULA_DENSITY.comment          = 调节星云密度，更大的数值使星云密度更高. 
-option.NEBULA_BRIGHTNESS               = 星云亮度
-option.NEBULA_BRIGHTNESS.comment       = 调节星云亮度，更大的数值使星云更加耀眼. 
-option.NEBULA_MOVEMENT_SPEED           = 星云移动速度
-option.NEBULA_MOVEMENT_SPEED.comment   = 调节星云移动速度，更大的数值使星云移动速度增加. 
-
+option.ATMOSPHERE_RAIN_DESATURATION                   = 大气雨天去饱和
+option.ATMOSPHERE_RAIN_DESATURATION.comment           = 在下雨时降低大气饱和度，使雨天看起来更冷
+option.ATMOSPHERE_RAIN_DESATURATION_INTENSITY         = 去饱和强度
+option.ATMOSPHERE_RAIN_DESATURATION_INTENSITY.comment = 调整大气雨天去饱和的强度
 
 # Nebula Colors
-option.NEBULA_COLOR1_R = 星云颜色 1 红色
-option.NEBULA_COLOR1_G = 星云颜色 1 绿色
-option.NEBULA_COLOR1_B = 星云颜色 1 蓝色
+option.NEBULA_COLOR_1_R = §c☁§r 星云颜色 1 红色
+option.NEBULA_COLOR_1_G = §a☁§r 星云颜色 1 绿色
+option.NEBULA_COLOR_1_B = §1☁§r 星云颜色 1 蓝色
 
-option.NEBULA_COLOR2_R = 星云颜色 2 红色
-option.NEBULA_COLOR2_G = 星云颜色 2 绿色
-option.NEBULA_COLOR2_B = 星云颜色 2 蓝色
+option.NEBULA_COLOR_2_R = §c☁§r 星云颜色 2 红色
+option.NEBULA_COLOR_2_G = §a☁§r 星云颜色 2 绿色
+option.NEBULA_COLOR_2_B = §1☁§r 星云颜色 2 蓝色
 
-option.NEBULA_COLOR3_R = 星云颜色 3 红色
-option.NEBULA_COLOR3_G = 星云颜色 3 绿色
-option.NEBULA_COLOR3_B = 星云颜色 3 蓝色
+option.NEBULA_COLOR_3_R = §c☁§r 星云颜色 3 红色
+option.NEBULA_COLOR_3_G = §a☁§r 星云颜色 3 绿色
+option.NEBULA_COLOR_3_B = §1☁§r 星云颜色 3 蓝色
 
 # Galaxy
 option.GALAXY                          = 银河
 option.GALAXY.comment                  = 夜空中的银河图像
+option.GALAXY_GAMS                     = §b🌌§r GAMS 银河
+option.GALAXY_GAMS.comment             = [开] 使用老版本 GAMS 的银河图像和代码\n[关] 使用 Photon 原版的银河图像和代码\n
+option.GALAXY_ROTATION                 = §b🌌§r 银河旋转
+option.GALAXY_ROTATION.comment         = 需要开启阴影贴图，旋转方式与日月相同
 option.GALAXY_INTENSITY                = 银河亮度
 option.GALAXY_INTENSITY.comment        = 控制夜空中银河的亮度
 screen.galaxy_color                    = §b🌌§r 银河颜色
@@ -486,7 +521,6 @@ option.END_SUN_EFFECT                  = 末地日轮
 option.BLUE_SKY_DARKENING              = 蓝天加深
 option.BLUE_SKY_DARKENING.comment      = 调整天空变为更深蓝色的程度，不影响整体光照和阴影.\n1.0 是默认天空颜色
 
-
 # Clouds
 option.CLOUDS_CUMULUS                        = 积云
 option.CLOUDS_CUMULUS.comment                = 低层体积云，类似于积云
@@ -509,6 +543,58 @@ suffix.CLOUDS_CUMULUS_WIND_ANGLE             = °
 option.CLOUDS_CUMULUS_PRECOMPUTE_LOCAL_COVERAGE = 预计算局部覆盖率
 option.CLOUDS_CUMULUS_PRECOMPUTE_LOCAL_COVERAGE.comment = 对积云进行激进优化. 减少云可以绘制的最大距离, 并且当镜头移动时云层形状会发生变化, 因而产生更多伪影. 如果想在云层之上拍截图的需求, 请禁用本选项.
 
+option.CLOUDS_TOWERING_CUMULUS                    = 塔状积云
+option.CLOUDS_TOWERING_CUMULUS.comment            = 高耸的、垂直发展的体积云
+option.CLOUDS_TOWERING_CUMULUS_PRIMARY_STEPS_H    = 初步采样数 - 地平线
+option.CLOUDS_TOWERING_CUMULUS_PRIMARY_STEPS_Z    = 初步采样数 - 天顶
+option.CLOUDS_TOWERING_CUMULUS_LIGHTING_STEPS     = 照明采样数
+option.CLOUDS_TOWERING_CUMULUS_AMBIENT_STEPS      = 环境光采样数
+option.CLOUDS_TOWERING_CUMULUS_ALTITUDE           = 高度
+suffix.CLOUDS_TOWERING_CUMULUS_ALTITUDE           = m
+option.CLOUDS_TOWERING_CUMULUS_THICKNESS          = 厚度
+option.CLOUDS_TOWERING_CUMULUS_DENSITY            = 浓度
+option.CLOUDS_TOWERING_CUMULUS_COVERAGE           = 覆盖率
+option.CLOUDS_TOWERING_CUMULUS_SIZE               = 尺寸
+option.CLOUDS_TOWERING_CUMULUS_DETAIL_STRENGTH    = 细节强度
+option.CLOUDS_TOWERING_CUMULUS_CURL_STRENGTH      = 卷曲强度
+option.CLOUDS_TOWERING_CUMULUS_WIND_SPEED         = 风速
+suffix.CLOUDS_TOWERING_CUMULUS_WIND_SPEED         = m/s
+option.CLOUDS_TOWERING_CUMULUS_WIND_ANGLE         = 风向角
+suffix.CLOUDS_TOWERING_CUMULUS_WIND_ANGLE         = °
+option.CLOUDS_TOWERING_CUMULUS_MIN                = 最小塔状积云覆盖率
+option.CLOUDS_TOWERING_CUMULUS_MAX                = 最大塔状积云覆盖率
+
+option.CLOUDS_THUNDERHEAD                         = 雷暴云
+option.CLOUDS_THUNDERHEAD.comment                 = 带有砧状云顶的大型风暴云
+option.CLOUDS_THUNDERHEAD_PRIMARY_STEPS_H         = 初步采样数 - 地平线
+option.CLOUDS_THUNDERHEAD_PRIMARY_STEPS_Z         = 初步采样数 - 天顶
+option.CLOUDS_THUNDERHEAD_LIGHTING_STEPS          = 照明采样数
+option.CLOUDS_THUNDERHEAD_AMBIENT_STEPS           = 环境光采样数
+option.CLOUDS_THUNDERHEAD_ALTITUDE                = 高度
+suffix.CLOUDS_THUNDERHEAD_ALTITUDE                = m
+option.CLOUDS_THUNDERHEAD_THICKNESS               = 厚度
+option.CLOUDS_THUNDERHEAD_DENSITY                 = 浓度
+option.CLOUDS_THUNDERHEAD_COVERAGE                = 覆盖率
+option.CLOUDS_THUNDERHEAD_SIZE                    = 尺寸
+option.CLOUDS_THUNDERHEAD_DETAIL_STRENGTH         = 细节强度
+option.CLOUDS_THUNDERHEAD_CURL_STRENGTH           = 卷曲强度
+option.CLOUDS_THUNDERHEAD_WIND_SPEED              = 风速
+suffix.CLOUDS_THUNDERHEAD_WIND_SPEED              = m/s
+option.CLOUDS_THUNDERHEAD_WIND_ANGLE              = 风向角
+suffix.CLOUDS_THUNDERHEAD_WIND_ANGLE              = °
+option.CLOUDS_THUNDERHEAD_MIN                     = 最小雷暴云覆盖率
+option.CLOUDS_THUNDERHEAD_MAX                     = 最大雷暴云覆盖率
+option.CLOUDS_THUNDERHEAD_STORM_FULL_COVERAGE     = 雷暴云降雨覆盖率
+option.CLOUDS_THUNDERHEAD_STORM_FULL_COVERAGE.comment = 启用后，雷暴云将覆盖整个天空，并使其看起来更加阴暗压抑，建议与雷暴云闪电闪烁效果一同启用。
+option.CLOUDS_THUNDERHEAD_LIGHTNING_ENABLE          = 闪电
+option.CLOUDS_THUNDERHEAD_LIGHTNING_FREQUENCY       = 闪电频率
+option.CLOUDS_THUNDERHEAD_LIGHTNING_INTENSITY       = 闪电强度
+option.CLOUDS_THUNDERHEAD_LIGHTNING_COLOR_R         = 闪电颜色 - 红
+option.CLOUDS_THUNDERHEAD_LIGHTNING_COLOR_G         = 闪电颜色 - 绿
+option.CLOUDS_THUNDERHEAD_LIGHTNING_COLOR_B         = 闪电颜色 - 蓝
+
+option.CLOUDS_CUMULUS_PRECOMPUTE_LOCAL_COVERAGE         = 预计算局部覆盖率
+option.CLOUDS_CUMULUS_PRECOMPUTE_LOCAL_COVERAGE.comment = 对积云进行激进优化。减少云可以绘制的最大距离，并且当镜头移动时云层形状会发生变化，因而产生更多伪影。如果想在云层之上拍截图的需求，请禁用本选项。
 option.CLOUDS_ALTOCUMULUS                       = 高积云
 option.CLOUDS_ALTOCUMULUS.comment               = 中层体积云，类似于高积云
 option.CLOUDS_ALTOCUMULUS_PRIMARY_STEPS_H       = 初步采样数 - 地平线
@@ -612,6 +698,8 @@ option.CLOUDS_TEMPORAL_UPSCALING       = 云层时间性升采样
 option.CLOUDS_AERIAL_PERSPECTIVE_BOOST = 空中云层透视增益
 option.CLOUDS_SCALE                    = 云层缩放
 option.CLOUDS_SCALE.comment            = 对所有云层进行缩放, 以调整云层大小和高度, 使其在游戏中更易于接触. 如果这个值是1.0, 云层将按照现实高度分布, 默认第一层在800个方块的高度. 如果这个值更高, 云层将显得更小, 更贴近地面. 这也会影响云影的大小
+option.CLOUDS_LAYER_SHADOWING          = 云层分层阴影
+option.CLOUDS_LAYER_SHADOWING.comment  = 高性能影响，高积云、塔状积云、雷暴云之间可以分层投射阴影
 suffix.CLOUDS_SCALE                    = ×
 value.CLOUDS_TEMPORAL_UPSCALING.1      = 关闭
 value.CLOUDS_TEMPORAL_UPSCALING.2      = 4×
@@ -817,11 +905,12 @@ option.BLOOMY_FOG_INTENSITY.comment    = 调节泛光雾的强度
 option.OVERWORLD_FOG_INTENSITY         = 主世界雾气强度
 option.NETHER_FOG_INTENSITY            = §c🔥§r 下界雾气强度
 option.NETHER_FOG_INTENSITY.comment    = 简单的远距离雾气
+option.NETHER_INDIRECT_BRIGHTNESS        = 间接光照亮度
 option.NETHER_VOLUMETRIC_STYLE           = §c🔥§r 体积雾风格
-option.NETHER_VOLUMETRIC_STYLE.comment   = \n关闭：无体积雾\n雾：浓厚的体积雾\n烟：烟雾缭绕
 value.NETHER_VOLUMETRIC_STYLE.NETHER_VOLUMETRIC_OFF      = §c关闭
-value.NETHER_VOLUMETRIC_STYLE.NETHER_VOLUMETRIC_FOG      = 粗雾
-value.NETHER_VOLUMETRIC_STYLE.NETHER_VOLUMETRIC_SMOKE    = 细烟
+value.NETHER_VOLUMETRIC_STYLE.NETHER_VOLUMETRIC_FOG      = 浓雾
+value.NETHER_VOLUMETRIC_STYLE.NETHER_VOLUMETRIC_SMOKE    = 烟雾
+value.NETHER_VOLUMETRIC_STYLE.NETHER_VOLUMETRIC_WHISPS   = 缕烟
 option.NETHER_VL_FOG_DENSITY          = §c🔥§r 雾气强度
 option.NETHER_VL_FOG_SPEED            = §c🔥§r 雾气风速
 option.NETHER_VL_FOG_SCALE            = §c🔥§r 雾气图案尺寸
@@ -832,8 +921,6 @@ option.NETHER_LAVA_CRUST_ANIMATION.comment = 开启时，斑块图案会随时�
 option.NETHER_LAVA_CRUST_SCALE         = §c🔥§r 熔岩斑块尺寸
 option.NETHER_LAVA_CRUST_ANIM_SPEED    = §c🔥§r 熔岩斑块运动速度
 option.NETHER_LAVA_CRUST_ANIM_SPEED.comment = 斑块图案在熔岩上漂移的速度.0表示静态地壳
-option.LAVA_FOG_INTENSITY               = §c🔥§r 熔岩雾强度
-option.LAVA_FOG_INTENSITY.comment       = 控制熔岩雾的强度.\n必须启用彩色光源和彩色光源雾气散射
 option.NETHER_BIOME_BLUE_LAVA           = §1🔥§r 群系蓝色熔岩
 option.NETHER_BIOME_BLUE_LAVA.comment  = 开启时，诡异森林、灵魂沙峡谷和玄武岩三角洲的熔岩颜色将变为青蓝色
 option.END_STORM_VOLUMETRIC_FOG         = §5🌫§r 末地风暴雾
@@ -1083,6 +1170,10 @@ option.WATER_DISPLACEMENT              = 水面置换式波浪
 option.WATER_DISPLACEMENT.comment      = 类似于树叶摇晃的工作方式, 它使水体本身的几何形状轻微摇晃, 可使水体边缘不那么扁平
 option.WATER_WAVES_HEIGHT_VARIATION    = 水波高度变化
 comment.WATER_WAVES_HEIGHT_VARIATION   = 水波高度在空间上变化
+option.WATER_RIPPLES                   = 雨地涟漪
+option.WATER_RIPPLE_SIZE               = 涟漪大小
+option.WATER_RIPPLE_SPREAD             = 涟漪扩散
+option.WATER_RIPPLE_SPEED              = 涟漪速度
 
 option.WATER_ABSORPTION_R              = 红色吸收
 option.WATER_ABSORPTION_G              = 绿色吸收
@@ -1095,6 +1186,15 @@ option.WATER_ABSORPTION_B_UNDERWATER   = 蓝色吸收 - 水下
 option.WATER_SCATTERING_UNDERWATER     = 水体散射 - 水下
 
 suffix.WATER_WAVE_ANGLE                = °
+
+option.WATER_TRAIL                      = 水面尾迹
+option.WATER_TRAIL.comment              = 当玩家在水中或靠近水边行走时，会在周围水面产生连续的涟漪。第一人称和第三人称均可用。需要 Iris 自定义 uniform
+option.WATER_TRAIL_STRENGTH             = 尾迹强度
+option.WATER_TRAIL_STRENGTH.comment     = 控制水面尾迹涟漪效果的强度
+option.WATER_TRAIL_MAX_DISTANCE         = 尾迹最大距离
+option.WATER_TRAIL_MAX_DISTANCE.comment = 涟漪能够从玩家向外扩散的最大距离
+option.WATER_TRAIL_SPEED                = 涟漪速度
+option.WATER_TRAIL_SPEED.comment        = 同心涟漪向外扩散动画的快慢
 
 # Post-processing settings
 
@@ -1118,7 +1218,7 @@ option.LF_CLOSERING                    = 环状彩虹光晕
 option.LF_CLOSERING.comment            = 太阳/月亮中心的彩虹环
 option.LF_CENTER_STRIP                 = 中心变形镜头光晕
 option.LF_CENTER_STRIP.comment         = 太阳/月亮中心的长条形光晕
-option.LF_XCROSS_STRIP                 = 中心X形交叉光晕
+option.LF_STARBURST                    = 中心星芒
 option.LF_EDGE_STRIP                   = 屏幕边缘蓝色变形镜头光晕
 option.LF_EDGE_STRIP.comment           = 位于屏幕边缘的2个蓝色长条形光晕
 option.LF_GLOWDOTS                     = 荧光点
@@ -1133,6 +1233,7 @@ option.LF_SUN_RADIUS_SCALE             = 遮挡检测半径
 option.LF_SUN_RADIUS_SCALE.comment     = 调节遮挡检测的半径，更大的值需要更多的采样数量以获得平滑的效果
 
 option.LENS_DIRT                       = §7🕸§r 镜头污渍
+option.LENS_DIRT.comment               = 需要Iris版本大于等于1.10.5
 option.LENS_DIRT_BLOOM_INTENSITY       = 泛光影响污渍强度
 option.LENS_DIRT_LENS_FLARE_INTENSITY  = 镜头光晕影响污渍强度
 
@@ -1148,6 +1249,11 @@ option.BLOOM                           = 泛光
 option.BLOOM.comment                   = 明亮区域和光源周围的柔和泛光效果
 option.BLOOM_INTENSITY                 = 泛光强度
 option.BLOOM_INTENSITY.comment         = 调节泛光效果影响最终图像的强度
+option.BLOOM_SPREAD                    = 泛光范围
+option.BLOOM_SPREAD.comment            = 调节泛光的范围
+option.BLOOM_UPSAMPLING_FILTER         = 泛光升采样过滤器
+value.BLOOM_UPSAMPLING_FILTER.texture  = 双线性插值
+value.BLOOM_UPSAMPLING_FILTER.bicubic_filter = 双三次插值
 
 option.SPREADING_FROST                 = §b❄§r 冰霜扩散
 option.SPREADING_FROST.comment         = 进入寒冷群系时，冰霜扩散到屏幕四周形成冻结暗角

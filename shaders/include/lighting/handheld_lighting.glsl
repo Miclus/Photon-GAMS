@@ -17,15 +17,21 @@ uniform int heldBlockLightValue2;
 vec3 get_handheld_light_color(int held_item_id, int held_item_light_value) {
 #ifdef COLORED_LIGHTS
 
-    bool is_emitter = 10032 <= held_item_id && held_item_id < 10332;
+    bool is_emitter = 10031 <= held_item_id && held_item_id < 10332;
 
     if (is_emitter) {
-        return texelFetch(
-                   light_data_sampler,
-                   ivec2(int(held_item_id) - 10032, 0),
-                   0
+        vec3 color = texelFetch(
+                    light_data_sampler,
+                    ivec2(int(held_item_id) - 10032, 0),
+                    0
         )
             .rgb;
+
+        if (held_item_id == 10032) {
+            color *= 0.35; // dim sea lantern 
+        }
+
+        return color;
     } else {
 #ifdef COLORED_LIGHTS_FALLBACK
         return (blocklight_color * blocklight_scale * rcp(15.0))

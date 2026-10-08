@@ -263,14 +263,14 @@ Material material_from(
                         if (material_mask == 6u) { // 6
 #ifdef HARDCODED_SPECULAR
                             // Grass, stone, spruce and dark oak planks
-                            float smoothness
-                                = 0.4 * smoothstep(0.01, 0.7, hsl.z);
-                            material.roughness = sqr(1.0 - smoothness);
-                            material.f0 = vec3(0.02);
+                            //float smoothness
+                            //    = 0.4 * smoothstep(0.01, 0.7, hsl.z);
+                            //material.roughness = sqr(1.0 - smoothness);
+                            //material.f0 = vec3(0.02);
 #endif
 
 #ifdef HARDCODED_POROSITY
-                            material.porosity = 0.2;
+                            //material.porosity = 0.2;
 #endif
                         } else { // 7
 // Sand
@@ -282,7 +282,7 @@ Material material_from(
 #endif
 
 #ifdef HARDCODED_POROSITY
-                            material.porosity = 1.35;
+                            material.porosity = 0.05;
 #endif
                         }
                     }
@@ -384,7 +384,7 @@ Material material_from(
                             material.f0 = vec3(0.02);
 #endif
 #ifdef HARDCODED_POROSITY
-                            material.porosity = 1.5;
+                            material.porosity = 0.05;
 #endif
                         } else { // 15
 #ifdef HARDCODED_SSS
@@ -398,7 +398,7 @@ Material material_from(
                             material.f0 = vec3(0.02);
 #endif
 #ifdef HARDCODED_POROSITY
-                            material.porosity = 1.25;
+                            material.porosity = 0.05;
 #endif
                         }
                     }
@@ -1024,7 +1024,7 @@ Material material_from(
                             // material.emission = vec3(0.75) * 1.5 *
                             // isolate_hue(hsl, 325.0, 36.7) + 2.5 * albedo_sqrt
                             // * pow4(hsl.z) * step(0.53, hsl.z);
-                            material.emission = vec3(material.albedo);
+                            material.emission = vec3(0.75) * isolate_hue(hsl, 310, 50);
 #endif
 #ifdef HARDCODED_SPECULAR
                             float smoothness

@@ -1,6 +1,5 @@
-vec3 screenspace_vl(sampler2D depthtex0, vec2 lightPos, vec2 uv, vec3 light_color, float dither) {
-    vec2 delta_to_sun = lightPos - uv;
-
+vec3 screenspace_vl(sampler2D depthtex0, vec3 light_color, float dither) {
+    vec2 delta_to_sun = light_pos - uv;
     float dist_to_sun = length(delta_to_sun * vec2(aspectRatio, 1.0));
 
     if (dist_to_sun > SSVL_FADE_RADIUS) {
@@ -21,7 +20,7 @@ vec3 screenspace_vl(sampler2D depthtex0, vec2 lightPos, vec2 uv, vec3 light_colo
             break;
         }
 
-        vec2 coord_from_light = sample_uv - lightPos;
+        vec2 coord_from_light = sample_uv - light_pos;
         vec2 polar_coord = cartesian_to_polar(coord_from_light);
         float angle = polar_coord.y;
         float dist = polar_coord.x;

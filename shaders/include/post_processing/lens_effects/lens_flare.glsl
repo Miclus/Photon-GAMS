@@ -118,34 +118,6 @@ vec3 draw_anamorphic_center(
     return flare_color(flare, color, 1.0);
 }
 
-/*// X cross flare
-vec3 draw_xcross_flare(
-    
-    vec2 scale, float pow_exp, float fill, float flare_pow,
-    float multR, float multG, float multB
-) {
-    vec2 rel_uv = uv - light_pos;
-    float angle1 = pi / 3.5;
-    float c1 = cos(angle1); float s1 = sin(angle1);
-    vec2 rot1 = vec2(rel_uv.x * c1 - rel_uv.y * s1, rel_uv.x * s1 + rel_uv.y * c1);
-
-    float angle2 = -pi / 3.5;
-    float c2 = cos(angle2); float s2 = sin(angle2);
-    vec2 rot2 = vec2(rel_uv.x * c2 - rel_uv.y * s2, rel_uv.x * s2 + rel_uv.y * c2);
-
-    float flare1 = draw_anamorphic_center(
-        rot1 + light_pos, light_pos,
-        scale, pow_exp, fill, flare_pow, 1.0, 1.0, 1.0
-    ).r;
-    
-    float flare2 = draw_anamorphic_center(
-        rot2 + light_pos, light_pos,
-        scale, pow_exp, fill, flare_pow, 1.0, 1.0, 1.0
-    ).r;
-
-    return vec3(flare1 + flare2) * vec3(multR, multG, multB);
-}//*/
-
 // Mid orange sweep
 vec3 draw_mid_orange_sweep(
      
@@ -173,7 +145,6 @@ vec3 draw_mid_orange_sweep(
 
 // Anamorphic lens edge
 vec3 draw_anamorphic_edge(
-     
     vec2 scale, float pow_val, float fill, vec2 offset, float pow_exp,
     float sunmask, float edge_mask_x, vec3 color
 ) {
@@ -212,7 +183,6 @@ vec3 draw_small_sweep(
 
 // Pointy fuzzy glow dots
 vec3 draw_glow_dots(
-     
     float scale, float pow_val, float fill, float offset, float pow_exp, float sunmask, vec3 color) {
     vec2 flare_scale = vec2(scale * aspectRatio, scale);
     vec2 flare_pos = get_ghost_pos(offset, flare_scale);
@@ -268,7 +238,7 @@ void lens_flare(inout vec3 scene_color) {
                 float cloud_visibility = 1.0;
                 #if defined CLOUDS_CUMULUS || defined CLOUDS_CUMULUS_CONGESTUS || defined CLOUDS_CUMULONIMBUS || defined CLOUDS_ALTOCUMULUS || defined CLOUDS_TOWERING_CUMULUS || defined CLOUDS_THUNDERHEAD || defined CLOUDS_CIRRUS || defined CLOUDS_NOCTILUCENT
                     if (terrain_visibility > 0.5) {
-                        float cloud_sample = texture(colortex11, checkcoord).g;
+                        float cloud_sample = texture(colortex11, checkcoord).r;
                         cloud_visibility = step(cloud_sample, eps);
                     }
                 #endif
@@ -281,11 +251,11 @@ void lens_flare(inout vec3 scene_color) {
     float sunmask = total_occlusion * cloud_occlusion * edge_mask * float(isEyeInWater <= 0.1 && blindness == 0.0) * (1.0 - rainStrength);
 
     // Determine if it's sun or moon rendering
-    bool is_moon = sun_vec.z > 0.0;
+    bool is_moon = view_sun_dir.z > 0.0;
 
     #ifdef LF_MOONPHASE
         if (is_moon) { // Moon phase influence
-            sunmask *= (moon_phase_brightness * 2.0 - 1.0);
+            sunmask *= (moon_phase_brightness * 2.0 - 1.0); // remap to 0-1
         }
     #endif
 
@@ -298,8 +268,8 @@ void lens_flare(inout vec3 scene_color) {
             center_mask = pow(center_mask, 1.0);
             center_mask *= sunmask;
 
-        float perceived_luminance = get_luminance(scene_color);
-        float inverse_response = 1.0 - smoothstep(0.1, 0.9, perceived_luminance);
+        float luminance = get_luminance(scene_color);
+        float inverse_response = 1.0 - smoothstep(0.1, 0.9, luminance);
             inverse_response = sqrt(inverse_response) * 2.2;
 
         vec3 lens_color = vec3(1.0); // Flare color
@@ -308,36 +278,30 @@ void lens_flare(inout vec3 scene_color) {
         float moon_visibility = clamp(SoU + 0.125, 0.0, 0.125) / 0.125;
         float sun_visibility = 1.0 - moon_visibility;
 
-        #if LENS_FLARE_MODE == 2 // Sun and moon
-            if (is_moon) {
-                lens_color = get_luminance(lens_color) * vec3(0.02, 0.05, 0.1);
-                float lum = get_luminance(lens_color);
-                lens_color = mix(lens_color, vec3(lum), 0.75); // 75% desaturation
-                lens_color *= sun_visibility;
-            } else {
-                lens_color = normalize(sqrt(scene_color)) * inverse_response;
-                lens_color *= moon_visibility;
-            }
-        #else // Sun only
-            if (is_moon) {
-                lens_color = vec3(0.0);
-            } else {
-                lens_color = normalize(sqrt(scene_color)) * inverse_response;
-                lens_color *= moon_visibility;
-            }
-        #endif
+        if (is_moon) {
+            #if LENS_FLARE_MODE == 2 // Sun and moon
+                lens_color *= 0.5 * sun_visibility;
+            #else // Sun only
+                lens_color *= vec3(0.0);
+            #endif
+        } else {
+            lens_color = normalize(sqrt(scene_color)) * inverse_response;
+            lens_color *= moon_visibility;
+        }
 
         #ifdef WORLD_END
             lens_color = get_luminance(lens_color) * vec3(0.4, 0.2, 1.0);
         #endif
 
-        lens_color *= vec3(1.0 - center_mask);
-        lens_color *= LENS_FLARE_INTENSITY * 0.25;
+        lens_color *= vec3(1.0 - center_mask) * light_color * 0.05 * LENS_FLARE_INTENSITY;
 
-        #ifdef LENS_DIRT
-            ivec2 dirt_texel = ivec2(texel * 0.5);
-            vec3 lens_dirt = texelFetch(colortex17, dirt_texel, 0).rgb * 1.5;
-            lens_color += lens_dirt * LENS_DIRT_LENS_FLARE_INTENSITY;
+        #if IRIS_VERSION >= 11005 && defined LENS_DIRT
+            //ivec2 dirt_texel = ivec2(texel * 0.5);
+            //vec3 lens_dirt = texelFetch(colortex17, dirt_texel, 0).rgb * 1.5;
+            vec3 lens_dirt = texture(colortex17, uv).rgb * 1.5;
+            if (!is_moon) {
+                lens_color += lens_dirt * LENS_DIRT_LENS_FLARE_INTENSITY;
+            }
         #endif
 
         // Adjust global flare settings
@@ -530,64 +494,44 @@ void lens_flare(inout vec3 scene_color) {
             vec2(0.5 * flare_scale_global, 15.0 * flare_scale_global), 1.6, 2.0, 0.25, vec3(1.0));
 
         #ifdef WORLD_END
-            scene_color.r += strip_1.r * 0.4 * sun_visibility * sunmask;
-            scene_color.g += strip_1.g * 0.2 * sun_visibility * sunmask;
-            scene_color.b += strip_1.b * 0.3 * sun_visibility * sunmask;
+            scene_color += strip_1 * 0.4 * sun_visibility * vec3(0.4, 0.2, 0.3) * sunmask;
         #endif
 
-        #if !defined WORLD_END && LENS_FLARE_MODE == 2
+        #if defined WORLD_OVERWORLD
             if (is_moon) {
-                scene_color.r += strip_1.r * 0.12 * sun_visibility * sunmask;
-                scene_color.g += strip_1.g * 0.2 * sun_visibility * sunmask;
-                scene_color.b += strip_1.b * 0.25 * sun_visibility * sunmask;
+                #if LENS_FLARE_MODE == 2 // sun and moon
+                    scene_color += strip_1 * 0.02 * sun_visibility * vec3(0.5, 0.8, 1.0) * sunmask;
+                #endif
             } else {
-                scene_color.r += strip_1.r * 0.4 * moon_visibility * sunmask;
-                scene_color.g += strip_1.g * 0.35 * moon_visibility * sunmask;
-                scene_color.b += strip_1.b * 0.2 * moon_visibility * sunmask;
-        }
-        #else
-            if (is_moon) {
-        } else {
-                scene_color.r += strip_1.r * 0.4 * moon_visibility * sunmask;
-                scene_color.g += strip_1.g * 0.35 * moon_visibility * sunmask;
-                scene_color.b += strip_1.b * 0.2 * moon_visibility * sunmask;
+                scene_color += strip_1 * 0.4 * moon_visibility * vec3(0.4, 0.35, 0.2) * sunmask;
         }
         #endif
-        #endif
+        #endif // #ifdef LF_CENTER_STRIP
 
-        /*//
-        #ifdef LF_XCROSS_STRIP
-        // X cross flare
-        vec3 x_cross = draw_xcross_flare(
-            vec2(1.2 * flare_scale_global, 25.0 * flare_scale_global),
-            2.4, 2.0, 0.25, vec3(1.0));
+        #ifdef LF_STARBURST
+        // Starburst
+        #if defined WORLD_OVERWORLD // sun and moon
+            vec2 coord_from_light = uv - light_pos;
+            vec2 polar_coord = cartesian_to_polar(coord_from_light);
+            float noise_angle = polar_coord.y;
+            float noise_dist = polar_coord.x;
 
-        #ifdef WORLD_END
-            scene_color.r += x_cross.r * 0.4 * sunmask;
-            scene_color.g += x_cross.g * 0.2 * sunmask;
-            scene_color.b += x_cross.b * 0.3 * sunmask;
-        #endif
+            vec2 checkcoord = vec2(noise_angle / tau, noise_dist * 0.0);
+            float noise_coord = texture(noisetex, checkcoord).r;
 
-        #if LENS_FLARE_MODE == 2
             if (is_moon) {
-                scene_color.r += x_cross.r * 0.12 * sun_visibility * sunmask;
-                scene_color.g += x_cross.g * 0.2 * sun_visibility * sunmask;
-                scene_color.b += x_cross.b * 0.25 * sun_visibility * sunmask;
+                #if LENS_FLARE_MODE == 2 // sun and moon
+                    scene_color += draw_anamorphic_center(
+                        vec2(1.5 * flare_scale_global, 1.0 * flare_scale_global), 3.2, 2.0, 0.25,
+                        vec3(0.12, 0.2, 0.25)) * noise_coord * sunmask;
+                #endif
             } else {
-                scene_color.r += x_cross.r * 0.4 * moon_visibility * sunmask;
-                scene_color.g += x_cross.g * 0.35 * moon_visibility * sunmask;
-                scene_color.b += x_cross.b * 0.2 * moon_visibility * sunmask;
-        }
-        #else
-            if (is_moon) {
-            } else {
-                scene_color.r += x_cross.r * 0.4 * moon_visibility * sunmask;
-                scene_color.g += x_cross.g * 0.35 * moon_visibility * sunmask;
-                scene_color.b += x_cross.b * 0.2 * moon_visibility * sunmask;
-        }
+                scene_color += draw_anamorphic_center(
+                    vec2(1.5 * flare_scale_global, 1.0 * flare_scale_global), 1.6, 2.0, 0.25,
+                    vec3(0.8, 0.7, 0.4)) * noise_coord * sunmask;
+            }
         #endif
         #endif
-        //*/
 
         // Mid orange sweep
         scene_color += draw_mid_orange_sweep(

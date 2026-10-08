@@ -204,28 +204,29 @@ void main() {
     bool is_hand;
     fix_hand_depth(depth, is_hand);
 
-    // --------------------------------
+    // -----------------------------------------
     //   combined depth buffer for LoD terrain
-    // --------------------------------
+    // -----------------------------------------
 
 #ifdef LOD_MOD_ACTIVE
     // Check for LoD terrain
-    float depth_lod = texelFetch(lod_depth_tex, dst_texel, 0).x;
+    float depth_lod = texelFetch(lod_depth_tex_shading, dst_texel, 0).x;
     bool is_lod = is_lod_terrain(depth, depth_lod);
 
     float depth_linear
         = screen_to_view_space_depth(gbufferProjectionInverse, depth);
-    float depth_linear_lod
+    float depth_linear_dh
         = screen_to_view_space_depth(lod_projection_matrix_inverse, depth_lod);
 
     combined_depth = is_lod
         ? view_to_screen_space_depth(
               combined_projection_matrix,
-              depth_linear_lod
+              depth_linear_dh
           )
         : view_to_screen_space_depth(combined_projection_matrix, depth_linear);
 
     if (depth >= 1.0 && !is_lod) {
+        // Sky
         combined_depth = 1.0;
     } else if (is_hand) {
         // 0 signals hand
